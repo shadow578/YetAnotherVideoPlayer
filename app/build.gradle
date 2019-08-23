@@ -7,8 +7,9 @@ android {
         applicationId "de.shadow578.yetanothervideoplayer"
         minSdkVersion 24
         targetSdkVersion 29
-        versionCode 1
-        versionName "1.0"
+        versionCode gitVersioner.versionCode
+        versionName gitVersioner.versionName
+
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
