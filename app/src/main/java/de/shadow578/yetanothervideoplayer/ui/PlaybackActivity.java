@@ -1,12 +1,21 @@
 package de.shadow578.yetanothervideoplayer.ui;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import de.shadow578.yetanothervideoplayer.R;
+import de.shadow578.yetanothervideoplayer.util.Logging;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Toast;
 
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
@@ -32,61 +41,68 @@ import java.io.File;
 public class PlaybackActivity extends AppCompatActivity
 {
     //~~ Constants, change to shared prefs OR remove later ~~
-    //playback uri, for testing the player
-    final String PLAYBACK_URI = "https://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4";
-
     //auto start player when loading?
     final boolean AUTO_PLAY = true;
-
-    //the apps user agent
-    final String USER_AGENT = "exoplayer-yavp";
     //~~ end~~
+
+    private final int PERMISSION_REQUEST_READ_EXT_STORAGE = 0;
 
     /**
      * The View the Player Renders Video to
      */
-    PlayerView playerView;
+    private PlayerView playerView;
 
     /**
      * The exoplayer instance
      */
-    SimpleExoPlayer player;
+    private SimpleExoPlayer player;
 
     /**
      * Datasource factory of this app
      */
-    DataSource.Factory dataSourceFactory;
+    private DataSource.Factory dataSourceFactory;
 
     /**
      * The cache used to download video data
      */
-    Cache downloadCache;
+    private Cache downloadCache;
 
     /**
      * Database provider for cached files
      */
-    ExoDatabaseProvider databaseProvider;
+    private ExoDatabaseProvider databaseProvider;
+
+    /**
+     * The uri that this activity was created with (retried from intent)
+     */
+    private Uri playbackUri;
 
     /**
      * The current playback position, used for resuming playback
      */
-    long playbackPosition;
+    private long playbackPosition;
 
     /**
      * The index of the currently played window, used for resuming playback
      */
-    int currentPlayWindow;
+    private int currentPlayWindow;
 
     /**
      * Should the player start playing once ready when resuming playback?
      */
-    boolean playWhenReady;
+    private boolean playWhenReady;
+
+    /**
+     * Used when a local file was passed as playback uri and the app currently does not have permisisons
+     */
+    private boolean localFilePermissionPending;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_playback);
+        Logging.logD("onCreate of PlaybackActivity called.");
 
         //initialize cached files database provider
         if (databaseProvider == null)
@@ -101,23 +117,64 @@ public class PlaybackActivity extends AppCompatActivity
             downloadCache = new SimpleCache(downloadContentDir, new NoOpCacheEvictor(), databaseProvider);
         }
 
-        //initialize datasource factory
-        DefaultDataSourceFactory ddsf = new DefaultDataSourceFactory(this, new DefaultHttpDataSourceFactory(USER_AGENT));
+        //initialize data source factory
+        DefaultDataSourceFactory ddsf = new DefaultDataSourceFactory(this, new DefaultHttpDataSourceFactory(getText(R.string.app_user_agent_str).toString()));
         dataSourceFactory = new CacheDataSourceFactory(downloadCache, ddsf, CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR);
 
         //get player view
         playerView = findViewById(R.id.pb_PlayerView);
 
+        //get intent this activity was called with to retrieve playback uri
+        Intent intent = getIntent();
 
+        //get playback uri from intent + log it
+        playbackUri = intent.getData();
+        if (playbackUri == null)
+        {
+            //playback uri is null (invalid), abort and show error
+            Toast.makeText(this, getText(R.string.toast_invalid_playback_uri), Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
+
+        Logging.logD("Received play intent with uri \"%s\".", playbackUri.toString());
+
+        //check if uri is of local file and request read permission if so
+        if (isLocalFileUri(playbackUri))
+        {
+            Logging.logD("Uri \"%s\" seems to be a local file, requesting read permission...", playbackUri.toString());
+
+            //ask for permissions
+            localFilePermissionPending = !checkPermission(Manifest.permission.READ_EXTERNAL_STORAGE, PERMISSION_REQUEST_READ_EXT_STORAGE);
+        }
     }
 
     @Override
     protected void onStart()
     {
         super.onStart();
+        Logging.logD("onStart of PlaybackActivity called.");
+
         if (supportMultiWindow())
         {
-            initPlayer();
+            //initialize player onStart with multi-window support, because
+            //app can be visible but NOT active in split window mode
+            initPlayer(playbackUri);
+        }
+    }
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        Logging.logD("onResume of PlaybackActivity called.");
+
+        hideSysUI();
+        if (!supportMultiWindow() || player == null)
+        {
+            //initialize player onResume without multi-window support (or not yet initialized), because
+            //app cannot be visible without being active...
+            initPlayer(playbackUri);
         }
     }
 
@@ -125,8 +182,12 @@ public class PlaybackActivity extends AppCompatActivity
     protected void onStop()
     {
         super.onStop();
+        Logging.logD("onStop of PlaybackActivity called.");
+
         if (supportMultiWindow())
         {
+            //release player here with multi-window support, because
+            //with multi-window support, the app may be visible when onPause is called.
             freePlayer();
         }
     }
@@ -135,20 +196,53 @@ public class PlaybackActivity extends AppCompatActivity
     protected void onPause()
     {
         super.onPause();
+        Logging.logD("onPause of PlaybackActivity called.");
+
         if (!supportMultiWindow())
         {
+            //release player here because before multi-window support was added,
+            //onStop was not guaranteed to be called
             freePlayer();
         }
     }
 
     @Override
-    protected void onResume()
+    protected void onDestroy()
     {
-        super.onResume();
-        hideSysUI();
-        if (!supportMultiWindow() || player == null)
+        super.onDestroy();
+        Logging.logD("onDestroy of PlaybackActivity called.");
+
+        //app closed, free resources if not happened already
+        freePlayer();
+    }
+
+    @SuppressWarnings("SwitchStatementWithTooFewBranches")
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
+    {
+        Logging.logD("Request Permission Result received for request id %d", requestCode);
+
+        //check if permission request was granted
+        boolean granted = grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED;
+
+        //check which permission request this callback handles
+        switch (requestCode)
         {
-            initPlayer();
+            case PERMISSION_REQUEST_READ_EXT_STORAGE:
+            {
+                if (granted)
+                {
+                    //have permissions now, init player + start playing
+                    localFilePermissionPending = false;
+                    initPlayer(playbackUri);
+                }
+                else
+                {
+                    //permissions denied, show toast + close app
+                    Toast.makeText(this, getText(R.string.toast_no_storage_permissions_granted), Toast.LENGTH_LONG).show();
+                    finish();
+                }
+            }
         }
     }
 
@@ -157,7 +251,8 @@ public class PlaybackActivity extends AppCompatActivity
      *
      * @return does this device support multi- window?
      */
-    boolean supportMultiWindow()
+    @SuppressLint("ObsoleteSdkInt")
+    private boolean supportMultiWindow()
     {
         return Util.SDK_INT > 23;
     }
@@ -165,7 +260,7 @@ public class PlaybackActivity extends AppCompatActivity
     /**
      * Hide System- UI elements
      */
-    void hideSysUI()
+    private void hideSysUI()
     {
         playerView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
                 | View.SYSTEM_UI_FLAG_FULLSCREEN
@@ -176,30 +271,68 @@ public class PlaybackActivity extends AppCompatActivity
     }
 
     /**
-     * Initializes the ExoPlayer to render to the playerView
+     * Check if the uri is a local file
+     *
+     * @param uri the uri to check
+     * @return is the uri a local file?
      */
-    void initPlayer()
+    private boolean isLocalFileUri(Uri uri)
     {
+        return uri.getScheme() != null && (uri.getScheme().equals("content") || uri.getScheme().equals("file"));
+    }
+
+    /**
+     * Check if the app was granted the permission.
+     * If not granted, the permission will be requested and false will be returned.
+     *
+     * @param permission the permission to check
+     * @param requestId  the request id. Used to check in callback
+     * @return was the permission granted?
+     */
+    private boolean checkPermission(@SuppressWarnings("SameParameterValue") String permission, @SuppressWarnings("SameParameterValue") int requestId)
+    {
+        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED)
+        {
+            //does not have permission, ask for it
+            ActivityCompat.requestPermissions(this, new String[]{permission}, requestId);
+            return false;
+        }
+        else
+        {
+            //has permission
+            return true;
+        }
+    }
+
+    /**
+     * Initializes the ExoPlayer to render to the playerView
+     *
+     * @param playbackUri the Uri of the file / stream to play back
+     */
+    private void initPlayer(Uri playbackUri)
+    {
+        //don't do anything if permissions are pending currently
+        if (localFilePermissionPending) return;
+
         //create new simple exoplayer instance
         player = ExoPlayerFactory.newSimpleInstance(this, new DefaultRenderersFactory(this), new DefaultTrackSelector(), new DefaultLoadControl());
 
         //set the view to render to
         playerView.setPlayer(player);
 
-        //needed for playback resumption
-        player.setPlayWhenReady(playWhenReady);
-        player.seekTo(currentPlayWindow, playbackPosition);
-
         //load media from uri
-        Uri playbackUri = Uri.parse(PLAYBACK_URI);
         MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(playbackUri);
         player.prepare(mediaSource, true, false);
+
+        //resume playback where we left off
+        player.setPlayWhenReady(playWhenReady);
+        player.seekTo(currentPlayWindow, playbackPosition);
     }
 
     /**
      * Free resources allocated by the player
      */
-    void freePlayer()
+    private void freePlayer()
     {
         if (player != null)
         {
@@ -211,6 +344,10 @@ public class PlaybackActivity extends AppCompatActivity
             //release + null player
             player.release();
             player = null;
+
+            //release + null cache
+            downloadCache.release();
+            downloadCache = null;
         }
     }
 }

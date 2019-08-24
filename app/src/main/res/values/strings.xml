@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">YetAnotherVideoPlayer</string>
+
+    <!-- Toast Strings -->
+    <string name="toast_no_storage_permissions_granted">No Storage Permissions granted! Permissions are required to play local files.</string>
+    <string name="toast_invalid_playback_uri">Invalid Playback URI!</string>
+
+    <!-- non-translatable -->
+    <string name="app_user_agent_str">exoplayer_v2_yavp</string>
 </resources>
