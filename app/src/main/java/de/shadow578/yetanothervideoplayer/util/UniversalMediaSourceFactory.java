@@ -8,6 +8,7 @@ import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.upstream.cache.Cache;
 import com.google.android.exoplayer2.upstream.cache.CacheDataSource;
@@ -55,8 +56,12 @@ public class UniversalMediaSourceFactory
             downloadCache = new SimpleCache(downloadContentDir, new NoOpCacheEvictor(), databaseProvider);
         }
 
+        //create http data source factory that allows http -> https redirects
+        DefaultHttpDataSourceFactory httpDataSourceFactory = new DefaultHttpDataSourceFactory(userAgent, null,
+                DefaultHttpDataSource.DEFAULT_CONNECT_TIMEOUT_MILLIS, DefaultHttpDataSource.DEFAULT_READ_TIMEOUT_MILLIS, true);
+
         //initialize data source factory
-        DefaultDataSourceFactory ddsf = new DefaultDataSourceFactory(context, new DefaultHttpDataSourceFactory(userAgent));
+        DefaultDataSourceFactory ddsf = new DefaultDataSourceFactory(context, httpDataSourceFactory);
         dataSourceFactory = new CacheDataSourceFactory(downloadCache, ddsf, CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR);
     }
 
@@ -76,9 +81,16 @@ public class UniversalMediaSourceFactory
      */
     public void release()
     {
+        //release cache
         if (downloadCache != null)
         {
             downloadCache.release();
+        }
+
+        //close database connection
+        if (databaseProvider != null)
+        {
+            databaseProvider.close();
         }
     }
 }
