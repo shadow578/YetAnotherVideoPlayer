@@ -7,6 +7,7 @@ import androidx.core.content.ContextCompat;
 
 import de.shadow578.yetanothervideoplayer.R;
 import de.shadow578.yetanothervideoplayer.util.Logging;
+import de.shadow578.yetanothervideoplayer.util.UniversalMediaSourceFactory;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -14,6 +15,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Toast;
 
@@ -58,19 +60,9 @@ public class PlaybackActivity extends AppCompatActivity
     private SimpleExoPlayer player;
 
     /**
-     * Datasource factory of this app
+     * The Factory used to create MediaSources from Uris
      */
-    private DataSource.Factory dataSourceFactory;
-
-    /**
-     * The cache used to download video data
-     */
-    private Cache downloadCache;
-
-    /**
-     * Database provider for cached files
-     */
-    private ExoDatabaseProvider databaseProvider;
+    UniversalMediaSourceFactory mediaSourceFactory;
 
     /**
      * The uri that this activity was created with (retried from intent)
@@ -104,23 +96,6 @@ public class PlaybackActivity extends AppCompatActivity
         setContentView(R.layout.activity_playback);
         Logging.logD("onCreate of PlaybackActivity called.");
 
-        //initialize cached files database provider
-        if (databaseProvider == null)
-        {
-            databaseProvider = new ExoDatabaseProvider(this);
-        }
-
-        //initialize download cache
-        if (downloadCache == null)
-        {
-            File downloadContentDir = new File(getFilesDir(), "downloads");
-            downloadCache = new SimpleCache(downloadContentDir, new NoOpCacheEvictor(), databaseProvider);
-        }
-
-        //initialize data source factory
-        DefaultDataSourceFactory ddsf = new DefaultDataSourceFactory(this, new DefaultHttpDataSourceFactory(getText(R.string.app_user_agent_str).toString()));
-        dataSourceFactory = new CacheDataSourceFactory(downloadCache, ddsf, CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR);
-
         //get player view
         playerView = findViewById(R.id.pb_PlayerView);
 
@@ -137,7 +112,14 @@ public class PlaybackActivity extends AppCompatActivity
             return;
         }
 
+        //intent + intent data (=playback uri) seems ok
         Logging.logD("Received play intent with uri \"%s\".", playbackUri.toString());
+
+        //create media source factory
+        if (mediaSourceFactory == null)
+        {
+            mediaSourceFactory = new UniversalMediaSourceFactory(this, getText(R.string.app_user_agent_str).toString());
+        }
 
         //check if uri is of local file and request read permission if so
         if (isLocalFileUri(playbackUri))
@@ -321,7 +303,7 @@ public class PlaybackActivity extends AppCompatActivity
         playerView.setPlayer(player);
 
         //load media from uri
-        MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(playbackUri);
+        MediaSource mediaSource = mediaSourceFactory.createMediaSource(playbackUri);
         player.prepare(mediaSource, true, false);
 
         //resume playback where we left off
@@ -344,10 +326,13 @@ public class PlaybackActivity extends AppCompatActivity
             //release + null player
             player.release();
             player = null;
+        }
 
-            //release + null cache
-            downloadCache.release();
-            downloadCache = null;
+        //release media source factory
+        if (mediaSourceFactory != null)
+        {
+            mediaSourceFactory.release();
+            mediaSourceFactory = null;
         }
     }
 }
