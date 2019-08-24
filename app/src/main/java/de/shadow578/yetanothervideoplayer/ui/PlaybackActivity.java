@@ -15,30 +15,20 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
+import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
-import com.google.android.exoplayer2.database.ExoDatabaseProvider;
 import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.ui.PlayerView;
-import com.google.android.exoplayer2.upstream.DataSource;
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
-import com.google.android.exoplayer2.upstream.cache.Cache;
-import com.google.android.exoplayer2.upstream.cache.CacheDataSource;
-import com.google.android.exoplayer2.upstream.cache.CacheDataSourceFactory;
-import com.google.android.exoplayer2.upstream.cache.NoOpCacheEvictor;
-import com.google.android.exoplayer2.upstream.cache.SimpleCache;
 import com.google.android.exoplayer2.util.Util;
-
-import java.io.File;
 
 public class PlaybackActivity extends AppCompatActivity
 {
@@ -62,7 +52,12 @@ public class PlaybackActivity extends AppCompatActivity
     /**
      * The Factory used to create MediaSources from Uris
      */
-    UniversalMediaSourceFactory mediaSourceFactory;
+    private UniversalMediaSourceFactory mediaSourceFactory;
+
+    /**
+     * The listener that listens for exoplayer events and updates the ui & logic accordingly
+     */
+    private ExoComponentListener componentListener;
 
     /**
      * The uri that this activity was created with (retried from intent)
@@ -114,12 +109,6 @@ public class PlaybackActivity extends AppCompatActivity
 
         //intent + intent data (=playback uri) seems ok
         Logging.logD("Received play intent with uri \"%s\".", playbackUri.toString());
-
-        //create media source factory
-        if (mediaSourceFactory == null)
-        {
-            mediaSourceFactory = new UniversalMediaSourceFactory(this, getText(R.string.app_user_agent_str).toString());
-        }
 
         //check if uri is of local file and request read permission if so
         if (isLocalFileUri(playbackUri))
@@ -296,8 +285,18 @@ public class PlaybackActivity extends AppCompatActivity
         //don't do anything if permissions are pending currently
         if (localFilePermissionPending) return;
 
+        //create media source factory
+        if (mediaSourceFactory == null)
+        {
+            mediaSourceFactory = new UniversalMediaSourceFactory(this, getText(R.string.app_user_agent_str).toString());
+        }
+
         //create new simple exoplayer instance
         player = ExoPlayerFactory.newSimpleInstance(this, new DefaultRenderersFactory(this), new DefaultTrackSelector(), new DefaultLoadControl());
+
+        //register Event Listener on player
+        componentListener = new ExoComponentListener();
+        player.addListener(componentListener);
 
         //set the view to render to
         playerView.setPlayer(player);
@@ -323,6 +322,9 @@ public class PlaybackActivity extends AppCompatActivity
             currentPlayWindow = player.getCurrentWindowIndex();
             playWhenReady = player.getPlayWhenReady();
 
+            //unregister event listener
+            player.removeListener(componentListener);
+
             //release + null player
             player.release();
             player = null;
@@ -333,6 +335,87 @@ public class PlaybackActivity extends AppCompatActivity
         {
             mediaSourceFactory.release();
             mediaSourceFactory = null;
+        }
+    }
+
+    /**
+     * Forces the screen to stay on if keepOn is true, otherwise clears the KEEP_SCREEN_ON flag
+     *
+     * @param keepOn should the screen stay on?
+     */
+    private void forceScreenOn(boolean keepOn)
+    {
+        if (keepOn)
+        {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
+        else
+        {
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
+    }
+
+    private class ExoComponentListener implements Player.EventListener
+    {
+        @Override
+        public void onLoadingChanged(boolean isLoading)
+        {
+            Logging.logD("isLoading: " + (isLoading ? "True" : "False"));
+        }
+
+        @Override
+        public void onPlayerStateChanged(boolean playWhenReady, int playbackState)
+        {
+            switch (playbackState)
+            {
+                case Player.STATE_IDLE:
+                {
+                    //player stopped or failed
+                    forceScreenOn(false);
+                    Toast.makeText(getApplicationContext(), "STATE_IDLE", Toast.LENGTH_SHORT).show();
+                    break;
+                }
+                case Player.STATE_BUFFERING:
+                {
+                    //media currently buffering
+                    Toast.makeText(getApplicationContext(), "STATE_BUFFERING", Toast.LENGTH_SHORT).show();
+                    break;
+                }
+                case Player.STATE_READY:
+                {
+                    if (playWhenReady)
+                    {
+                        //currently playing back
+                        forceScreenOn(true);
+                        Toast.makeText(getApplicationContext(), "STATE_READY-PLAYING", Toast.LENGTH_SHORT).show();
+                    }
+                    else
+                    {
+                        //ready for playback (paused or not started yet)
+                        forceScreenOn(false);
+                        Toast.makeText(getApplicationContext(), "STATE_READY", Toast.LENGTH_SHORT).show();
+                    }
+                    break;
+                }
+                case Player.STATE_ENDED:
+                {
+                    //media playback ended
+                    Toast.makeText(getApplicationContext(), "STATE_ENDED", Toast.LENGTH_SHORT).show();
+                    break;
+                }
+                default:
+                {
+                    Logging.logW("Received invalid Playback State in onPlayerStateChanged: %d", playbackState);
+                    break;
+                }
+            }
+        }
+
+        @Override
+        public void onPlayerError(ExoPlaybackException error)
+        {
+            Logging.logE("ExoPlayer error occured: %s", error.toString());
+            Toast.makeText(getApplicationContext(), "Internal Error: \r\n" + error.toString(), Toast.LENGTH_LONG).show();
         }
     }
 }
