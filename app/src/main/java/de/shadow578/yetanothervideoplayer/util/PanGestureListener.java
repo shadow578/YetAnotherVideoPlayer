@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.View.OnTouchListener;
 
 @SuppressWarnings("WeakerAccess")
+@Deprecated
 public abstract class PanGestureListener implements OnTouchListener
 {
     /**
@@ -119,7 +120,11 @@ public abstract class PanGestureListener implements OnTouchListener
             float length = (float) Math.sqrt(Math.pow(distanceX, 2) + Math.pow(distanceY, 2));
 
             //check if length is above threshold
-            if (length < lengthThreshold) return false;
+            if (length < lengthThreshold)
+            {
+                Logging.logD("Too short");
+                return false;
+            }
 
             //get start + end position as pointF's
             PointF startPos = new PointF(e1.getX(), e1.getY());
@@ -140,6 +145,7 @@ public abstract class PanGestureListener implements OnTouchListener
                     || endPos.x < ignoreXLow || endPos.x > ignoreXHigh || endPos.y < ignoreYLow || endPos.y > ignoreYHigh)
             {
                 //outside of bounds, discard event
+                Logging.logD("oob");
                 return true;
             }
 
