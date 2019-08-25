@@ -7,6 +7,7 @@ import androidx.core.content.ContextCompat;
 
 import de.shadow578.yetanothervideoplayer.R;
 import de.shadow578.yetanothervideoplayer.util.Logging;
+import de.shadow578.yetanothervideoplayer.util.PanGestureListener;
 import de.shadow578.yetanothervideoplayer.util.UniversalMediaSourceFactory;
 
 import android.Manifest;
@@ -93,6 +94,9 @@ public class PlaybackActivity extends AppCompatActivity
 
         //get player view
         playerView = findViewById(R.id.pb_PlayerView);
+
+        //setup gestures
+        setupGestureControls();
 
         //get intent this activity was called with to retrieve playback uri
         Intent intent = getIntent();
@@ -226,6 +230,55 @@ public class PlaybackActivity extends AppCompatActivity
     private boolean supportMultiWindow()
     {
         return Util.SDK_INT > 23;
+    }
+
+    /**
+     * Setup Volume + Brightness gesture controls
+     */
+    float volume = 1.0f;
+    float brithness = 1.0f;
+
+    private void setupGestureControls()
+    {
+        playerView.setOnTouchListener(new PanGestureListener(this)
+        {
+            @Override
+            public void onPan(PanGestureListener.GestureDirection gestureDirection, PanEventInfo panInfo)
+            {
+                float xNormal = panInfo.startPos.x / panInfo.axisRangeX;
+                Logging.logD("Dir: %s, xNormal: %.2f, lenNormal: %.2f", gestureDirection.toString(), xNormal, panInfo.getTotalLengthNormalized());
+
+                if (gestureDirection == GestureDirection.DOWN || gestureDirection == GestureDirection.UP)
+                {
+                    //up/down pan, check on which side of screen
+                    //volume on right half of screen, brightness on left half of screen
+                    if (xNormal < 0.5)
+                    {
+                        //left side of screen = blitheness
+
+                        brithness += (panInfo.getTotalLengthNormalized() * 1f) * (gestureDirection == GestureDirection.DOWN ? -1 : 1);
+                        //Toast.makeText(getApplicationContext(), "Brithness: " + brithness, Toast.LENGTH_SHORT).show();
+                        Logging.logE("Britghness" + brithness);
+                    }
+                    else
+                    {
+                        //right side of screen = volume
+                        //player.setVolume(player.getVolume() + (panInfo.getTotalLengthNormalized() * 10f));
+                        //Toast.makeText(getApplicationContext(), "Volume: " + player.getVolume(), Toast.LENGTH_SHORT).show();
+
+                        volume += (panInfo.getTotalLengthNormalized() * 1f) * (gestureDirection == GestureDirection.DOWN ? -1 : 1);
+
+                        if (volume < 0.0) volume = 0.0f;
+                        if (volume > 1.0) volume = 1.0f;
+
+                        //Toast.makeText(getApplicationContext(), "Volume: " + volume, Toast.LENGTH_SHORT).show();
+                        Logging.logE("Volume: " + volume);
+
+                        player.setVolume(volume);
+                    }
+                }
+            }
+        });
     }
 
     /**
