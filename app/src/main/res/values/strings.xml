@@ -1,6 +1,11 @@
 <resources>
     <string name="app_name">YetAnotherVideoPlayer</string>
 
+    <!-- Info Texts in PlaybackActivity -->
+    <string name="info_volume_change">Volume: %d%%</string><!-- 1st arg: volume% [0-100] -->
+    <string name="info_brightness_change">Brightness: %s</string><!-- 1st arg: brightness% ["1%"-"100%" + "@strings\info_brightness_auto"] -->
+    <string name="info_brightness_auto">AUTO</string>
+
     <!-- Toast Strings -->
     <string name="toast_no_storage_permissions_granted">No Storage Permissions granted! Permissions are required to play local files.</string>
     <string name="toast_invalid_playback_uri">Invalid Playback URI!</string>

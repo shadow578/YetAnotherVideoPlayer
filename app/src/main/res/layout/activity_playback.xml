@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -9,6 +9,20 @@
     <com.google.android.exoplayer2.ui.PlayerView
         android:id="@+id/pb_PlayerView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent" >
+    </com.google.android.exoplayer2.ui.PlayerView>
 
-</FrameLayout>
+
+    <TextView
+        android:id="@+id/pb_InfoText"
+        android:layout_centerInParent="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="#80000000"
+        android:textColor="#FFFFFF"
+        android:textSize="20sp"
+        android:textAllCaps="true"
+        android:visibility="invisible"
+        android:text="Volume: xxx%"
+        tools:ignore="HardcodedText" />
+</RelativeLayout>

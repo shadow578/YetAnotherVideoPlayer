@@ -7,17 +7,25 @@ import androidx.core.content.ContextCompat;
 
 import de.shadow578.yetanothervideoplayer.R;
 import de.shadow578.yetanothervideoplayer.util.Logging;
-import de.shadow578.yetanothervideoplayer.util.PanGestureListener;
+import de.shadow578.yetanothervideoplayer.util.SwipeGestureListener;
 import de.shadow578.yetanothervideoplayer.util.UniversalMediaSourceFactory;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.PointF;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+import android.util.SizeF;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.exoplayer2.DefaultLoadControl;
@@ -33,17 +41,53 @@ import com.google.android.exoplayer2.util.Util;
 
 public class PlaybackActivity extends AppCompatActivity
 {
-    //~~ Constants, change to shared prefs OR remove later ~~
+    //region ~~ Constants, change to shared prefs OR remove later ~~
     //auto start player when loading?
-    final boolean AUTO_PLAY = true;
-    //~~ end~~
+    private final boolean AUTO_PLAY = true;
 
+    //info text duration for volume and brightness info
+    private final float INFO_TEXT_DURATION_VB = 0.75f;
+
+    //how much to change the screen brightness in one "step"
+    private final float BRIGHTNESS_ADJUST_STEP = 0.01f;
+
+    //settings for SwipeGestureListener (in setupGestures)
+    private final long TOUCH_DECAY_TIME = 1500;
+    private final float SWIPE_THRESHOLD_N = 0.005f;
+    private final float FLING_THRESHOLD_N = 0.01f;
+
+    //endregion
+
+    //region ~~ Constants ~~
+
+    /**
+     * Id of permission request for external storage
+     */
     private final int PERMISSION_REQUEST_READ_EXT_STORAGE = 0;
+
+    /**
+     * Message id to fade out info text
+     */
+    private final int MESSAGE_FADE_OUT_INFO_TEXT = 0;
+
+    //endregion
+
+    //region ~~ Variables ~~
 
     /**
      * The View the Player Renders Video to
      */
     private PlayerView playerView;
+
+    /**
+     * The TextView in the center of the screen, used to show information
+     */
+    private TextView infoTextView;
+
+    /**
+     * The uri that this activity was created with (retried from intent)
+     */
+    private Uri playbackUri;
 
     /**
      * The exoplayer instance
@@ -61,9 +105,9 @@ public class PlaybackActivity extends AppCompatActivity
     private ExoComponentListener componentListener;
 
     /**
-     * The uri that this activity was created with (retried from intent)
+     * The audio manager instance used to adjust media volume by swiping
      */
-    private Uri playbackUri;
+    private AudioManager audioManager;
 
     /**
      * The current playback position, used for resuming playback
@@ -81,9 +125,31 @@ public class PlaybackActivity extends AppCompatActivity
     private boolean playWhenReady;
 
     /**
-     * Used when a local file was passed as playback uri and the app currently does not have permisisons
+     * Used when a local file was passed as playback uri and the app currently does not have permissions
      */
     private boolean localFilePermissionPending;
+
+    /**
+     * Shared handler that can be used to invoke methods and/or functions with a delay,
+     */
+    private final Handler delayHandler = new Handler(Looper.getMainLooper())
+    {
+        @Override
+        @SuppressWarnings("SwitchStatementWithTooFewBranches")
+        public void handleMessage(@NonNull Message msg)
+        {
+            switch (msg.what)
+            {
+                case MESSAGE_FADE_OUT_INFO_TEXT:
+                {
+                    infoTextView.setVisibility(View.INVISIBLE);
+                    break;
+                }
+            }
+        }
+    };
+
+    //endregion
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -95,8 +161,14 @@ public class PlaybackActivity extends AppCompatActivity
         //get player view
         playerView = findViewById(R.id.pb_PlayerView);
 
+        //get info text view
+        infoTextView = findViewById(R.id.pb_InfoText);
+
+        //get audio manager
+        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+
         //setup gestures
-        setupGestureControls();
+        setupGestures();
 
         //get intent this activity was called with to retrieve playback uri
         Intent intent = getIntent();
@@ -123,6 +195,8 @@ public class PlaybackActivity extends AppCompatActivity
             localFilePermissionPending = !checkPermission(Manifest.permission.READ_EXTERNAL_STORAGE, PERMISSION_REQUEST_READ_EXT_STORAGE);
         }
     }
+
+    //region ~~ Application Lifecycle ~~
 
     @Override
     protected void onStart()
@@ -191,6 +265,8 @@ public class PlaybackActivity extends AppCompatActivity
         freePlayer();
     }
 
+    //endregion
+
     @SuppressWarnings("SwitchStatementWithTooFewBranches")
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
@@ -221,112 +297,131 @@ public class PlaybackActivity extends AppCompatActivity
         }
     }
 
-    /**
-     * Starting with API 24, android supports multiple windows
-     *
-     * @return does this device support multi- window?
-     */
-    @SuppressLint("ObsoleteSdkInt")
-    private boolean supportMultiWindow()
-    {
-        return Util.SDK_INT > 23;
-    }
+    //region ~~ Swipe Gestures ~~
 
     /**
-     * Setup Volume + Brightness gesture controls
+     * Setup Gesture controls for Volume and Brightness
      */
-    float volume = 1.0f;
-    float brithness = 1.0f;
-
-    private void setupGestureControls()
+    private void setupGestures()
     {
-        playerView.setOnTouchListener(new PanGestureListener(this)
+        //init and set listener
+        playerView.setOnTouchListener(new SwipeGestureListener(TOUCH_DECAY_TIME, SWIPE_THRESHOLD_N, FLING_THRESHOLD_N)
         {
             @Override
-            public void onPan(PanGestureListener.GestureDirection gestureDirection, PanEventInfo panInfo)
+            public void onHorizontalSwipe(float deltaX, PointF swipeStart, PointF swipeEnd, PointF firstContact, SizeF screenSize)
             {
-                float xNormal = panInfo.startPos.x / panInfo.axisRangeX;
-                Logging.logD("Dir: %s, xNormal: %.2f, lenNormal: %.2f", gestureDirection.toString(), xNormal, panInfo.getTotalLengthNormalized());
+            }
 
-                if (gestureDirection == GestureDirection.DOWN || gestureDirection == GestureDirection.UP)
+            @Override
+            public void onVerticalSwipe(float deltaY, PointF swipeStart, PointF swipeEnd, PointF firstContact, SizeF screenSize)
+            {
+                //check on which screen size the swipe ended
+                if (swipeEnd.x > (screenSize.getWidth() / 2))
                 {
-                    //up/down pan, check on which side of screen
-                    //volume on right half of screen, brightness on left half of screen
-                    if (xNormal < 0.5)
+                    //swipe on right site of screen, adjust volume
+                    if (deltaY > 0.0)
                     {
-                        //left side of screen = blitheness
-
-                        brithness += (panInfo.getTotalLengthNormalized() * 1f) * (gestureDirection == GestureDirection.DOWN ? -1 : 1);
-                        //Toast.makeText(getApplicationContext(), "Brithness: " + brithness, Toast.LENGTH_SHORT).show();
-                        Logging.logE("Britghness" + brithness);
+                        //swipe up, increase volume
+                        adjustVolume(true);
                     }
                     else
                     {
-                        //right side of screen = volume
-                        //player.setVolume(player.getVolume() + (panInfo.getTotalLengthNormalized() * 10f));
-                        //Toast.makeText(getApplicationContext(), "Volume: " + player.getVolume(), Toast.LENGTH_SHORT).show();
-
-                        volume += (panInfo.getTotalLengthNormalized() * 1f) * (gestureDirection == GestureDirection.DOWN ? -1 : 1);
-
-                        if (volume < 0.0) volume = 0.0f;
-                        if (volume > 1.0) volume = 1.0f;
-
-                        //Toast.makeText(getApplicationContext(), "Volume: " + volume, Toast.LENGTH_SHORT).show();
-                        Logging.logE("Volume: " + volume);
-
-                        player.setVolume(volume);
+                        //swipe down, decrease volume
+                        adjustVolume(false);
                     }
                 }
+                else
+                {
+                    //swipe on left site of screen, adjust brightness
+                    if (deltaY > 0.0)
+                    {
+                        //swipe up, increase brightness
+                        adjustScreenBrightness(BRIGHTNESS_ADJUST_STEP);
+                    }
+                    else
+                    {
+                        //swipe down, decrease brightness
+                        adjustScreenBrightness(-BRIGHTNESS_ADJUST_STEP);
+                    }
+                }
+            }
+
+            @Override
+            public void onHorizontalFling(float deltaX, PointF flingStart, PointF flingEnd, SizeF screenSize)
+            {
+            }
+
+            @Override
+            public void onVerticalFling(float deltaY, PointF flingStart, PointF flingEnd, SizeF screenSize)
+            {
             }
         });
     }
 
     /**
-     * Hide System- UI elements
+     * Adjust the screen brightness
+     *
+     * @param adjust the amount to adjust the brightness by. (range of brightness is 0.0 to 1.0)
      */
-    private void hideSysUI()
+    private void adjustScreenBrightness(float adjust)
     {
-        playerView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
-                | View.SYSTEM_UI_FLAG_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+        //get window attributes
+        WindowManager.LayoutParams windowAttributes = getWindow().getAttributes();
+
+        //TODO: brightness of 0 = auto brightness, make selecting this possible with a "hard" swipe?
+        //modify screen brightness attribute withing range
+        windowAttributes.screenBrightness = Math.min(Math.max(windowAttributes.screenBrightness + adjust, 0f), 1f);
+
+        //set changed window attributes
+        getWindow().setAttributes(windowAttributes);
+
+        //show info text for brightness
+        String brightnessStr = ((int) Math.floor(windowAttributes.screenBrightness * 100)) + "%";
+        if (windowAttributes.screenBrightness == 0)
+        {
+            brightnessStr = getString(R.string.info_brightness_auto);
+        }
+        showInfoText(INFO_TEXT_DURATION_VB, getString(R.string.info_brightness_change), brightnessStr);
     }
 
     /**
-     * Check if the uri is a local file
+     * Adjust the media volume by one volume step
      *
-     * @param uri the uri to check
-     * @return is the uri a local file?
+     * @param raise should the volume be raises (=true) or lowered (=false) by one step?
      */
-    private boolean isLocalFileUri(Uri uri)
+    private void adjustVolume(boolean raise)
     {
-        return uri.getScheme() != null && (uri.getScheme().equals("content") || uri.getScheme().equals("file"));
+        //check audioManager
+        if (audioManager == null)
+        {
+            Logging.logW("audioManager is null, cannot adjust media volume!");
+            return;
+        }
+
+        //adjusts volume without ui
+        audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, (raise ? AudioManager.ADJUST_RAISE : AudioManager.ADJUST_LOWER), 0);
+
+        //show info text for volume:
+        //get volume + range
+        int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+        int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        int minVolume = 0;
+        if (Util.SDK_INT > 28)
+        {
+            //get minimum stream volume if above api28
+            minVolume = audioManager.getStreamMinVolume(AudioManager.STREAM_MUSIC);
+        }
+
+        //calculate volume in percent
+        int volumePercent = (int) Math.floor(((float) currentVolume - (float) minVolume) / ((float) maxVolume - (float) minVolume) * 100);
+
+        //show info text
+        showInfoText(INFO_TEXT_DURATION_VB, getString(R.string.info_volume_change), volumePercent);
     }
 
-    /**
-     * Check if the app was granted the permission.
-     * If not granted, the permission will be requested and false will be returned.
-     *
-     * @param permission the permission to check
-     * @param requestId  the request id. Used to check in callback
-     * @return was the permission granted?
-     */
-    private boolean checkPermission(@SuppressWarnings("SameParameterValue") String permission, @SuppressWarnings("SameParameterValue") int requestId)
-    {
-        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED)
-        {
-            //does not have permission, ask for it
-            ActivityCompat.requestPermissions(this, new String[]{permission}, requestId);
-            return false;
-        }
-        else
-        {
-            //has permission
-            return true;
-        }
-    }
+    //endregion
+
+    //region ~~ Exoplayer setup and lifecycle ~~
 
     /**
      * Initializes the ExoPlayer to render to the playerView
@@ -391,6 +486,90 @@ public class PlaybackActivity extends AppCompatActivity
         }
     }
 
+    //endregion
+
+    //region ~~ Utility ~~
+
+    /**
+     * Show info text in the middle of the screen, using the InfoText View
+     *
+     * @param duration how long to show the info text box, in seconds
+     * @param text     the text to show
+     * @param format   formatting options (using US locale)
+     */
+    private void showInfoText(@SuppressWarnings("SameParameterValue") float duration, String text, Object... format)
+    {
+        //remove all previous messages for info text fadeout
+        delayHandler.removeMessages(MESSAGE_FADE_OUT_INFO_TEXT);
+
+        //set text
+        infoTextView.setText(String.format(text, format));
+
+        //make text visible
+        infoTextView.setVisibility(View.VISIBLE);
+
+        //hide text after delay
+        delayHandler.sendEmptyMessageDelayed(MESSAGE_FADE_OUT_INFO_TEXT, (long) Math.floor(duration * 1000));
+    }
+
+    /**
+     * Starting with API 24, android supports multiple windows
+     *
+     * @return does this device support multi- window?
+     */
+    @SuppressLint("ObsoleteSdkInt")
+    private boolean supportMultiWindow()
+    {
+        return Util.SDK_INT > 23;
+    }
+
+    /**
+     * Check if the uri is a local file
+     *
+     * @param uri the uri to check
+     * @return is the uri a local file?
+     */
+    private boolean isLocalFileUri(Uri uri)
+    {
+        return uri.getScheme() != null && (uri.getScheme().equals("content") || uri.getScheme().equals("file"));
+    }
+
+    /**
+     * Check if the app was granted the permission.
+     * If not granted, the permission will be requested and false will be returned.
+     *
+     * @param permission the permission to check
+     * @param requestId  the request id. Used to check in callback
+     * @return was the permission granted?
+     */
+    private boolean checkPermission(@SuppressWarnings("SameParameterValue") String permission, @SuppressWarnings("SameParameterValue") int requestId)
+    {
+        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED)
+        {
+            //does not have permission, ask for it
+            ActivityCompat.requestPermissions(this, new String[]{permission}, requestId);
+            return false;
+        }
+        else
+        {
+            //has permission
+            return true;
+        }
+    }
+
+    /**
+     * Hide System- UI elements
+     */
+    private void hideSysUI()
+    {
+        playerView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
+                | View.SYSTEM_UI_FLAG_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+    }
+
     /**
      * Forces the screen to stay on if keepOn is true, otherwise clears the KEEP_SCREEN_ON flag
      *
@@ -407,6 +586,8 @@ public class PlaybackActivity extends AppCompatActivity
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
     }
+
+    //endregion
 
     private class ExoComponentListener implements Player.EventListener
     {
@@ -467,7 +648,7 @@ public class PlaybackActivity extends AppCompatActivity
         @Override
         public void onPlayerError(ExoPlaybackException error)
         {
-            Logging.logE("ExoPlayer error occured: %s", error.toString());
+            Logging.logE("ExoPlayer error occurred: %s", error.toString());
             Toast.makeText(getApplicationContext(), "Internal Error: \r\n" + error.toString(), Toast.LENGTH_LONG).show();
         }
     }
