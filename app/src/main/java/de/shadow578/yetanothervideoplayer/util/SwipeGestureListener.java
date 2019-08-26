@@ -85,7 +85,11 @@ public class SwipeGestureListener implements View.OnTouchListener
                 //check if movement fulfills length requirements
                 if (Math.abs(deltaX) < (flingThresholdN * screenSize.getWidth())
                         && Math.abs(deltaY) < (flingThresholdN * screenSize.getHeight()))
+                {
+                    //does not qualify as fling, make click
+                    view.performClick();
                     return false;
+                }
 
                 //fulfills length requirement, call event
                 if (Math.abs(deltaX) > Math.abs(deltaY))
