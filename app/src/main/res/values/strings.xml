@@ -9,6 +9,7 @@
     <!-- Toast Strings -->
     <string name="toast_no_storage_permissions_granted">No Storage Permissions granted! Permissions are required to play local files.</string>
     <string name="toast_invalid_playback_uri">Invalid Playback URI!</string>
+    <string name="toast_press_back_again_to_exit">Press Back again to exit</string>
 
     <!-- non-translatable -->
     <string name="app_user_agent_str">exoplayer_v2_yavp</string>

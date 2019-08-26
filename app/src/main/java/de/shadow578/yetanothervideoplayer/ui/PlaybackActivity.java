@@ -48,6 +48,9 @@ public class PlaybackActivity extends AppCompatActivity
     //info text duration for volume and brightness info
     private final float INFO_TEXT_DURATION_VB = 0.75f;
 
+    //how fast the "press back again to exit" flag resets
+    private final long BACK_DOUBLE_PRESS_TIMEOUT_MS = 1000;
+
     //how much to change the screen brightness in one "step"
     private final float BRIGHTNESS_ADJUST_STEP = 0.01f;
 
@@ -72,6 +75,11 @@ public class PlaybackActivity extends AppCompatActivity
      * Message id to fade out info text
      */
     private final int MESSAGE_FADE_OUT_INFO_TEXT = 0;
+
+    /**
+     * Message id to reset backPressedOnce flag
+     */
+    private final int MESSAGE_RESET_BACK_PRESSED = 1;
 
     //endregion
 
@@ -133,6 +141,12 @@ public class PlaybackActivity extends AppCompatActivity
     private boolean localFilePermissionPending;
 
     /**
+     * Was the Back button pressed once already?
+     * Used for "Press Back again to exit" function
+     */
+    private boolean backPressedOnce;
+
+    /**
      * Shared handler that can be used to invoke methods and/or functions with a delay,
      */
     private final Handler delayHandler = new Handler(Looper.getMainLooper())
@@ -146,6 +160,11 @@ public class PlaybackActivity extends AppCompatActivity
                 case MESSAGE_FADE_OUT_INFO_TEXT:
                 {
                     infoTextView.setVisibility(View.INVISIBLE);
+                    break;
+                }
+                case MESSAGE_RESET_BACK_PRESSED:
+                {
+                    backPressedOnce = false;
                     break;
                 }
             }
@@ -181,7 +200,7 @@ public class PlaybackActivity extends AppCompatActivity
         if (playbackUri == null)
         {
             //playback uri is null (invalid), abort and show error
-            Toast.makeText(this, getText(R.string.toast_invalid_playback_uri), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, getString(R.string.toast_invalid_playback_uri), Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
@@ -268,6 +287,27 @@ public class PlaybackActivity extends AppCompatActivity
         freePlayer();
     }
 
+    @Override
+    public void onBackPressed()
+    {
+        if (backPressedOnce)
+        {
+            //back pressed once already, do normal thing...
+            super.onBackPressed();
+            return;
+        }
+
+        //pressed back the first time:
+        //set flag
+        backPressedOnce = true;
+
+        //send reset message delayed
+        delayHandler.sendEmptyMessageDelayed(MESSAGE_RESET_BACK_PRESSED, BACK_DOUBLE_PRESS_TIMEOUT_MS);
+
+        //show user a Toast
+        Toast.makeText(this, getString(R.string.toast_press_back_again_to_exit), Toast.LENGTH_SHORT).show();
+    }
+
     //endregion
 
     @SuppressWarnings("SwitchStatementWithTooFewBranches")
@@ -293,7 +333,7 @@ public class PlaybackActivity extends AppCompatActivity
                 else
                 {
                     //permissions denied, show toast + close app
-                    Toast.makeText(this, getText(R.string.toast_no_storage_permissions_granted), Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, getString(R.string.toast_no_storage_permissions_granted), Toast.LENGTH_LONG).show();
                     finish();
                 }
             }
