@@ -51,6 +51,9 @@ public class PlaybackActivity extends AppCompatActivity
     //how much to change the screen brightness in one "step"
     private final float BRIGHTNESS_ADJUST_STEP = 0.01f;
 
+    //the threshold for a "hard" swipe. Only with a "hard" swipe, the brightness level can be set to 0 (=auto/device default)
+    private final float BRIGHTNESS_HARD_SWIPE_THRESHOLD = 150.0f;
+
     //settings for SwipeGestureListener (in setupGestures)
     private final long TOUCH_DECAY_TIME = 1500;
     private final float SWIPE_THRESHOLD_N = 0.005f;
@@ -336,12 +339,16 @@ public class PlaybackActivity extends AppCompatActivity
                     if (deltaY > 0.0)
                     {
                         //swipe up, increase brightness
-                        adjustScreenBrightness(BRIGHTNESS_ADJUST_STEP);
+                        adjustScreenBrightness(BRIGHTNESS_ADJUST_STEP, false);
                     }
                     else
                     {
-                        //swipe down, decrease brightness
-                        adjustScreenBrightness(-BRIGHTNESS_ADJUST_STEP);
+                        //swipe down, decrease brightness:
+                        //check if "hard" swipe
+                        boolean hardSwipe = Math.abs(deltaY) > BRIGHTNESS_HARD_SWIPE_THRESHOLD;
+
+                        //allow setting brightness to 0 when hard swiping (but ONLY then)
+                        adjustScreenBrightness(-BRIGHTNESS_ADJUST_STEP, hardSwipe);
                     }
                 }
             }
@@ -361,16 +368,20 @@ public class PlaybackActivity extends AppCompatActivity
     /**
      * Adjust the screen brightness
      *
-     * @param adjust the amount to adjust the brightness by. (range of brightness is 0.0 to 1.0)
+     * @param adjust    the amount to adjust the brightness by. (range of brightness is 0.0 to 1.0)
+     * @param allowZero if set to true, setting the brightness to zero (=device default/auto) is allowed. Otherwise, minimum brightness is clamped to 0.01
      */
-    private void adjustScreenBrightness(float adjust)
+    private void adjustScreenBrightness(float adjust, boolean allowZero)
     {
         //get window attributes
         WindowManager.LayoutParams windowAttributes = getWindow().getAttributes();
 
-        //TODO: brightness of 0 = auto brightness, make selecting this possible with a "hard" swipe?
+        //check if brightness is already zero (overrides allowZero)
+        boolean alreadyZero = windowAttributes.screenBrightness == 0.0f;
+
         //modify screen brightness attribute withing range
-        windowAttributes.screenBrightness = Math.min(Math.max(windowAttributes.screenBrightness + adjust, 0f), 1f);
+        //allow setting it to zero if allowZero is set or the value was previously zero too
+        windowAttributes.screenBrightness = Math.min(Math.max(windowAttributes.screenBrightness + adjust, ((allowZero || alreadyZero) ? 0.0f : 0.01f)), 1f);
 
         //set changed window attributes
         getWindow().setAttributes(windowAttributes);
