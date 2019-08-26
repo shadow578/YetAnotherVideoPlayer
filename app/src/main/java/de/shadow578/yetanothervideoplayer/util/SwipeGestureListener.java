@@ -2,6 +2,7 @@ package de.shadow578.yetanothervideoplayer.util;
 
 import android.content.Context;
 import android.graphics.PointF;
+import android.graphics.RectF;
 import android.util.SizeF;
 import android.util.TypedValue;
 import android.view.MotionEvent;
@@ -45,7 +46,14 @@ public class SwipeGestureListener implements View.OnTouchListener
     private final float flingThreshold;
 
     /**
-     * Initialize the Swipe Gesture Listener
+     * Defines in how many dp from the edges of the screen away is considered swipe- dead- zone
+     * Swipes in this area won't be registered.
+     * (Kind of misusing RectF here... the values represent the dp's from the edge that are ignored, not the position of the rect)
+     */
+    private final RectF swipeEdgeIgnore;
+
+    /**
+     * Initialize the Swipe Gesture Listener without ignored pixels on the edges
      *
      * @param touchDecayTimeMs how long the user can stay in one place before the swipe reference it updated to the current position [milliseconds]
      * @param swipeThresholdDp the minimum distance the user has to move his finger before the movement is registered as swipe [in density- independent pixels (dp)]
@@ -53,9 +61,23 @@ public class SwipeGestureListener implements View.OnTouchListener
      */
     protected SwipeGestureListener(long touchDecayTimeMs, float swipeThresholdDp, float flingThresholdDp)
     {
+        this(touchDecayTimeMs, swipeThresholdDp, flingThresholdDp, new RectF(0, 0, 0, 0));
+    }
+
+    /**
+     * Initialize the Swipe Gesture Listener
+     *
+     * @param touchDecayTimeMs how long the user can stay in one place before the swipe reference it updated to the current position [milliseconds]
+     * @param swipeThresholdDp the minimum distance the user has to move his finger before the movement is registered as swipe [in density- independent pixels (dp)]
+     * @param flingThresholdDp the minimum distance the user has to move his finger before the movement is registered as fling [in density- independent pixels (dp)]
+     * @param swipeIgnore      how many pixels are ignored on the edges of the screen. (!!Not a rect!!, top means top edge, left means left edge, etc.) [in density- independent pixels (dp)]
+     */
+    protected SwipeGestureListener(long touchDecayTimeMs, float swipeThresholdDp, float flingThresholdDp, RectF swipeIgnore)
+    {
         touchDecayTime = touchDecayTimeMs;
         swipeThreshold = swipeThresholdDp;
         flingThreshold = flingThresholdDp;
+        swipeEdgeIgnore = swipeIgnore;
     }
 
     @Override
@@ -72,18 +94,36 @@ public class SwipeGestureListener implements View.OnTouchListener
         float screenHeightRaw = e.getDevice().getMotionRange(MotionEvent.AXIS_Y).getRange();
         SizeF screenSize = new SizeF(pxToDp(screenWidthRaw, ctx), pxToDp(screenHeightRaw, ctx));
 
+        //check if finger is in dead zone around the edges
+        boolean isInDeadZone = currentPos.x < swipeEdgeIgnore.left                      //check left edge
+                || currentPos.x > (screenSize.getWidth() - swipeEdgeIgnore.right)       //check right edge
+                || currentPos.y < swipeEdgeIgnore.top                                   //check top edge
+                || currentPos.y > (screenSize.getHeight() - swipeEdgeIgnore.bottom);    //check top edge
+
         //switch on event type
         switch (e.getAction())
         {
             case MotionEvent.ACTION_DOWN:
             {
-                //finger pressed down, get initial position
-                firstContactPoint = currentPos;
-                setLastSwipePoint(currentPos);
+                if (!isInDeadZone)
+                {
+                    //finger pressed down outside of dead zone, get initial position
+                    firstContactPoint = currentPos;
+                    setLastSwipePoint(currentPos);
+                }
+                else
+                {
+                    //finger pressed down inside dead zone, pass through
+                    view.performClick();
+                }
+
                 return true;
             }
             case MotionEvent.ACTION_UP:
             {
+                //no point set previously, ignore up event
+                if (firstContactPoint == null || lastSwipePoint == null) return false;
+
                 //finger lifted, fire fling event if threshold met
                 //calculate movement delta
                 float deltaX = firstContactPoint.x - currentPos.x;
@@ -94,6 +134,10 @@ public class SwipeGestureListener implements View.OnTouchListener
                 {
                     //does not qualify as fling, make click
                     view.performClick();
+
+                    //null values
+                    firstContactPoint = null;
+                    lastSwipePoint = null;
                     return false;
                 }
 
@@ -108,10 +152,17 @@ public class SwipeGestureListener implements View.OnTouchListener
                     //~~ Up/Down Vertical ~~
                     onVerticalFling(deltaY, firstContactPoint, currentPos, screenSize);
                 }
+
+                //null values
+                firstContactPoint = null;
+                lastSwipePoint = null;
                 return true;
             }
             case MotionEvent.ACTION_MOVE:
             {
+                //no point set previously, ignore up event
+                if (firstContactPoint == null || lastSwipePoint == null) return false;
+
                 //finger moved, update swipe event:
                 //check if last position decayed
                 if ((System.currentTimeMillis() - lastSwipePointMillis) > touchDecayTime)

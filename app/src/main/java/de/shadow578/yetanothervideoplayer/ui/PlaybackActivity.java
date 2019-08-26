@@ -16,6 +16,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.PointF;
+import android.graphics.RectF;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -382,7 +383,8 @@ public class PlaybackActivity extends AppCompatActivity
     private void setupGestures()
     {
         //init and set listener
-        playerView.setOnTouchListener(new SwipeGestureListener(TOUCH_DECAY_TIME, SWIPE_THRESHOLD_N, FLING_THRESHOLD_N)
+        playerView.setOnTouchListener(new SwipeGestureListener(TOUCH_DECAY_TIME, SWIPE_THRESHOLD_N, FLING_THRESHOLD_N,
+                new RectF(0, 20, 0, 75))
         {
             @Override
             public void onHorizontalSwipe(float deltaX, PointF swipeStart, PointF swipeEnd, PointF firstContact, SizeF screenSize)
