@@ -29,6 +29,7 @@ import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.DecelerateInterpolator;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -91,6 +92,11 @@ public class PlaybackActivity extends AppCompatActivity
      * The TextView in the center of the screen, used to show information
      */
     private TextView infoTextView;
+
+    /**
+     * The ProgressBar in the center of the screen, used to show that the player is currently buffering
+     */
+    private ProgressBar bufferingProgressBar;
 
     /**
      * The uri that this activity was created with (retried from intent)
@@ -215,11 +221,10 @@ public class PlaybackActivity extends AppCompatActivity
         setContentView(R.layout.activity_playback);
         Logging.logD("onCreate of PlaybackActivity called.");
 
-        //get player view
+        //get views
         playerView = findViewById(R.id.pb_PlayerView);
-
-        //get info text view
         infoTextView = findViewById(R.id.pb_InfoText);
+        bufferingProgressBar = findViewById(R.id.pb_PlayerBufferingProgress);
 
         //get audio manager
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
@@ -578,6 +583,17 @@ public class PlaybackActivity extends AppCompatActivity
     //region ~~ Utility ~~
 
     /**
+     * Set if the player is currently buffering
+     * (buffering progress bar visibility)
+     *
+     * @param isBuffering true if buffering, false if not
+     */
+    private void setBuffering(boolean isBuffering)
+    {
+        bufferingProgressBar.setVisibility(isBuffering ? View.VISIBLE : View.INVISIBLE);
+    }
+
+    /**
      * Show info text in the middle of the screen, using the InfoText View
      *
      * @param duration how long to show the info text box, in milliseconds
@@ -689,11 +705,14 @@ public class PlaybackActivity extends AppCompatActivity
         @Override
         public void onPlayerStateChanged(boolean playWhenReady, int playbackState)
         {
+            //update buffering progress bar
+            setBuffering(playbackState == Player.STATE_BUFFERING);
+
             switch (playbackState)
             {
                 case Player.STATE_IDLE:
                 {
-                    //player stopped or failed
+                    //player stopped or failed, release screen lock
                     forceScreenOn(false);
                     Toast.makeText(getApplicationContext(), "STATE_IDLE", Toast.LENGTH_SHORT).show();
                     break;
@@ -708,13 +727,13 @@ public class PlaybackActivity extends AppCompatActivity
                 {
                     if (playWhenReady)
                     {
-                        //currently playing back
+                        //currently playing back, engage screen lock
                         forceScreenOn(true);
                         Toast.makeText(getApplicationContext(), "STATE_READY-PLAYING", Toast.LENGTH_SHORT).show();
                     }
                     else
                     {
-                        //ready for playback (paused or not started yet)
+                        //ready for playback (paused or not started yet), release screen lock
                         forceScreenOn(false);
                         Toast.makeText(getApplicationContext(), "STATE_READY", Toast.LENGTH_SHORT).show();
                     }
@@ -722,7 +741,8 @@ public class PlaybackActivity extends AppCompatActivity
                 }
                 case Player.STATE_ENDED:
                 {
-                    //media playback ended
+                    //media playback ended, release screen lock
+                    forceScreenOn(false);
                     Toast.makeText(getApplicationContext(), "STATE_ENDED", Toast.LENGTH_SHORT).show();
                     break;
                 }
