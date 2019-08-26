@@ -1,7 +1,9 @@
 package de.shadow578.yetanothervideoplayer.util;
 
+import android.content.Context;
 import android.graphics.PointF;
 import android.util.SizeF;
+import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -31,39 +33,44 @@ public class SwipeGestureListener implements View.OnTouchListener
     /**
      * The Minimum distance the user has to move his finger before the movement is
      * registered as swipe
-     * [Normalized, 0.0 - 1.0]
+     * [Device- Dependent Pixels]
      */
-    private final float swipeThresholdN;
+    private final float swipeThreshold;
 
     /**
      * The Minimum distance the user has to move his finger before the movement is
      * registered as a fling
-     * [Normalized, 0.0 - 1.0]
+     * [Device- Dependent Pixels]
      */
-    private final float flingThresholdN;
+    private final float flingThreshold;
 
     /**
      * Initialize the Swipe Gesture Listener
      *
-     * @param _touchDecayTime how long the user can stay in one place before the swipe reference it updated to the current position
-     * @param _swipeThreshold the minimum distance the user has to move his finger before the movement is registered as swipe [Normalized, 0.0 - 1.0]
-     * @param _flingThreshold the minimum distance the user has to move his finger before the movement is registered as fling [Normalized, 0.0 - 1.0]
+     * @param touchDecayTimeMs how long the user can stay in one place before the swipe reference it updated to the current position [milliseconds]
+     * @param swipeThresholdDp the minimum distance the user has to move his finger before the movement is registered as swipe [in density- independent pixels (dp)]
+     * @param flingThresholdDp the minimum distance the user has to move his finger before the movement is registered as fling [in density- independent pixels (dp)]
      */
-    protected SwipeGestureListener(long _touchDecayTime, float _swipeThreshold, float _flingThreshold)
+    protected SwipeGestureListener(long touchDecayTimeMs, float swipeThresholdDp, float flingThresholdDp)
     {
-        touchDecayTime = _touchDecayTime;
-        swipeThresholdN = _swipeThreshold;
-        flingThresholdN = _flingThreshold;
+        touchDecayTime = touchDecayTimeMs;
+        swipeThreshold = swipeThresholdDp;
+        flingThreshold = flingThresholdDp;
     }
 
     @Override
     public boolean onTouch(View view, MotionEvent e)
     {
-        //get current finger position
-        PointF currentPos = new PointF(e.getX(), e.getY());
+        //get context of view for px -> dp conversion
+        Context ctx = view.getContext();
 
-        //get screen size
-        SizeF screenSize = new SizeF(e.getDevice().getMotionRange(MotionEvent.AXIS_X).getRange(), e.getDevice().getMotionRange(MotionEvent.AXIS_Y).getRange());
+        //get current finger position in dp
+        PointF currentPos = new PointF(pxToDp(e.getX(), ctx), pxToDp(e.getY(), ctx));
+
+        //get screen size in dp
+        float screenWidthRaw = e.getDevice().getMotionRange(MotionEvent.AXIS_X).getRange();
+        float screenHeightRaw = e.getDevice().getMotionRange(MotionEvent.AXIS_Y).getRange();
+        SizeF screenSize = new SizeF(pxToDp(screenWidthRaw, ctx), pxToDp(screenHeightRaw, ctx));
 
         //switch on event type
         switch (e.getAction())
@@ -83,8 +90,7 @@ public class SwipeGestureListener implements View.OnTouchListener
                 float deltaY = firstContactPoint.y - currentPos.y;
 
                 //check if movement fulfills length requirements
-                if (Math.abs(deltaX) < (flingThresholdN * screenSize.getWidth())
-                        && Math.abs(deltaY) < (flingThresholdN * screenSize.getHeight()))
+                if (Math.abs(deltaX) < flingThreshold && Math.abs(deltaY) < flingThreshold)
                 {
                     //does not qualify as fling, make click
                     view.performClick();
@@ -120,8 +126,7 @@ public class SwipeGestureListener implements View.OnTouchListener
                 float deltaY = lastSwipePoint.y - currentPos.y;
 
                 //check if movement fulfills length requirements
-                if (Math.abs(deltaX) < (swipeThresholdN * screenSize.getWidth())
-                        && Math.abs(deltaY) < (swipeThresholdN * screenSize.getHeight()))
+                if (Math.abs(deltaX) < swipeThreshold && Math.abs(deltaY) < swipeThreshold)
                     return false;
 
                 //fulfills length requirement, call event
@@ -159,11 +164,38 @@ public class SwipeGestureListener implements View.OnTouchListener
         lastSwipePointMillis = System.currentTimeMillis();
     }
 
+    /**
+     * Convert from density- independent pixels (dp) to device- specific pixels (px)
+     *
+     * @param dp      the dp to convert
+     * @param context the context to convert in
+     * @return the corresponding px
+     */
+    @SuppressWarnings({"unused"})
+    protected float dpToPx(float dp, Context context)
+    {
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.getResources().getDisplayMetrics());
+    }
+
+    /**
+     * Convert from device- specific pixels (px) to density- independent pixels (dp)
+     *
+     * @param px      the px to convert
+     * @param context the context to convert in
+     * @return the corresponding dp
+     */
+    @SuppressWarnings("WeakerAccess")
+    protected float pxToDp(float px, Context context)
+    {
+        return px / context.getResources().getDisplayMetrics().density;
+    }
+
     //region ~~ Overrideable "events" ~~
 
     /**
      * Called if the user's finger moved at least the minimum swipe distance Horizontally
-     * (User pressed down and moved finger horizontally at least x pixels, where x is the set swipe threshold
+     * (User pressed down and moved finger horizontally at least x pixels, where x is the set swipe threshold)
+     * (all units, positions, etc. in dp (density- independent- pixels))
      *
      * @param deltaX       the distance between start and end point, on the X axis only
      * @param swipeStart   the position the current swipe started
@@ -179,7 +211,8 @@ public class SwipeGestureListener implements View.OnTouchListener
 
     /**
      * Called if the user's finger moved at least the minimum swipe distance Vertically
-     * (User pressed down and moved finger Vertically at least x pixels, where x is the set swipe threshold
+     * (User pressed down and moved finger Vertically at least x pixels, where x is the set swipe threshold)
+     * (all units, positions, etc. in dp (density- independent- pixels))
      *
      * @param deltaY       the distance between start and end point, on the Y axis only
      * @param swipeStart   the position the current swipe started
@@ -195,6 +228,7 @@ public class SwipeGestureListener implements View.OnTouchListener
     /**
      * Called when a Horizontal fling is released
      * (User pressed down, moved finger horizontally, then released finger)
+     * (all units, positions, etc. in dp (density- independent- pixels))
      *
      * @param deltaX     the distance between start and end point, on the X axis only
      * @param flingStart the position the fling started
@@ -210,6 +244,7 @@ public class SwipeGestureListener implements View.OnTouchListener
     /**
      * Called when a vertical fling is released
      * (User pressed down, moved finger vertically, then released finger)
+     * (all units, positions, etc. in dp (density- independent- pixels))
      *
      * @param deltaY     the distance between start and end point, on the Y axis only
      * @param flingStart the position the fling started

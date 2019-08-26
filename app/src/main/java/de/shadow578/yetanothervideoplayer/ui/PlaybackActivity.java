@@ -60,13 +60,13 @@ public class PlaybackActivity extends AppCompatActivity
     //how much to change the screen brightness in one "step"
     private final float BRIGHTNESS_ADJUST_STEP = 0.01f;
 
-    //the threshold for a "hard" swipe. Only with a "hard" swipe, the brightness level can be set to 0 (=auto/device default)
-    private final float BRIGHTNESS_HARD_SWIPE_THRESHOLD = 150.0f;
+    //the threshold for a "hard" swipe. Only with a "hard" swipe, the brightness level can be set to 0 (=auto/device default) (dp)
+    private final float BRIGHTNESS_HARD_SWIPE_THRESHOLD = 37.0f;
 
     //settings for SwipeGestureListener (in setupGestures)
     private final long TOUCH_DECAY_TIME = 1500;
-    private final float SWIPE_THRESHOLD_N = 0.005f;
-    private final float FLING_THRESHOLD_N = 0.01f;
+    private final float SWIPE_THRESHOLD_N = 5f;//0.005f;//*1439.00px
+    private final float FLING_THRESHOLD_N = 10f;//0.01f;//*1439.00px
 
     //endregion
 
