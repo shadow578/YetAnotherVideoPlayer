@@ -319,7 +319,7 @@ public class PlaybackActivity extends AppCompatActivity
             public void onVerticalSwipe(float deltaY, PointF swipeStart, PointF swipeEnd, PointF firstContact, SizeF screenSize)
             {
                 //check on which screen size the swipe ended
-                if (swipeEnd.x > (screenSize.getWidth() / 2))
+                if (swipeStart.x > (screenSize.getWidth() / 2))
                 {
                     //swipe on right site of screen, adjust volume
                     if (deltaY > 0.0)
