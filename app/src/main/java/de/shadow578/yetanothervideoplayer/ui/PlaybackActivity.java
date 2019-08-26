@@ -48,14 +48,14 @@ public class PlaybackActivity extends AppCompatActivity
     //auto start player when loading?
     private final boolean AUTO_PLAY = true;
 
-    //info text duration for volume and brightness info
-    private final float INFO_TEXT_DURATION_VB = 0.75f;
+    //info text duration for volume and brightness info (ms)
+    private final long INFO_TEXT_DURATION_VB = 750;
 
-    //how long the fade out of the info text lasts
-    private final long INFO_TEXT_FADE_DURATION_MS = 500;
+    //how long the fade out of the info text lasts (ms)
+    private final long INFO_TEXT_FADE_DURATION = 500;
 
-    //how fast the "press back again to exit" flag resets
-    private final long BACK_DOUBLE_PRESS_TIMEOUT_MS = 1000;
+    //how fast the "press back again to exit" flag resets (ms)
+    private final long BACK_DOUBLE_PRESS_TIMEOUT = 1000;
 
     //how much to change the screen brightness in one "step"
     private final float BRIGHTNESS_ADJUST_STEP = 0.01f;
@@ -182,11 +182,11 @@ public class PlaybackActivity extends AppCompatActivity
                     //start fade out animation
                     Animation fadeOut = new AlphaAnimation(1.0f, 0.0f);
                     fadeOut.setInterpolator(new DecelerateInterpolator());
-                    fadeOut.setDuration(INFO_TEXT_FADE_DURATION_MS);
+                    fadeOut.setDuration(INFO_TEXT_FADE_DURATION);
                     infoTextView.setAnimation(fadeOut);
 
                     //make invisible after animation
-                    delayHandler.sendEmptyMessageDelayed(Messages.SET_INFO_TEXT_INVISIBLE, INFO_TEXT_FADE_DURATION_MS);
+                    delayHandler.sendEmptyMessageDelayed(Messages.SET_INFO_TEXT_INVISIBLE, INFO_TEXT_FADE_DURATION);
                     break;
                 }
                 case Messages.SET_INFO_TEXT_INVISIBLE:
@@ -366,7 +366,7 @@ public class PlaybackActivity extends AppCompatActivity
         backPressedOnce = true;
 
         //send reset message delayed
-        delayHandler.sendEmptyMessageDelayed(Messages.RESET_BACK_PRESSED, BACK_DOUBLE_PRESS_TIMEOUT_MS);
+        delayHandler.sendEmptyMessageDelayed(Messages.RESET_BACK_PRESSED, BACK_DOUBLE_PRESS_TIMEOUT);
 
         //show user a Toast
         Toast.makeText(this, getString(R.string.toast_press_back_again_to_exit), Toast.LENGTH_SHORT).show();
@@ -392,8 +392,8 @@ public class PlaybackActivity extends AppCompatActivity
             @Override
             public void onVerticalSwipe(float deltaY, PointF swipeStart, PointF swipeEnd, PointF firstContact, SizeF screenSize)
             {
-                //check on which screen size the swipe ended
-                if (swipeStart.x > (screenSize.getWidth() / 2))
+                //check which screen size the swipe originated from
+                if (firstContact.x > (screenSize.getWidth() / 2))
                 {
                     //swipe on right site of screen, adjust volume
                     if (deltaY > 0.0)
@@ -578,23 +578,25 @@ public class PlaybackActivity extends AppCompatActivity
     /**
      * Show info text in the middle of the screen, using the InfoText View
      *
-     * @param duration how long to show the info text box, in seconds
+     * @param duration how long to show the info text box, in milliseconds
      * @param text     the text to show
      * @param format   formatting options (using US locale)
      */
-    private void showInfoText(@SuppressWarnings("SameParameterValue") float duration, String text, Object... format)
+    private void showInfoText(@SuppressWarnings("SameParameterValue") long duration, String text, Object... format)
     {
-        //remove all previous messages for info text fadeout
+        //remove all previous messages related to fading out the info text
         delayHandler.removeMessages(Messages.START_FADE_OUT_INFO_TEXT);
+        delayHandler.removeMessages(Messages.SET_INFO_TEXT_INVISIBLE);
 
         //set text
         infoTextView.setText(String.format(text, format));
 
-        //make text visible
+        //reset animation and make text visible
+        infoTextView.setAnimation(null);
         infoTextView.setVisibility(View.VISIBLE);
 
         //hide text after delay
-        delayHandler.sendEmptyMessageDelayed(Messages.START_FADE_OUT_INFO_TEXT, (long) Math.floor(duration * 1000));
+        delayHandler.sendEmptyMessageDelayed(Messages.START_FADE_OUT_INFO_TEXT, duration);
     }
 
     /**
