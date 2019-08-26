@@ -3,4 +3,16 @@
     <color name="colorPrimary">#008577</color>
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#D81B60</color>
+
+    <!-- color placeholders for testing -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="hotpink">#FF64B4</color>
+
+    <!-- exoplayer controls -->
+    <color name="play_pause_background">#80000000</color>
+    <color name="info_text_background">#80000000</color>
+    <color name="info_text_foreground">#FFFFFF</color>
+    <color name="player_buffering_progress">@color/white</color>
+    <color name="player_controls_backdrop_tint">#28000000</color>
 </resources>

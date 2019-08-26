@@ -1,28 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000000"
+    android:background="@color/black"
     tools:context=".ui.PlaybackActivity">
 
     <com.google.android.exoplayer2.ui.PlayerView
         android:id="@+id/pb_PlayerView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" >
-    </com.google.android.exoplayer2.ui.PlayerView>
-
+        android:layout_height="match_parent"
+        app:controller_layout_id="@layout/layout_exo_controls" />
 
     <TextView
         android:id="@+id/pb_InfoText"
-        android:layout_centerInParent="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="#80000000"
-        android:textColor="#FFFFFF"
-        android:textSize="20sp"
-        android:textAllCaps="true"
-        android:visibility="invisible"
+        android:layout_centerInParent="true"
+        android:background="@color/play_pause_background"
         android:text="Volume: xxx%"
+        android:textAllCaps="true"
+        android:textColor="@color/info_text_foreground"
+        android:textSize="20sp"
+        android:visibility="invisible"
         tools:ignore="HardcodedText" />
+
+    <ProgressBar
+        android:id="@+id/pb_PlayerBufferingProgress"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_centerInParent="true"
+        android:indeterminate="true"
+        android:indeterminateTint="@color/player_buffering_progress"
+        android:visibility="visible" />
 </RelativeLayout>
