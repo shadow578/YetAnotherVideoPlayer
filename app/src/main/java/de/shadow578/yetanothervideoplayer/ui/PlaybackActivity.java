@@ -25,6 +25,9 @@ import android.os.Message;
 import android.util.SizeF;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,6 +51,9 @@ public class PlaybackActivity extends AppCompatActivity
     //info text duration for volume and brightness info
     private final float INFO_TEXT_DURATION_VB = 0.75f;
 
+    //how long the fade out of the info text lasts
+    private final long INFO_TEXT_FADE_DURATION_MS = 500;
+
     //how fast the "press back again to exit" flag resets
     private final long BACK_DOUBLE_PRESS_TIMEOUT_MS = 1000;
 
@@ -70,16 +76,6 @@ public class PlaybackActivity extends AppCompatActivity
      * Id of permission request for external storage
      */
     private final int PERMISSION_REQUEST_READ_EXT_STORAGE = 0;
-
-    /**
-     * Message id to fade out info text
-     */
-    private final int MESSAGE_FADE_OUT_INFO_TEXT = 0;
-
-    /**
-     * Message id to reset backPressedOnce flag
-     */
-    private final int MESSAGE_RESET_BACK_PRESSED = 1;
 
     //endregion
 
@@ -146,23 +142,61 @@ public class PlaybackActivity extends AppCompatActivity
      */
     private boolean backPressedOnce;
 
+    //endregion
+
+    //region ~~ Message Handler (delayHandler) ~~
+
+    /**
+     * Message code constants used by the delayHandler
+     */
+    private static final class Messages
+    {
+        /**
+         * Message id to start fading out info text
+         */
+        private static final int START_FADE_OUT_INFO_TEXT = 0;
+
+        /**
+         * Message id to make info text invisible
+         */
+        private static final int SET_INFO_TEXT_INVISIBLE = 1;
+
+        /**
+         * Message id to reset backPressedOnce flag
+         */
+        private static final int RESET_BACK_PRESSED = 2;
+    }
+
     /**
      * Shared handler that can be used to invoke methods and/or functions with a delay,
      */
     private final Handler delayHandler = new Handler(Looper.getMainLooper())
     {
         @Override
-        @SuppressWarnings("SwitchStatementWithTooFewBranches")
         public void handleMessage(@NonNull Message msg)
         {
             switch (msg.what)
             {
-                case MESSAGE_FADE_OUT_INFO_TEXT:
+                case Messages.START_FADE_OUT_INFO_TEXT:
                 {
-                    infoTextView.setVisibility(View.INVISIBLE);
+                    //start fade out animation
+                    Animation fadeOut = new AlphaAnimation(1.0f, 0.0f);
+                    fadeOut.setInterpolator(new DecelerateInterpolator());
+                    fadeOut.setDuration(INFO_TEXT_FADE_DURATION_MS);
+                    infoTextView.setAnimation(fadeOut);
+
+                    //make invisible after animation
+                    delayHandler.sendEmptyMessageDelayed(Messages.SET_INFO_TEXT_INVISIBLE, INFO_TEXT_FADE_DURATION_MS);
                     break;
                 }
-                case MESSAGE_RESET_BACK_PRESSED:
+                case Messages.SET_INFO_TEXT_INVISIBLE:
+                {
+                    //set invisible + clear animation
+                    infoTextView.setVisibility(View.INVISIBLE);
+                    infoTextView.setAnimation(null);
+                    break;
+                }
+                case Messages.RESET_BACK_PRESSED:
                 {
                     backPressedOnce = false;
                     break;
@@ -215,6 +249,36 @@ public class PlaybackActivity extends AppCompatActivity
 
             //ask for permissions
             localFilePermissionPending = !checkPermission(Manifest.permission.READ_EXTERNAL_STORAGE, PERMISSION_REQUEST_READ_EXT_STORAGE);
+        }
+    }
+
+    @SuppressWarnings("SwitchStatementWithTooFewBranches")
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
+    {
+        Logging.logD("Request Permission Result received for request id %d", requestCode);
+
+        //check if permission request was granted
+        boolean granted = grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED;
+
+        //check which permission request this callback handles
+        switch (requestCode)
+        {
+            case PERMISSION_REQUEST_READ_EXT_STORAGE:
+            {
+                if (granted)
+                {
+                    //have permissions now, init player + start playing
+                    localFilePermissionPending = false;
+                    initPlayer(playbackUri);
+                }
+                else
+                {
+                    //permissions denied, show toast + close app
+                    Toast.makeText(this, getString(R.string.toast_no_storage_permissions_granted), Toast.LENGTH_LONG).show();
+                    finish();
+                }
+            }
         }
     }
 
@@ -302,43 +366,13 @@ public class PlaybackActivity extends AppCompatActivity
         backPressedOnce = true;
 
         //send reset message delayed
-        delayHandler.sendEmptyMessageDelayed(MESSAGE_RESET_BACK_PRESSED, BACK_DOUBLE_PRESS_TIMEOUT_MS);
+        delayHandler.sendEmptyMessageDelayed(Messages.RESET_BACK_PRESSED, BACK_DOUBLE_PRESS_TIMEOUT_MS);
 
         //show user a Toast
         Toast.makeText(this, getString(R.string.toast_press_back_again_to_exit), Toast.LENGTH_SHORT).show();
     }
 
     //endregion
-
-    @SuppressWarnings("SwitchStatementWithTooFewBranches")
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
-    {
-        Logging.logD("Request Permission Result received for request id %d", requestCode);
-
-        //check if permission request was granted
-        boolean granted = grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED;
-
-        //check which permission request this callback handles
-        switch (requestCode)
-        {
-            case PERMISSION_REQUEST_READ_EXT_STORAGE:
-            {
-                if (granted)
-                {
-                    //have permissions now, init player + start playing
-                    localFilePermissionPending = false;
-                    initPlayer(playbackUri);
-                }
-                else
-                {
-                    //permissions denied, show toast + close app
-                    Toast.makeText(this, getString(R.string.toast_no_storage_permissions_granted), Toast.LENGTH_LONG).show();
-                    finish();
-                }
-            }
-        }
-    }
 
     //region ~~ Swipe Gestures ~~
 
@@ -551,7 +585,7 @@ public class PlaybackActivity extends AppCompatActivity
     private void showInfoText(@SuppressWarnings("SameParameterValue") float duration, String text, Object... format)
     {
         //remove all previous messages for info text fadeout
-        delayHandler.removeMessages(MESSAGE_FADE_OUT_INFO_TEXT);
+        delayHandler.removeMessages(Messages.START_FADE_OUT_INFO_TEXT);
 
         //set text
         infoTextView.setText(String.format(text, format));
@@ -560,7 +594,7 @@ public class PlaybackActivity extends AppCompatActivity
         infoTextView.setVisibility(View.VISIBLE);
 
         //hide text after delay
-        delayHandler.sendEmptyMessageDelayed(MESSAGE_FADE_OUT_INFO_TEXT, (long) Math.floor(duration * 1000));
+        delayHandler.sendEmptyMessageDelayed(Messages.START_FADE_OUT_INFO_TEXT, (long) Math.floor(duration * 1000));
     }
 
     /**
