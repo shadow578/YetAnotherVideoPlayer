@@ -152,7 +152,7 @@
 
             <!-- locked: portrait -->
             <ImageButton
-                android:id="@+id/pb_screen_roation_portrait"
+                android:id="@+id/pb_screen_rotation_portrait"
                 style="@style/AppButton.ScreenLockPortrait"
                 android:contentDescription="@string/pb_controls_screen_lock_portrait"
                 android:onClick="playback_OnClick"
@@ -160,7 +160,7 @@
 
             <!-- locked: landscape -->
             <ImageButton
-                android:id="@+id/pb_screen_roation_landscape"
+                android:id="@+id/pb_screen_rotation_landscape"
                 style="@style/AppButton.ScreenLockLandscape"
                 android:contentDescription="@string/pb_controls_screen_lock_landscape"
                 android:onClick="playback_OnClick"
@@ -168,7 +168,7 @@
 
             <!-- automatic/device default -->
             <ImageButton
-                android:id="@+id/pb_screen_roation_auto"
+                android:id="@+id/pb_screen_rotation_auto"
                 style="@style/AppButton.ScreenAuto"
                 android:contentDescription="@string/pb_controls_screen_auto"
                 android:onClick="playback_OnClick"
