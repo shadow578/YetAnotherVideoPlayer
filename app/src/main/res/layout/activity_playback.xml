@@ -8,26 +8,26 @@
     tools:context=".ui.PlaybackActivity">
 
     <com.google.android.exoplayer2.ui.PlayerView
-        android:id="@+id/pb_PlayerView"
+        android:id="@+id/pb_playerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:controller_layout_id="@layout/layout_exo_controls" />
 
     <TextView
-        android:id="@+id/pb_InfoText"
+        android:id="@+id/pb_infoText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:background="@color/play_pause_background"
+        android:background="@color/info_text_background"
         android:text="Volume: xxx%"
         android:textAllCaps="true"
-        android:textColor="@color/info_text_foreground"
+        android:textColor="@color/info_text_text"
         android:textSize="20sp"
         android:visibility="invisible"
         tools:ignore="HardcodedText" />
 
     <ProgressBar
-        android:id="@+id/pb_PlayerBufferingProgress"
+        android:id="@+id/pb_playerBufferingProgress"
         android:layout_width="150dp"
         android:layout_height="150dp"
         android:layout_centerInParent="true"

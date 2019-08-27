@@ -8,4 +8,55 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <!-- todo: add accessibility description to buttons -->
+
+    <!-- Base for Buttons -->
+    <style name="AppButton">
+        <item name="android:background">?selectableItemBackgroundBorderless</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:scaleType">fitCenter</item>
+    </style>
+
+    <!-- Play button in layout_exo_controls (video controls) -->
+    <style name="AppButton.PlayButton">
+        <item name="android:src">@drawable/ic_play_arrow_48px</item>
+        <item name="android:tint">@color/player_center_buttons</item>
+    </style>
+
+    <!-- Pause button in layout_exo_controls (video controls) -->
+    <style name="AppButton.PauseButton">
+        <item name="android:src">@drawable/ic_pause_48px</item>
+        <item name="android:tint">@color/player_center_buttons</item>
+    </style>
+
+    <!-- Fast Forward button in layout_exo_controls (video controls) -->
+    <style name="AppButton.FastForwardButton">
+        <item name="android:src">@drawable/ic_fast_forward_48px</item>
+        <item name="android:tint">@color/player_center_buttons</item>
+    </style>
+
+    <!-- Fast Rewind button in layout_exo_controls (video controls) -->
+    <style name="AppButton.FastRewindButton">
+        <item name="android:src">@drawable/ic_fast_rewind_48px</item>
+        <item name="android:tint">@color/player_center_buttons</item>
+    </style>
+
+    <!-- lock screen to portrait button in layout_exo_controls (video controls) -->
+    <style name="AppButton.ScreenLockPortrait">
+        <item name="android:src">@drawable/ic_screen_lock_portrait_48px</item>
+        <item name="android:tint">@color/player_screen_rotation_buttons</item>
+    </style>
+
+    <!-- lock screen to landscape button in layout_exo_controls (video controls) -->
+    <style name="AppButton.ScreenLockLandscape">
+        <item name="android:src">@drawable/ic_screen_lock_landscape_48px</item>
+        <item name="android:tint">@color/player_screen_rotation_buttons</item>
+    </style>
+
+    <!-- auto- rotate button in layout_exo_controls (video controls) -->
+    <style name="AppButton.ScreenAuto">
+        <item name="android:src">@drawable/ic_screen_rotation_48px</item>
+        <item name="android:tint">@color/player_screen_rotation_buttons</item>
+    </style>
 </resources>

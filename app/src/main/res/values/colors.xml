@@ -4,15 +4,36 @@
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#D81B60</color>
 
-    <!-- color placeholders for testing -->
+    <!-- shared colors -->
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
+    <color name="transparent">#00000000</color>
     <color name="hotpink">#FF64B4</color>
+    <color name="default_text">#FFBEBEBE</color>
+    <color name="default_trans_background">#80000000</color>
 
-    <!-- exoplayer controls -->
-    <color name="play_pause_background">#80000000</color>
-    <color name="info_text_background">#80000000</color>
-    <color name="info_text_foreground">#FFFFFF</color>
-    <color name="player_buffering_progress">@color/white</color>
-    <color name="player_controls_backdrop_tint">#28000000</color>
+    <!-- exoplayer controls - specific colors -->
+    <!-- background color of info text (Volume: x%) label -->
+    <color name="info_text_background">@color/default_trans_background</color>
+
+    <!-- text color of info text (Volume: x%) label -->
+    <color name="info_text_text">@color/default_text</color>
+
+    <!-- color of buffering state spinner (indeterminate circular progress bar) -->
+    <color name="player_buffering_progress">@color/default_text</color>
+
+    <!-- color of the player controls background, used to darken the video when showing the controls -->
+    <color name="player_controls_backdrop">#32000000</color>
+
+    <!-- text color of the playback progress / duration labels -->
+    <color name="player_progress_labels_text">@color/default_text</color>
+
+    <!-- text color of the playback title label -->
+    <color name="player_title_text">@color/default_text</color>
+
+    <!-- color tint of the center buttons in layout_exo_controls (play/pause/fast forward/reverse) -->
+    <color name="player_center_buttons">@color/white</color>
+
+    <!-- color tint of the screen rotation buttons in layout_exo_controls (lock_landscape/lock_portrait/auto) -->
+    <color name="player_screen_rotation_buttons">@color/white</color>
 </resources>

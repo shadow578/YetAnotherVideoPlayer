@@ -19,7 +19,7 @@
         android:id="@+id/vtest_btn_mp3"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="onClick"
+        android:onClick="videoTest_OnClick"
         android:text="Stream MP3 Audio (Exoplayer Test Media)"
         android:textAllCaps="false" />
 
@@ -27,7 +27,7 @@
         android:id="@+id/vtest_btn_mp4"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="onClick"
+        android:onClick="videoTest_OnClick"
         android:text="Stream MP4 Video (BuckBunny 320x180)"
         android:textAllCaps="false" />
 
@@ -35,7 +35,7 @@
         android:id="@+id/vtest_btn_mp4-2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="onClick"
+        android:onClick="videoTest_OnClick"
         android:text="Stream MP4 Video (Techslides.com)"
         android:textAllCaps="false" />
 
@@ -43,7 +43,7 @@
         android:id="@+id/vtest_btn_webm"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="onClick"
+        android:onClick="videoTest_OnClick"
         android:text="Stream WEBM Video (Techslides.com)"
         android:textAllCaps="false" />
 
@@ -51,7 +51,7 @@
         android:id="@+id/vtest_btn_3gp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="onClick"
+        android:onClick="videoTest_OnClick"
         android:text="Stream 3GP Video (Techslides.com)"
         android:textAllCaps="false" />
 </LinearLayout>
