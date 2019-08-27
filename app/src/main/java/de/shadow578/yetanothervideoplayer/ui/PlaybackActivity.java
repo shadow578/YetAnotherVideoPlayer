@@ -14,6 +14,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.PointF;
 import android.graphics.RectF;
@@ -29,6 +30,7 @@ import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.DecelerateInterpolator;
+import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -129,6 +131,11 @@ public class PlaybackActivity extends AppCompatActivity
      * The Listener that listens for exoplayer metadata events and updates the ui & logic accordingly
      */
     private ExoMetadataListener metadataListener;
+
+    /**
+     * Manages the screen rotation using the buttons
+     */
+    private PBScreenRotationManager screenRotationManager;
 
     /**
      * The audio manager instance used to adjust media volume by swiping
@@ -238,6 +245,10 @@ public class PlaybackActivity extends AppCompatActivity
         infoTextView = findViewById(R.id.pb_infoText);
         titleTextView = findViewById(R.id.pb_streamTitle);
         bufferingProgressBar = findViewById(R.id.pb_playerBufferingProgress);
+
+        //init screen rotation manager
+        screenRotationManager = new PBScreenRotationManager();
+        screenRotationManager.findComponents();
 
         //get audio manager
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
@@ -602,6 +613,41 @@ public class PlaybackActivity extends AppCompatActivity
 
     //endregion
 
+    //region ~~ Button Handling ~~
+
+    /**
+     * Common click handler for buttons in Playback activity
+     *
+     * @param view the view that invoked this handler
+     */
+    public void playback_OnClick(View view)
+    {
+        switch (view.getId())
+        {
+            //region ~~ Screen Rotation Buttons (cycle modes >auto>portrait>landscape>auto>...)~~
+            case R.id.pb_screen_roation_auto:
+            {
+                //automatic/default screen rotation button
+                screenRotationManager.setScreenMode(PBScreenRotationManager.SCREEN_LOCK_PORTRAIT);
+                break;
+            }
+            case R.id.pb_screen_roation_portrait:
+            {
+                //lock screen to portrait button
+                screenRotationManager.setScreenMode(PBScreenRotationManager.SCREEN_LOCK_LANDSCAPE);
+                break;
+            }
+            case R.id.pb_screen_roation_landscape:
+            {
+                //lock screen to landscape button
+                screenRotationManager.setScreenMode(PBScreenRotationManager.SCREEN_AUTO);
+                break;
+            }
+            //endregion
+        }
+    }
+    //endregion
+
     //region ~~ Utility ~~
 
     /**
@@ -642,7 +688,6 @@ public class PlaybackActivity extends AppCompatActivity
             Logging.logD("parse filename from uri: %s", fileName);
 
             //last path segment worked, remove file extension and re- format some
-
 
 
             //return filename parsed from last path segment
@@ -846,6 +891,104 @@ public class PlaybackActivity extends AppCompatActivity
             //received metadata?? how to decode?? actually getting any??
             Logging.logD("receive metadata: %s", metadata.toString());
             Toast.makeText(getApplicationContext(), "Receive- Metadata!", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * Contains functionality to set the screen orientation with three buttons
+     */
+    private class PBScreenRotationManager
+    {
+        //region ~~ Constants ~~
+
+        /**
+         * screen set to follow device
+         */
+        private static final int SCREEN_AUTO = 0;
+
+        /**
+         * Screen locked to portrait mode
+         */
+        private static final int SCREEN_LOCK_PORTRAIT = 1;
+
+        /**
+         * Screen locked to landscape mode
+         */
+        private static final int SCREEN_LOCK_LANDSCAPE = 2;
+        //endregion
+
+        /**
+         * The Image Button to set the screen to auto/default mode
+         */
+        ImageButton btnScreenAuto;
+
+        /**
+         * The Image Button to set the screen to lock landscape
+         */
+        ImageButton btnScreenLockLandscape;
+
+        /**
+         * The Image Button to set the screen to locked portrait
+         */
+        ImageButton btnScreenLockPortrait;
+
+        /**
+         * Initially find the components that are the three buttons
+         */
+        private void findComponents()
+        {
+            btnScreenAuto = findViewById(R.id.pb_screen_roation_auto);
+            btnScreenLockLandscape = findViewById(R.id.pb_screen_roation_landscape);
+            btnScreenLockPortrait = findViewById(R.id.pb_screen_roation_portrait);
+        }
+
+        /**
+         * Set the screen mode + set button visibility
+         *
+         * @param mode the mode to set
+         */
+        private void setScreenMode(int mode)
+        {
+            //act according to mode to set
+            switch (mode)
+            {
+                case SCREEN_AUTO:
+                {
+                    //enable auto button + reset requested orientation
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER);
+
+                    btnScreenAuto.setVisibility(View.VISIBLE);
+                    btnScreenLockLandscape.setVisibility(View.INVISIBLE);
+                    btnScreenLockPortrait.setVisibility(View.INVISIBLE);
+
+                    Logging.logD("Changed Screen mode to AUTO");
+                    break;
+                }
+                case SCREEN_LOCK_PORTRAIT:
+                {
+                    //enable lock-portrait button + set requested orientation to portrait
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
+                    btnScreenLockPortrait.setVisibility(View.VISIBLE);
+                    btnScreenAuto.setVisibility(View.INVISIBLE);
+                    btnScreenLockLandscape.setVisibility(View.INVISIBLE);
+
+                    Logging.logD("Changed Screen mode to PORTRAIT");
+                    break;
+                }
+                case SCREEN_LOCK_LANDSCAPE:
+                {
+                    //enable lock-landscape button + set requested orientation to landscape
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+
+                    btnScreenLockLandscape.setVisibility(View.VISIBLE);
+                    btnScreenAuto.setVisibility(View.INVISIBLE);
+                    btnScreenLockPortrait.setVisibility(View.INVISIBLE);
+
+                    Logging.logD("Changed Screen mode to LANDSCAPE");
+                    break;
+                }
+            }
         }
     }
 }

@@ -24,7 +24,7 @@ public class VideoTestActivity extends AppCompatActivity
      *
      * @param view the view that invoked this handler
      */
-    public void onClick(View view)
+    public void videoTest_OnClick(View view)
     {
         //the uri that later contains the uri to stream from
         String uri;
