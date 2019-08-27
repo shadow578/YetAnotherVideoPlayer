@@ -51,8 +51,11 @@ import com.google.android.exoplayer2.util.Util;
 public class PlaybackActivity extends AppCompatActivity
 {
     //region ~~ Constants, change to shared prefs OR remove later ~~
-    //auto start player when loading?
+    //auto start playback as soon as playback is ready
     private final boolean AUTO_PLAY = true;
+
+    //close the player view when playback ended
+    private final boolean CLOSE_WHEN_FINISHED_PLAYING = false;
 
     //info text duration for volume and brightness info (ms)
     private final long INFO_TEXT_DURATION_VB = 750;
@@ -125,7 +128,7 @@ public class PlaybackActivity extends AppCompatActivity
     /**
      * The listener that listens for exoplayer events and updates the ui & logic accordingly
      */
-    private ExoComponentListener componentListener;
+    private ExoEventListener componentListener;
 
     /**
      * The Listener that listens for exoplayer metadata events and updates the ui & logic accordingly
@@ -135,7 +138,7 @@ public class PlaybackActivity extends AppCompatActivity
     /**
      * Manages the screen rotation using the buttons
      */
-    private PBScreenRotationManager screenRotationManager;
+    private ScreenRotationManager screenRotationManager;
 
     /**
      * The audio manager instance used to adjust media volume by swiping
@@ -167,6 +170,12 @@ public class PlaybackActivity extends AppCompatActivity
      * Used for "Press Back again to exit" function
      */
     private boolean backPressedOnce;
+
+    /**
+     * Is the replay button currently visible?
+     * Used to track if the play button's graphic is currently changed to the replay button graphic
+     */
+    private boolean replayButtonVisible;
 
     //endregion
 
@@ -247,7 +256,7 @@ public class PlaybackActivity extends AppCompatActivity
         bufferingProgressBar = findViewById(R.id.pb_playerBufferingProgress);
 
         //init screen rotation manager
-        screenRotationManager = new PBScreenRotationManager();
+        screenRotationManager = new ScreenRotationManager();
         screenRotationManager.findComponents();
 
         //get audio manager
@@ -283,6 +292,9 @@ public class PlaybackActivity extends AppCompatActivity
             //ask for permissions
             localFilePermissionPending = !checkPermission(Manifest.permission.READ_EXTERNAL_STORAGE, PERMISSION_REQUEST_READ_EXT_STORAGE);
         }
+
+        //enable / disable autoplay
+        playWhenReady = AUTO_PLAY;
     }
 
     @SuppressWarnings("SwitchStatementWithTooFewBranches")
@@ -561,9 +573,8 @@ public class PlaybackActivity extends AppCompatActivity
         //create new simple exoplayer instance
         player = ExoPlayerFactory.newSimpleInstance(this, new DefaultRenderersFactory(this), new DefaultTrackSelector(), new DefaultLoadControl());
 
-
         //register Event Listener on player
-        componentListener = new ExoComponentListener();
+        componentListener = new ExoEventListener();
         player.addListener(componentListener);
 
         //register metadata listener on player
@@ -625,22 +636,22 @@ public class PlaybackActivity extends AppCompatActivity
         switch (view.getId())
         {
             //region ~~ Screen Rotation Buttons (cycle modes >auto>portrait>landscape>auto>...)~~
-            case R.id.pb_screen_roation_auto:
+            case R.id.pb_screen_rotation_auto:
             {
                 //automatic/default screen rotation button
-                screenRotationManager.setScreenMode(PBScreenRotationManager.SCREEN_LOCK_PORTRAIT);
+                screenRotationManager.setScreenMode(ScreenRotationManager.SCREEN_LOCK_PORTRAIT);
                 break;
             }
-            case R.id.pb_screen_roation_portrait:
+            case R.id.pb_screen_rotation_portrait:
             {
                 //lock screen to portrait button
-                screenRotationManager.setScreenMode(PBScreenRotationManager.SCREEN_LOCK_LANDSCAPE);
+                screenRotationManager.setScreenMode(ScreenRotationManager.SCREEN_LOCK_LANDSCAPE);
                 break;
             }
-            case R.id.pb_screen_roation_landscape:
+            case R.id.pb_screen_rotation_landscape:
             {
                 //lock screen to landscape button
-                screenRotationManager.setScreenMode(PBScreenRotationManager.SCREEN_AUTO);
+                screenRotationManager.setScreenMode(ScreenRotationManager.SCREEN_AUTO);
                 break;
             }
             //endregion
@@ -812,7 +823,7 @@ public class PlaybackActivity extends AppCompatActivity
     /**
      * Updates the UI (and logic states) in response to ExoPlayer Events
      */
-    private class ExoComponentListener implements Player.EventListener
+    private class ExoEventListener implements Player.EventListener
     {
         @Override
         public void onLoadingChanged(boolean isLoading)
@@ -826,19 +837,26 @@ public class PlaybackActivity extends AppCompatActivity
             //update buffering progress bar
             setBuffering(playbackState == Player.STATE_BUFFERING);
 
+            //get the play button
+            ImageButton playButton = findViewById(R.id.exo_play);
+            if (replayButtonVisible)
+            {
+                //reset graphic to the play button if needed
+                playButton.setImageResource(R.drawable.ic_play_arrow_48px);
+                replayButtonVisible = false;
+            }
+
             switch (playbackState)
             {
                 case Player.STATE_IDLE:
                 {
                     //player stopped or failed, release screen lock
                     forceScreenOn(false);
-                    Toast.makeText(getApplicationContext(), "STATE_IDLE", Toast.LENGTH_SHORT).show();
                     break;
                 }
                 case Player.STATE_BUFFERING:
                 {
                     //media currently buffering
-                    //Toast.makeText(getApplicationContext(), "STATE_BUFFERING", Toast.LENGTH_SHORT).show();
                     break;
                 }
                 case Player.STATE_READY:
@@ -847,21 +865,32 @@ public class PlaybackActivity extends AppCompatActivity
                     {
                         //currently playing back, engage screen lock
                         forceScreenOn(true);
-                        //Toast.makeText(getApplicationContext(), "STATE_READY-PLAYING", Toast.LENGTH_SHORT).show();
                     }
                     else
                     {
                         //ready for playback (paused or not started yet), release screen lock
                         forceScreenOn(false);
-                        //Toast.makeText(getApplicationContext(), "STATE_READY", Toast.LENGTH_SHORT).show();
                     }
                     break;
                 }
                 case Player.STATE_ENDED:
                 {
-                    //media playback ended, release screen lock
+                    //media playback ended:
+
+                    //release screen lock
                     forceScreenOn(false);
-                    Toast.makeText(getApplicationContext(), "STATE_ENDED", Toast.LENGTH_SHORT).show();
+
+                    if (CLOSE_WHEN_FINISHED_PLAYING)
+                    {
+                        //close app
+                        finish();
+                    }
+                    else
+                    {
+                        //change play button graphic to replay button
+                        playButton.setImageResource(R.drawable.ic_replay_48px);
+                        replayButtonVisible = true;
+                    }
                     break;
                 }
                 default:
@@ -897,7 +926,7 @@ public class PlaybackActivity extends AppCompatActivity
     /**
      * Contains functionality to set the screen orientation with three buttons
      */
-    private class PBScreenRotationManager
+    private class ScreenRotationManager
     {
         //region ~~ Constants ~~
 
@@ -937,9 +966,9 @@ public class PlaybackActivity extends AppCompatActivity
          */
         private void findComponents()
         {
-            btnScreenAuto = findViewById(R.id.pb_screen_roation_auto);
-            btnScreenLockLandscape = findViewById(R.id.pb_screen_roation_landscape);
-            btnScreenLockPortrait = findViewById(R.id.pb_screen_roation_portrait);
+            btnScreenAuto = findViewById(R.id.pb_screen_rotation_auto);
+            btnScreenLockLandscape = findViewById(R.id.pb_screen_rotation_landscape);
+            btnScreenLockPortrait = findViewById(R.id.pb_screen_rotation_portrait);
         }
 
         /**
