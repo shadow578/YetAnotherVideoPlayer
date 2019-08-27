@@ -39,6 +39,8 @@ import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.metadata.Metadata;
+import com.google.android.exoplayer2.metadata.MetadataOutput;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.ui.PlayerView;
@@ -94,6 +96,11 @@ public class PlaybackActivity extends AppCompatActivity
     private TextView infoTextView;
 
     /**
+     * The Text View used to display the stream title
+     */
+    private TextView titleTextView;
+
+    /**
      * The ProgressBar in the center of the screen, used to show that the player is currently buffering
      */
     private ProgressBar bufferingProgressBar;
@@ -117,6 +124,11 @@ public class PlaybackActivity extends AppCompatActivity
      * The listener that listens for exoplayer events and updates the ui & logic accordingly
      */
     private ExoComponentListener componentListener;
+
+    /**
+     * The Listener that listens for exoplayer metadata events and updates the ui & logic accordingly
+     */
+    private ExoMetadataListener metadataListener;
 
     /**
      * The audio manager instance used to adjust media volume by swiping
@@ -222,9 +234,10 @@ public class PlaybackActivity extends AppCompatActivity
         Logging.logD("onCreate of PlaybackActivity called.");
 
         //get views
-        playerView = findViewById(R.id.pb_PlayerView);
-        infoTextView = findViewById(R.id.pb_InfoText);
-        bufferingProgressBar = findViewById(R.id.pb_PlayerBufferingProgress);
+        playerView = findViewById(R.id.pb_playerView);
+        infoTextView = findViewById(R.id.pb_infoText);
+        titleTextView = findViewById(R.id.pb_streamTitle);
+        bufferingProgressBar = findViewById(R.id.pb_playerBufferingProgress);
 
         //get audio manager
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
@@ -247,6 +260,9 @@ public class PlaybackActivity extends AppCompatActivity
 
         //intent + intent data (=playback uri) seems ok
         Logging.logD("Received play intent with uri \"%s\".", playbackUri.toString());
+
+        //set initial title to filename parsed from uri
+        setTitle(parseFileNameFromUri(playbackUri));
 
         //check if uri is of local file and request read permission if so
         if (isLocalFileUri(playbackUri))
@@ -528,15 +544,20 @@ public class PlaybackActivity extends AppCompatActivity
         //create media source factory
         if (mediaSourceFactory == null)
         {
-            mediaSourceFactory = new UniversalMediaSourceFactory(this, getText(R.string.app_user_agent_str).toString());
+            mediaSourceFactory = new UniversalMediaSourceFactory(this, getString(R.string.app_user_agent_str));
         }
 
         //create new simple exoplayer instance
         player = ExoPlayerFactory.newSimpleInstance(this, new DefaultRenderersFactory(this), new DefaultTrackSelector(), new DefaultLoadControl());
 
+
         //register Event Listener on player
         componentListener = new ExoComponentListener();
         player.addListener(componentListener);
+
+        //register metadata listener on player
+        metadataListener = new ExoMetadataListener();
+        player.addMetadataOutput(metadataListener);
 
         //set the view to render to
         playerView.setPlayer(player);
@@ -562,8 +583,9 @@ public class PlaybackActivity extends AppCompatActivity
             currentPlayWindow = player.getCurrentWindowIndex();
             playWhenReady = player.getPlayWhenReady();
 
-            //unregister event listener
+            //unregister listeners
             player.removeListener(componentListener);
+            player.removeMetadataOutput(metadataListener);
 
             //release + null player
             player.release();
@@ -581,6 +603,54 @@ public class PlaybackActivity extends AppCompatActivity
     //endregion
 
     //region ~~ Utility ~~
+
+    /**
+     * Set the title shown on the titleTextView
+     *
+     * @param title the title to show. if set to a empty string, the title label is hidden
+     */
+    private void setTitle(String title)
+    {
+        if (title.isEmpty())
+        {
+            //no title, hide title label
+            titleTextView.setText("N/A");
+            titleTextView.setVisibility(View.INVISIBLE);
+        }
+        else
+        {
+            //show title label
+            titleTextView.setText(title);
+            titleTextView.setVisibility(View.VISIBLE);
+        }
+    }
+
+    /**
+     * Parse the name of the streamed file from the playback uri
+     *
+     * @param uri the playback uri
+     * @return the parsed file name, or a empty string if parsing failed
+     */
+    private String parseFileNameFromUri(@NonNull Uri uri)
+    {
+        //sample uri: "https://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4".
+
+        //try to get the title using the last path segment of the uri
+        String fileName = uri.getLastPathSegment();
+        if (fileName != null && !fileName.isEmpty())
+        {
+            Logging.logD("parse filename from uri: %s", fileName);
+
+            //last path segment worked, remove file extension and re- format some
+
+
+
+            //return filename parsed from last path segment
+            return fileName;
+        }
+
+        return "";
+    }
 
     /**
      * Set if the player is currently buffering
@@ -694,6 +764,9 @@ public class PlaybackActivity extends AppCompatActivity
 
     //endregion
 
+    /**
+     * Updates the UI (and logic states) in response to ExoPlayer Events
+     */
     private class ExoComponentListener implements Player.EventListener
     {
         @Override
@@ -720,7 +793,7 @@ public class PlaybackActivity extends AppCompatActivity
                 case Player.STATE_BUFFERING:
                 {
                     //media currently buffering
-                    Toast.makeText(getApplicationContext(), "STATE_BUFFERING", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(getApplicationContext(), "STATE_BUFFERING", Toast.LENGTH_SHORT).show();
                     break;
                 }
                 case Player.STATE_READY:
@@ -729,13 +802,13 @@ public class PlaybackActivity extends AppCompatActivity
                     {
                         //currently playing back, engage screen lock
                         forceScreenOn(true);
-                        Toast.makeText(getApplicationContext(), "STATE_READY-PLAYING", Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(getApplicationContext(), "STATE_READY-PLAYING", Toast.LENGTH_SHORT).show();
                     }
                     else
                     {
                         //ready for playback (paused or not started yet), release screen lock
                         forceScreenOn(false);
-                        Toast.makeText(getApplicationContext(), "STATE_READY", Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(getApplicationContext(), "STATE_READY", Toast.LENGTH_SHORT).show();
                     }
                     break;
                 }
@@ -759,6 +832,20 @@ public class PlaybackActivity extends AppCompatActivity
         {
             Logging.logE("ExoPlayer error occurred: %s", error.toString());
             Toast.makeText(getApplicationContext(), "Internal Error: \r\n" + error.toString(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    /**
+     * Updates the UI (and logic states) in response to ExoPlayer MetaData Events
+     */
+    private class ExoMetadataListener implements MetadataOutput
+    {
+        @Override
+        public void onMetadata(Metadata metadata)
+        {
+            //received metadata?? how to decode?? actually getting any??
+            Logging.logD("receive metadata: %s", metadata.toString());
+            Toast.makeText(getApplicationContext(), "Receive- Metadata!", Toast.LENGTH_SHORT).show();
         }
     }
 }
