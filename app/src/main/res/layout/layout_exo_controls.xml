@@ -32,7 +32,7 @@
             android:textSize="20sp"
             android:textStyle="bold"
             android:visibility="invisible"
-            tools:ignore="HardcodedText" />
+            tools:ignore="HardcodedText,RtlHardcoded" />
 
         <!-- todo: top controls (settings button, ...) -->
         <LinearLayout
@@ -66,6 +66,7 @@
             style="@style/AppButton.FastRewindButton"
             android:layout_height="35dp"
             android:layout_gravity="center"
+            android:contentDescription="@string/exo_controls_rewind_description"
             android:visibility="visible" />
 
         <!-- play/pause button -->
@@ -80,13 +81,15 @@
                 android:id="@id/exo_play"
                 style="@style/AppButton.PlayButton"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="match_parent"
+                android:contentDescription="@string/exo_controls_play_description" />
 
             <ImageButton
                 android:id="@id/exo_pause"
                 style="@style/AppButton.PauseButton"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:contentDescription="@string/exo_controls_pause_description"
                 android:visibility="invisible" />
         </FrameLayout>
 
@@ -96,6 +99,7 @@
             style="@style/AppButton.FastForwardButton"
             android:layout_height="35dp"
             android:layout_gravity="center"
+            android:contentDescription="@string/exo_controls_fastforward_description"
             android:visibility="visible" />
     </LinearLayout>
 
@@ -150,6 +154,7 @@
             <ImageButton
                 android:id="@+id/pb_screen_roation_portrait"
                 style="@style/AppButton.ScreenLockPortrait"
+                android:contentDescription="@string/pb_controls_screen_lock_portrait"
                 android:onClick="playback_OnClick"
                 android:visibility="invisible" />
 
@@ -157,6 +162,7 @@
             <ImageButton
                 android:id="@+id/pb_screen_roation_landscape"
                 style="@style/AppButton.ScreenLockLandscape"
+                android:contentDescription="@string/pb_controls_screen_lock_landscape"
                 android:onClick="playback_OnClick"
                 android:visibility="invisible" />
 
@@ -164,6 +170,7 @@
             <ImageButton
                 android:id="@+id/pb_screen_roation_auto"
                 style="@style/AppButton.ScreenAuto"
+                android:contentDescription="@string/pb_controls_screen_auto"
                 android:onClick="playback_OnClick"
                 android:visibility="visible" />
         </RelativeLayout>
@@ -171,7 +178,9 @@
     </LinearLayout>
 
 
-    <!-- Bottom controls (todo: remove) -->
+    <!-- old control layout todo: remove
+
+    <!- Bottom controls ->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -181,7 +190,7 @@
         android:orientation="vertical"
         android:visibility="gone">
 
-        <!-- Bottom Controls -->
+        <!- Bottom Controls ->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -207,6 +216,10 @@
                 style="@style/ExoMediaButton" />
 
             <ImageButton
+                android:id="@id/exo_vr"
+                style="@style/ExoMediaButton.VR" />
+
+            <ImageButton
                 android:id="@id/exo_play"
                 style="@style/ExoMediaButton.Play" />
 
@@ -228,7 +241,7 @@
 
         </LinearLayout>
 
-        <!-- Playback progress -->
+        <!- Playback progress ->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -254,7 +267,7 @@
                 android:layout_weight="1" />
 
 
-            <!--
+            <!-
             <SeekBar android:id="@id/exo_progress"
                 android:layout_width="0dp"
                 android:layout_weight="1"
@@ -266,7 +279,7 @@
 
                 />
 
-                -->
+
 
             <TextView
                 android:id="@id/exo_duration"
@@ -281,5 +294,7 @@
 
         </LinearLayout>
     </LinearLayout>
+
+    -->
 
 </RelativeLayout>

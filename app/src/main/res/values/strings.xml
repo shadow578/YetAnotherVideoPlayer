@@ -1,6 +1,11 @@
 <resources>
     <string name="app_name">YetAnotherVideoPlayer</string>
 
+    <!-- Content Descriptions in layout_exo_controls -->
+    <string name="pb_controls_screen_auto">Automatically Rotate Screen</string>
+    <string name="pb_controls_screen_lock_portrait">Lock Screen to Portrait</string>
+    <string name="pb_controls_screen_lock_landscape">Lock Screen to Landscape</string>
+
     <!-- Info Texts in PlaybackActivity -->
     <string name="info_volume_change">Volume: %d%%</string><!-- 1st arg: volume% [0-100] -->
     <string name="info_brightness_change">Brightness: %s</string><!-- 1st arg: brightness% ["1%"-"100%" + "@strings\info_brightness_auto"] -->
