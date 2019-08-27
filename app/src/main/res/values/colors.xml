@@ -22,8 +22,11 @@
     <!-- color of buffering state spinner (indeterminate circular progress bar) -->
     <color name="player_buffering_progress">@color/default_text</color>
 
-    <!-- color of the player controls background, used to darken the video when showing the controls -->
-    <color name="player_controls_backdrop">#32000000</color>
+    <!-- start color of the player controls background vignette, used to darken the video while showing the controls-->
+    <color name="player_vignette_start">#3E000000</color>
+
+    <!-- start color of the player controls background vignette, used to darken the video while showing the controls-->
+    <color name="player_vignette_end">#BC000000</color>
 
     <!-- text color of the playback progress / duration labels -->
     <color name="player_progress_labels_text">@color/default_text</color>
@@ -35,5 +38,5 @@
     <color name="player_center_buttons">@color/white</color>
 
     <!-- color tint of the screen rotation buttons in layout_exo_controls (lock_landscape/lock_portrait/auto) -->
-    <color name="player_screen_rotation_buttons">@color/white</color>
+    <color name="player_screen_rotation_buttons">@color/default_text</color>
 </resources>

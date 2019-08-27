@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_gravity="center"
-    android:background="@color/player_controls_backdrop"
+    android:background="@drawable/controls_vignette"
     android:layoutDirection="ltr"
     android:orientation="vertical"
     tools:targetApi="28">
