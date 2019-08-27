@@ -17,10 +17,11 @@ Yet Another Video Player (YAVP for short) is a Android Video Player based on Exo
 * **YAVP does not require any app permissions**
 	* Storage Permissions are ony needed for playing local files
 * At least Android 7.0 (Nougat) is required (this may change)
-* YAVP currently does not feature a Launch Activity
+* YAVP currently does not feature a (real) Launcher Activity
 	* Open YAVP by opening a supported file or URL and selecting YAVP
 * YAVP currently has no Settings Activity.
 	* Values that are meant to become settings are currently just constants
+* I'm currently redesigning the UI, and I won't add any screenshots before that is done.
 * This is my first Android App & My first project public on Github
 	* *If I did/do anything wrong or could do something better, let me know :)*
 
@@ -29,10 +30,10 @@ Yet Another Video Player (YAVP for short) is a Android Video Player based on Exo
 
 Please make sure to read these guidelines. Your issue may be closed without warning if you don't.
 
-####Issues
+#### Issues
 * **Before reporting a new issue, take a look at  already opened [issues](https://github.com/shadow578/YetAnotherVideoPlayer/issues).**
 
-####Bugs
+#### Bugs
 
 * **Include the App Version**
 	* If not on the latest App Version, try updating the app. The Issue may have already been solved
@@ -42,7 +43,7 @@ Please make sure to read these guidelines. Your issue may be closed without warn
 * For large logs use [pastebin.com](https://pastebin.com/) or similar
 * Don't group unrelated requests into one issue
 
-####Feature Requests
+#### Feature Requests
 * Write a detailed issue, explaining what (or how) the Feature should
 	* Avoid writing "...like (this) app does"
 * Include Screenshots (if needed)
