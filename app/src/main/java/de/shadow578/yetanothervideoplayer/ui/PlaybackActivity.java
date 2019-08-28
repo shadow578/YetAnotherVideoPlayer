@@ -81,8 +81,8 @@ public class PlaybackActivity extends AppCompatActivity
 
     //settings for SwipeGestureListener (in setupGestures)
     private final long TOUCH_DECAY_TIME = 1500;
-    private final float SWIPE_THRESHOLD_N = 5f;//0.005f;//*1439.00px
-    private final float FLING_THRESHOLD_N = 10f;//0.01f;//*1439.00px
+    private final float SWIPE_THRESHOLD_N = 5f;
+    private final float FLING_THRESHOLD_N = 10f;
 
     //fast-forward and rewind intervals of player (ms)
     private final int SEEK_BUTTON_INCREMENT = 5000;
