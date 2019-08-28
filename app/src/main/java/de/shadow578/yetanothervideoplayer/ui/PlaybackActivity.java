@@ -108,7 +108,7 @@ public class PlaybackActivity extends AppCompatActivity
     /**
      * The ProgressBar in the center of the screen, used to show that the player is currently buffering
      */
-    private ProgressBar bufferingProgressBar;
+    private View bufferingProgressBar;
 
     /**
      * The uri that this activity was created with (retried from intent)
