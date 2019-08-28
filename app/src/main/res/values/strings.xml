@@ -8,6 +8,13 @@
     <string name="pb_controls_player_settings">Open Settings</string>
     <string name="pb_controls_player_cast">Enable Cast Mode</string>
 
+    <!-- PIP Action Titles -->
+    <string name="pip_title_play">Play</string>
+    <string name="pip_title_pause">Pause</string>
+    <string name="pip_title_replay">Replay</string>
+    <string name="pip_title_f_rewind">Rewind</string>
+    <string name="pip_title_f_forward">Fast- Forward</string>
+
     <!-- Info Texts in PlaybackActivity -->
     <string name="info_volume_change">Volume: %d%%</string><!-- 1st arg: volume% [0-100] -->
     <string name="info_brightness_change">Brightness: %s</string><!-- 1st arg: brightness% ["1%"-"100%" + "@strings\info_brightness_auto"] -->

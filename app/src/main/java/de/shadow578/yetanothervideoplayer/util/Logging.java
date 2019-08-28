@@ -9,7 +9,7 @@ public final class Logging
     /**
      * The tag used for log messages
      */
-    static final String TAG = "YAVP";
+    private static final String TAG = "YAVP";
 
     /**
      * Log a Debug/Verbose message

@@ -12,12 +12,18 @@ import de.shadow578.yetanothervideoplayer.util.UniversalMediaSourceFactory;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.PendingIntent;
+import android.app.PictureInPictureParams;
+import android.app.RemoteAction;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.PointF;
 import android.graphics.RectF;
+import android.graphics.drawable.Icon;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -47,6 +53,8 @@ import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.util.Util;
 
+import java.util.ArrayList;
+
 public class PlaybackActivity extends AppCompatActivity
 {
     //region ~~ Constants, change to shared prefs OR remove later ~~
@@ -75,6 +83,12 @@ public class PlaybackActivity extends AppCompatActivity
     private final long TOUCH_DECAY_TIME = 1500;
     private final float SWIPE_THRESHOLD_N = 5f;//0.005f;//*1439.00px
     private final float FLING_THRESHOLD_N = 10f;//0.01f;//*1439.00px
+
+    //fast-forward and rewind intervals of player (ms)
+    private final int SEEK_BUTTON_INCREMENT = 5000;
+
+    //go to picture- in- picture mode when leaving the app and video is playing
+    private final boolean ENTER_PIP_ON_LEAVE = true;
 
     //endregion
 
@@ -107,7 +121,7 @@ public class PlaybackActivity extends AppCompatActivity
     /**
      * The ProgressBar in the center of the screen, used to show that the player is currently buffering
      */
-    private View bufferingProgressBar;
+    private View bufferingSpinner;
 
     /**
      * The uri that this activity was created with (retried from intent)
@@ -143,6 +157,11 @@ public class PlaybackActivity extends AppCompatActivity
      * The audio manager instance used to adjust media volume by swiping
      */
     private AudioManager audioManager;
+
+    /**
+     * Receives events from PIP control items when in pip mode
+     */
+    private BroadcastReceiver pipBroadcastReceiver;
 
     /**
      * The current playback position, used for resuming playback
@@ -252,7 +271,11 @@ public class PlaybackActivity extends AppCompatActivity
         playerView = findViewById(R.id.pb_playerView);
         infoTextView = findViewById(R.id.pb_infoText);
         titleTextView = findViewById(R.id.pb_streamTitle);
-        bufferingProgressBar = findViewById(R.id.pb_playerBufferingProgress);
+        bufferingSpinner = findViewById(R.id.pb_playerBufferingCont);
+
+        //set fast-forward and rewind increments
+        playerView.setFastForwardIncrementMs(SEEK_BUTTON_INCREMENT);
+        playerView.setRewindIncrementMs(SEEK_BUTTON_INCREMENT);
 
         //init screen rotation manager
         screenRotationManager = new ScreenRotationManager();
@@ -393,6 +416,16 @@ public class PlaybackActivity extends AppCompatActivity
 
         //app closed, free resources if not happened already
         freePlayer();
+    }
+
+    @Override
+    protected void onUserLeaveHint()
+    {
+        super.onUserLeaveHint();
+
+        //enter pip mode if enabled
+        if (ENTER_PIP_ON_LEAVE && isPlayerPlaying())
+            tryGoPip();
     }
 
     @Override
@@ -668,7 +701,247 @@ public class PlaybackActivity extends AppCompatActivity
     }
     //endregion
 
+    //region ~~ PIP Mode ~~
+
+    /**
+     * Constants for PIP mode
+     */
+    private static final class PIPConstants
+    {
+        /**
+         * Intent Action for media controls
+         */
+        private static final String ACTION_MEDIA_CONTROL = "media_control";
+
+        /**
+         * Intent Extra key for the request id
+         */
+        private static final String EXTRA_REQUEST_ID = "control_type";
+
+        /**
+         * Request id to Play/Pause playback
+         */
+        private static final int REQUEST_PLAY_PAUSE = 0;
+
+        /**
+         * Request id to Replay the video
+         */
+        private static final int REQUEST_REPLAY = 1;
+
+        /**
+         * Request id to fast- forward the video
+         */
+        private static final int REQUEST_FAST_FORWARD = 2;
+
+        /**
+         * Request id to rewind the video
+         */
+        private static final int REQUEST_REWIND = 3;
+    }
+
+    @Override
+    public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode)
+    {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode);
+
+        //hide controls when entering pip, re-enable when exiting pip
+        playerView.setUseController(!isInPictureInPictureMode);
+
+        //change the buffering spinner in pip mode
+        updateBufferingSpinnerVisibility(isInPictureInPictureMode);
+
+        if (isInPictureInPictureMode)
+        {
+            //changed to pip mode:
+            //register broadcast receiver
+            initPipBroadcastReceiverOnce();
+            registerReceiver(pipBroadcastReceiver, new IntentFilter(PIPConstants.ACTION_MEDIA_CONTROL));
+        }
+        else
+        {
+            //changed to normal mode (no PIP):
+            //remove broadcast receiver
+            unregisterReceiver(pipBroadcastReceiver);
+        }
+    }
+
+    /**
+     * Go into PIP mode
+     */
+    private void tryGoPip()
+    {
+        //update pip and enter pip if update succeeded
+        if (updatePip())
+            enterPictureInPictureMode();
+    }
+
+    /**
+     * Initializes the Broadcast Receiver used to receive events in PIP mode
+     * Initializes the receiver only once
+     */
+    private void initPipBroadcastReceiverOnce()
+    {
+        //only init once
+        if (pipBroadcastReceiver != null) return;
+
+        //initialize the receiver
+        pipBroadcastReceiver = new BroadcastReceiver()
+        {
+            @Override
+            public void onReceive(Context context, Intent intent)
+            {
+                //ignore any intent that is not ACTION_MEDIA_CONTROL
+                if (intent == null || intent.getAction() == null || !intent.getAction().equals(PIPConstants.ACTION_MEDIA_CONTROL))
+                    return;
+
+                //do stuff based on request id
+                int rId = intent.getIntExtra(PIPConstants.EXTRA_REQUEST_ID, -1);
+                switch (rId)
+                {
+                    case PIPConstants.REQUEST_PLAY_PAUSE:
+                    {
+                        //play/pause request, toggle playWhenReady
+                        player.setPlayWhenReady(!player.getPlayWhenReady());
+                        break;
+                    }
+                    case PIPConstants.REQUEST_REPLAY:
+                    {
+                        //replay request, set playWhenReady and seek to 0
+                        player.seekTo(0);
+                        player.setPlayWhenReady(true);
+                        break;
+                    }
+                    case PIPConstants.REQUEST_FAST_FORWARD:
+                    {
+                        //fast- forward request, fast- forward video
+                        player.seekTo(player.getCurrentPosition() + SEEK_BUTTON_INCREMENT);
+                        break;
+                    }
+                    case PIPConstants.REQUEST_REWIND:
+                    {
+                        //rewind request, rewind video
+                        player.seekTo(player.getCurrentPosition() - SEEK_BUTTON_INCREMENT);
+                        break;
+                    }
+                    default:
+                    {
+                        //invalid request id, log
+                        Logging.logW("Received Invalid PIP Request id: %d", rId);
+                        break;
+                    }
+                }
+            }
+        };
+    }
+
+    /**
+     * Update the controls of PIP mode
+     * Only enter PIP mode when returned true using enterPictureInPictureMode()
+     *
+     * @return true if the controls were updated successfully, or false if PIP is not supported
+     */
+    private boolean updatePip()
+    {
+        //lock out devices below API26 (don't support PIP)
+        if (Util.SDK_INT < 26) return false;
+
+        //create a list with all actions
+        ArrayList<RemoteAction> actions = new ArrayList<>();
+
+        //add buttons:
+        //reverse button
+        actions.add(createPipAction(PIPConstants.REQUEST_REWIND, R.drawable.ic_fast_rewind_48px, R.string.pip_title_f_rewind, R.string.exo_controls_rewind_description));
+
+        //region ~~Play/Pause/Replay Button ~~
+        if (player.getPlaybackState() == Player.STATE_ENDED)
+        {
+            //ended, show replay button
+            actions.add(createPipAction(PIPConstants.REQUEST_REPLAY, R.drawable.ic_replay_48px, R.string.pip_title_replay, R.string.exo_controls_play_description));
+        }
+        else
+        {
+            //playing or paused
+            if (player.getPlayWhenReady())
+            {
+                //currently playing, show pause button
+                actions.add(createPipAction(PIPConstants.REQUEST_PLAY_PAUSE, R.drawable.ic_pause_48px, R.string.pip_title_pause, R.string.exo_controls_pause_description));
+            }
+            else
+            {
+                //currently paused, show play button
+                actions.add(createPipAction(PIPConstants.REQUEST_PLAY_PAUSE, R.drawable.ic_play_arrow_48px, R.string.pip_title_play, R.string.exo_controls_play_description));
+            }
+        }
+        //endregion
+
+        //fast- forward button
+        actions.add(createPipAction(PIPConstants.REQUEST_FAST_FORWARD, R.drawable.ic_fast_forward_48px, R.string.pip_title_f_forward, R.string.exo_controls_fastforward_description));
+
+        //built the pip params
+        PictureInPictureParams params = new PictureInPictureParams.Builder().setActions(actions).build();
+
+        //this is how you update action items (etc.) for PIP mode.
+        //this call can happen even if not in pip mode. In that case, the params
+        //will be used for the next call of enterPictureInPictureMode
+        setPictureInPictureParams(params);
+        return true;
+    }
+
+    /**
+     * Create a RemoteAction with MEDIA_CONTROL action and @requestID as extra REQUEST_ID
+     *
+     * @param requestId            the request id
+     * @param resId                the ressource id for the icon
+     * @param titleId              the title string id of the action
+     * @param contentDescriptionId the description string id of the action
+     * @return the remote action, or null if the Android Device does not support PIP (<API26)
+     */
+    private RemoteAction createPipAction(int requestId, int resId, int titleId, int contentDescriptionId)
+    {
+        //make absolutely sure that device is >= API26
+        if (Util.SDK_INT < 26) return null;
+
+        //create pending intent with MEDIA_CONTROL action and requestID as extra REQUEST_ID
+        //PendingIntent pIntent = PendingIntent.getActivity(this, requestId,
+        //        new Intent(PIPConstants.ACTION_MEDIA_CONTROL).putExtra(PIPConstants.EXTRA_REQUEST_ID, requestId), 0);
+        PendingIntent pIntent = PendingIntent.getBroadcast(this, requestId,
+                new Intent(PIPConstants.ACTION_MEDIA_CONTROL).putExtra(PIPConstants.EXTRA_REQUEST_ID, requestId), 0);
+
+        //get the icon of the action by resId
+        Icon icon = Icon.createWithResource(this, resId);
+
+        //create the remote action
+        return new RemoteAction(icon, getString(titleId), getString(contentDescriptionId), pIntent);
+    }
+
+    //endregion
+
     //region ~~ Utility ~~
+
+    /**
+     * Check if the player is currently playing
+     * @return is it?
+     */
+    private boolean isPlayerPlaying()
+    {
+        return player != null && player.getPlaybackState() == Player.STATE_READY && player.getPlayWhenReady();
+    }
+
+    /**
+     * Update the visibility of the buffering spinners.
+     *
+     * @param pip if set, the pip spinner is made visible, otherwise, the normal spinner is visible
+     */
+    private void updateBufferingSpinnerVisibility(boolean pip)
+    {
+        //get spinners
+        View spinnerNormal = findViewById(R.id.pb_playerBufferingWheel_normal);
+        View spinnerPip = findViewById(R.id.pb_playerBufferingWheel_pipmode);
+
+        //enable/disable
+        if (spinnerNormal != null) spinnerNormal.setVisibility(pip ? View.INVISIBLE : View.VISIBLE);
+        if (spinnerPip != null) spinnerPip.setVisibility(pip ? View.VISIBLE : View.INVISIBLE);
+    }
 
     /**
      * Set the title shown on the titleTextView
@@ -725,7 +998,7 @@ public class PlaybackActivity extends AppCompatActivity
      */
     private void setBuffering(boolean isBuffering)
     {
-        bufferingProgressBar.setVisibility(isBuffering ? View.VISIBLE : View.INVISIBLE);
+        bufferingSpinner.setVisibility(isBuffering ? View.VISIBLE : View.INVISIBLE);
     }
 
     /**
@@ -854,6 +1127,9 @@ public class PlaybackActivity extends AppCompatActivity
                 playButton.setImageResource(R.drawable.ic_play_arrow_48px);
                 replayButtonVisible = false;
             }
+
+            //update PIP controls
+            updatePip();
 
             switch (playbackState)
             {
