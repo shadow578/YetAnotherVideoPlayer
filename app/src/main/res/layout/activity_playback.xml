@@ -7,12 +7,14 @@
     android:background="@color/black"
     tools:context=".ui.PlaybackActivity">
 
+    <!-- Player -->
     <com.google.android.exoplayer2.ui.PlayerView
         android:id="@+id/pb_playerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:controller_layout_id="@layout/layout_exo_controls" />
 
+    <!-- Info Text (Volume/Brightness) -->
     <TextView
         android:id="@+id/pb_infoText"
         android:layout_width="wrap_content"
@@ -26,6 +28,7 @@
         android:visibility="invisible"
         tools:ignore="HardcodedText" />
 
+    <!-- Buffering Progress Wheel -->
     <com.pnikosis.materialishprogress.ProgressWheel
         android:id="@+id/pb_playerBufferingProgress"
         android:layout_width="150dp"
@@ -33,19 +36,7 @@
         android:layout_centerInParent="true"
         android:visibility="visible"
         app:matProg_barColor="@color/player_buffering_progress"
-        app:matProg_fillRadius="true"
         app:matProg_barWidth="5dp"
+        app:matProg_fillRadius="true"
         app:matProg_progressIndeterminate="true" />
-
-
-    <!--
-    <ProgressBar
-        android:id="@+id/pb_playerBufferingProgress"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        android:layout_centerInParent="true"
-        android:indeterminate="true"
-        android:indeterminateTint="@color/player_buffering_progress"
-        android:visibility="visible" />
-        -->
 </RelativeLayout>

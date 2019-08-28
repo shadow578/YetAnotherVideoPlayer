@@ -22,33 +22,42 @@
             android:id="@+id/pb_streamTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
             android:layout_marginHorizontal="5dp"
-            android:layout_marginVertical="2.5dp"
-            android:text="Test Video Title"
+            android:text="Video Title"
             android:textAlignment="center"
             android:textAllCaps="false"
             android:textColor="@color/player_title_text"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:textStyle="bold"
-            android:visibility="invisible"
+            android:visibility="visible"
             tools:ignore="HardcodedText,RtlHardcoded" />
 
-        <!-- todo: top controls (settings button, ...) -->
+        <!-- top controls -->
         <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
+            android:layout_height="25dp"
             android:orientation="horizontal"
-            android:visibility="gone">
+            android:visibility="visible"
+            android:layout_alignParentRight="true"
+            tools:ignore="RtlHardcoded">
 
+
+            <!-- cast mode button -->
             <ImageButton
-                android:id="@id/exo_prev"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:background="@color/transparent"
-                android:scaleType="fitXY"
-                android:src="@drawable/exo_controls_fullscreen_enter" />
+                android:id="@+id/pb_cast"
+                style="@style/AppButton.PlayerCast"
+                android:layout_height="match_parent"
+                android:contentDescription="@string/pb_controls_player_cast"
+                android:onClick="playback_OnClick"
+                android:visibility="invisible" />
+
+            <!-- settings button -->
+            <ImageButton
+                android:id="@+id/pb_settings"
+                style="@style/AppButton.PlayerSettings"
+                android:layout_height="match_parent"
+                android:contentDescription="@string/pb_controls_player_settings"
+                android:onClick="playback_OnClick" />
 
         </LinearLayout>
 
@@ -174,127 +183,5 @@
                 android:onClick="playback_OnClick"
                 android:visibility="visible" />
         </RelativeLayout>
-
     </LinearLayout>
-
-
-    <!-- old control layout todo: remove
-
-    <!- Bottom controls ->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:background="#CC000000"
-        android:layoutDirection="ltr"
-        android:orientation="vertical"
-        android:visibility="gone">
-
-        <!- Bottom Controls ->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:paddingTop="4dp"
-            android:visibility="gone">
-
-            <ImageButton
-                android:id="@id/exo_prev"
-                style="@style/ExoMediaButton.Previous" />
-
-            <ImageButton
-                android:id="@id/exo_rew"
-                style="@style/ExoMediaButton.Rewind" />
-
-            <ImageButton
-                android:id="@id/exo_shuffle"
-                style="@style/ExoMediaButton.Shuffle" />
-
-            <ImageButton
-                android:id="@id/exo_repeat_toggle"
-                style="@style/ExoMediaButton" />
-
-            <ImageButton
-                android:id="@id/exo_vr"
-                style="@style/ExoMediaButton.VR" />
-
-            <ImageButton
-                android:id="@id/exo_play"
-                style="@style/ExoMediaButton.Play" />
-
-            <ImageButton
-                android:id="@id/exo_pause"
-                style="@style/ExoMediaButton.Pause" />
-
-            <ImageButton
-                android:id="@id/exo_ffwd"
-                style="@style/ExoMediaButton.FastForward" />
-
-            <ImageButton
-                android:id="@id/exo_next"
-                style="@style/ExoMediaButton.Next" />
-
-            <ImageButton
-                android:id="@id/exo_vr"
-                style="@style/ExoMediaButton.VR" />
-
-        </LinearLayout>
-
-        <!- Playback progress ->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@id/exo_position"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:includeFontPadding="false"
-                android:paddingLeft="4dp"
-                android:paddingRight="4dp"
-                android:textColor="#FFBEBEBE"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-            <View
-                android:id="@id/exo_progress_placeholder"
-                android:layout_width="0dp"
-                android:layout_height="26dp"
-                android:layout_weight="1" />
-
-
-            <!-
-            <SeekBar android:id="@id/exo_progress"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="32dp"
-                android:focusable="false"
-                android:progress="50"
-                android:progressTint="#FFFF69B4"
-                android:secondaryProgress="80"
-
-                />
-
-
-
-            <TextView
-                android:id="@id/exo_duration"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:includeFontPadding="false"
-                android:paddingLeft="4dp"
-                android:paddingRight="4dp"
-                android:textColor="#FFBEBEBE"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-        </LinearLayout>
-    </LinearLayout>
-
-    -->
-
 </RelativeLayout>

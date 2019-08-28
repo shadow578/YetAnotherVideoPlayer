@@ -59,4 +59,16 @@
         <item name="android:src">@drawable/ic_screen_rotation_48px</item>
         <item name="android:tint">@color/player_screen_rotation_buttons</item>
     </style>
+
+    <!-- player settings button in layout_exo_controls (top buttons) -->
+    <style name="AppButton.PlayerSettings">
+        <item name="android:src">@drawable/ic_more_vert_48px</item>
+        <item name="android:tint">@color/player_top_buttons</item>
+    </style>
+
+    <!-- cast mode button in layout_exo_controls (top buttons) -->
+    <style name="AppButton.PlayerCast">
+        <item name="android:src">@drawable/ic_cast_48px</item>
+        <item name="android:tint">@color/player_top_buttons</item>
+    </style>
 </resources>

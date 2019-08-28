@@ -34,6 +34,9 @@
     <!-- text color of the playback title label -->
     <color name="player_title_text">@color/default_text</color>
 
+    <!-- color of the top buttons in layout_exo_controls (cast/settings) -->
+    <color name="player_top_buttons">@color/default_text</color>
+
     <!-- color tint of the center buttons in layout_exo_controls (play/pause/fast forward/reverse) -->
     <color name="player_center_buttons">@color/white</color>
 

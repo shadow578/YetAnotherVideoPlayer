@@ -31,7 +31,6 @@ import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageButton;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -655,6 +654,16 @@ public class PlaybackActivity extends AppCompatActivity
                 break;
             }
             //endregion
+            case R.id.pb_cast:
+            {
+                //player cast mode button
+                break;
+            }
+            case R.id.pb_settings:
+            {
+                //open settings page button
+                break;
+            }
         }
     }
     //endregion
