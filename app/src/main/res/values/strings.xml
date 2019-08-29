@@ -5,8 +5,7 @@
     <string name="pb_controls_screen_auto">Automatically Rotate Screen</string>
     <string name="pb_controls_screen_lock_portrait">Lock Screen to Portrait</string>
     <string name="pb_controls_screen_lock_landscape">Lock Screen to Landscape</string>
-    <string name="pb_controls_player_settings">Open Settings</string>
-    <string name="pb_controls_player_cast">Enable Cast Mode</string>
+    <string name="pb_controls_player_quick_settings">Open Quick Settings</string>
 
     <!-- PIP Action Titles -->
     <string name="pip_title_play">Play</string>
@@ -19,6 +18,15 @@
     <string name="info_volume_change">Volume: %d%%</string><!-- 1st arg: volume% [0-100] -->
     <string name="info_brightness_change">Brightness: %s</string><!-- 1st arg: brightness% ["1%"-"100%" + "@strings\info_brightness_auto"] -->
     <string name="info_brightness_auto">AUTO</string>
+
+    <!-- Quick Settings -->
+    <string name="qs_quality">Quality</string>
+    <string name="qs_jump_to">Jump to</string>
+    <string name="qs_picture_in_picture">PIP- Player</string>
+    <string name="qs_cast">Cast</string>
+    <string name="qs_repeat">Loop</string>
+    <string name="qs_closed_captions">Subtitles</string>
+    <string name="qs_app_settings">Global Settings</string>
 
     <!-- Toast Strings -->
     <string name="toast_no_storage_permissions_granted">No Storage Permissions granted! Permissions are required to play local files.</string>

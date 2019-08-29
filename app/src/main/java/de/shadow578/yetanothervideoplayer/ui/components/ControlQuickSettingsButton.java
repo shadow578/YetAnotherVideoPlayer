@@ -24,6 +24,10 @@ public class ControlQuickSettingsButton extends LinearLayout
     Drawable icon;
     float iconMinWidth;
 
+    View rootView;
+    TextView textView;
+    ImageView iconView;
+
     public ControlQuickSettingsButton(Context context)
     {
         super(context);
@@ -73,33 +77,118 @@ public class ControlQuickSettingsButton extends LinearLayout
     private void init(Context context)
     {
         //inflate layout xml
-        View root = inflate(context, R.layout.component_quick_settings_button, this);
+        rootView = inflate(context, R.layout.component_quick_settings_button, this);
 
         //get sub- views
-        TextView txt = root.findViewById(R.id.comp_qs_button_text);
-        ImageView ico = root.findViewById(R.id.comp_qs_button_img);
+        textView = rootView.findViewById(R.id.comp_qs_button_text);
+        iconView = rootView.findViewById(R.id.comp_qs_button_img);
 
         //set values of the views
-        root.setBackgroundColor(backgroundTint);
+        update();
+    }
 
-        if (txt != null)
+    /**
+     * Update the ui component's values
+     */
+    private void update()
+    {
+        rootView.setBackgroundColor(backgroundTint);
+
+        if (textView != null)
         {
-            if (textStr != null && !textStr.isEmpty()) txt.setText(textStr);
-            txt.setPaddingRelative((int) textIconPadding, txt.getPaddingTop(), (int) textIconPadding, txt.getPaddingBottom());
-            txt.setTextColor(textColor);
+            if (textStr != null && !textStr.isEmpty()) textView.setText(textStr);
+            textView.setPaddingRelative((int) textIconPadding, textView.getPaddingTop(), (int) textIconPadding, textView.getPaddingBottom());
+            textView.setTextColor(textColor);
         }
 
-        if (ico != null)
+        if (iconView != null)
         {
             if (icon != null)
             {
                 icon.setTint(iconTint);
-                ico.setImageDrawable(icon);
+                iconView.setImageDrawable(icon);
             }
-            if (iconMinWidth != -1) ico.setMinimumWidth((int) iconMinWidth);
+            if (iconMinWidth != -1) iconView.setMinimumWidth((int) iconMinWidth);
 
             //use text as content description
-            ico.setContentDescription(textStr);
+            iconView.setContentDescription(textStr);
         }
+    }
+
+    public String getTextStr()
+    {
+        return textStr;
+    }
+
+    public void setTextStr(String textStr)
+    {
+        this.textStr = textStr;
+        update();
+    }
+
+    public float getTextIconPadding()
+    {
+        return textIconPadding;
+    }
+
+    public void setTextIconPadding(float textIconPadding)
+    {
+        this.textIconPadding = textIconPadding;
+        update();
+    }
+
+    public int getBackgroundTint()
+    {
+        return backgroundTint;
+    }
+
+    public void setBackgroundTint(int backgroundTint)
+    {
+        this.backgroundTint = backgroundTint;
+        update();
+    }
+
+    public int getTextColor()
+    {
+        return textColor;
+    }
+
+    public void setTextColor(int textColor)
+    {
+        this.textColor = textColor;
+        update();
+    }
+
+    public int getIconTint()
+    {
+        return iconTint;
+    }
+
+    public void setIconTint(int iconTint)
+    {
+        this.iconTint = iconTint;
+        update();
+    }
+
+    public Drawable getIcon()
+    {
+        return icon;
+    }
+
+    public void setIcon(Drawable icon)
+    {
+        this.icon = icon;
+        update();
+    }
+
+    public float getIconMinWidth()
+    {
+        return iconMinWidth;
+    }
+
+    public void setIconMinWidth(float iconMinWidth)
+    {
+        this.iconMinWidth = iconMinWidth;
+        update();
     }
 }

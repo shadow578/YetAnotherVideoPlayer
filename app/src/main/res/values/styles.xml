@@ -61,14 +61,22 @@
     </style>
 
     <!-- player settings button in layout_exo_controls (top buttons) -->
-    <style name="AppButton.PlayerSettings">
+    <style name="AppButton.PlayerQuickSettings">
         <item name="android:src">@drawable/ic_more_vert_48px</item>
         <item name="android:tint">@color/player_top_buttons</item>
     </style>
 
-    <!-- cast mode button in layout_exo_controls (top buttons) -->
-    <style name="AppButton.PlayerCast">
-        <item name="android:src">@drawable/ic_cast_48px</item>
-        <item name="android:tint">@color/player_top_buttons</item>
+    <!-- shared style of all Quick Settings buttons -->
+    <style name="QuickSettingsButton">
+        <item name="android:layout_height">40dp</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_marginTop">2dp</item>
+        <item name="android:layout_marginBottom">2dp</item>
+        <item name="android:onClick">playback_OnClick</item>
+        <item name="iconMinWidth">5dp</item>
+        <item name="backgroundTint">@color/qs_item_background</item>
+        <item name="iconTint">@color/qs_item_icon_default</item>
+        <item name="textColor">@color/qs_item_text</item>
+        <item name="textIconPadding">10dp</item>
     </style>
 </resources>

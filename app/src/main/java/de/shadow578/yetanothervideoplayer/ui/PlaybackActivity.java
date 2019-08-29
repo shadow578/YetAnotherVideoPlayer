@@ -6,6 +6,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import de.shadow578.yetanothervideoplayer.R;
+import de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton;
 import de.shadow578.yetanothervideoplayer.util.Logging;
 import de.shadow578.yetanothervideoplayer.util.SwipeGestureListener;
 import de.shadow578.yetanothervideoplayer.util.UniversalMediaSourceFactory;
@@ -697,14 +698,70 @@ public class PlaybackActivity extends AppCompatActivity
                 break;
             }
             //endregion
-            case R.id.pb_cast:
+
+            //region ~~ Player Quick Settings ~~
+            case R.id.qs_btn_quality:
             {
-                //player cast mode button
+                //quality choose
                 break;
             }
-            case R.id.pb_settings:
+            case R.id.qs_btn_jump_to:
             {
-                //open settings page button
+                //jump to position in video
+                Toast.makeText(this, "JUMP_TO_DIALOG", Toast.LENGTH_SHORT).show();
+                break;
+            }
+            case R.id.qs_btn_pip:
+            {
+                //open pip player
+                tryGoPip();
+                break;
+            }
+            case R.id.qs_btn_repeat_tgl:
+            {
+                //current video repeat toggle
+                ControlQuickSettingsButton btnRepeatMode = findViewById(R.id.qs_btn_repeat_tgl);
+                if (btnRepeatMode == null) break;
+
+                if (player.getRepeatMode() == Player.REPEAT_MODE_OFF)
+                {
+                    //enable repeat_one
+                    player.setRepeatMode(Player.REPEAT_MODE_ONE);
+
+                    //set button color to active color
+                    btnRepeatMode.setIconTint(getColor(R.color.qs_item_icon_active));
+                }
+                else
+                {
+                    //disable repeat mode
+                    player.setRepeatMode(Player.REPEAT_MODE_OFF);
+
+                    //set button color to disabled color
+                    btnRepeatMode.setIconTint(getColor(R.color.qs_item_icon_default));
+                }
+                break;
+            }
+            case R.id.qs_btn_cast:
+            {
+                //player cast mode
+                break;
+            }
+            case R.id.qs_btn_captions:
+            {
+                //subtitles toggle
+                break;
+            }
+            case R.id.qs_btn_app_settings:
+            {
+                //open global app settings
+                Toast.makeText(this, "OPEN_GLOBAL_SETTINGS", Toast.LENGTH_SHORT).show();
+                break;
+            }
+
+            //endregion
+            case R.id.pb_quick_settings:
+            {
+                //open quick settings
                 quickSettingsView.setVisibility(View.VISIBLE);
                 break;
             }
@@ -783,7 +840,20 @@ public class PlaybackActivity extends AppCompatActivity
     {
         //update pip and enter pip if update succeeded
         if (updatePip())
+        {
+            //can enter pip mode, hide ui elements:
+            //hide player controls
+            playerView.setUseController(false);
+
+            //hide quick settings panel
+            quickSettingsView.setVisibility(View.GONE);
+
+            //hide info text immediately
+            delayHandler.sendEmptyMessage(Messages.SET_INFO_TEXT_INVISIBLE);
+
+            //enter pip
             enterPictureInPictureMode();
+        }
     }
 
     /**
@@ -1140,8 +1210,9 @@ public class PlaybackActivity extends AppCompatActivity
                 replayButtonVisible = false;
             }
 
-            //update PIP controls
-            updatePip();
+            //update PIP controls if in pip mode
+            if (isInPictureInPictureMode())
+                updatePip();
 
             switch (playbackState)
             {
