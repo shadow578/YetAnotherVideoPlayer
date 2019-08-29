@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Quick Settings Button Attributes -->
+    <declare-styleable name="ControlQuickSettingsButton">
+        <attr name="text" format="string" />
+        <attr name="textIconPadding" format="dimension" />
+
+        <attr name="backgroundTint" format="color" />
+        <attr name="textColor" format="color" />
+        <attr name="iconTint" format="color" />
+
+        <attr name="icon" format="reference" />
+        <attr name="iconMinWidth" format="dimension" />
+
+    </declare-styleable>
+</resources>
