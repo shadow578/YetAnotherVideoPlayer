@@ -12,8 +12,8 @@
         android:id="@+id/pb_playerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:use_artwork="true"
-        app:controller_layout_id="@layout/layout_exo_controls" />
+        app:controller_layout_id="@layout/layout_exo_controls"
+        app:use_artwork="true" />
 
     <!-- Info Text (Volume/Brightness) -->
     <TextView
@@ -58,8 +58,14 @@
             app:matProg_barWidth="5dp"
             app:matProg_fillRadius="false"
             app:matProg_progressIndeterminate="true" />
-
     </RelativeLayout>
 
-
+    <!-- quick settings -->
+    <include
+        android:id="@+id/pb_quick_settings_panel"
+        android:visibility="gone"
+        android:layout_height="match_parent"
+        android:layout_width="wrap_content"
+        android:layout_alignParentEnd="true"
+        layout="@layout/layout_playback_quick_settings" />
 </RelativeLayout>

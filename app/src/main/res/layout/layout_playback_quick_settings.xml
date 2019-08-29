@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/hotpink">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="5dp"
+        android:layout_marginVertical="5dp"
+        android:orientation="vertical">
+
+        <de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton
+            android:id="@+id/test"
+            android:layout_width="match_parent"
+            android:layout_height="25dp"
+            android:onClick="playback_OnClick"
+            app:backgroundTint="@color/black"
+            app:icon="@drawable/ic_placeholder_48px"
+            app:iconMinWidth="0dp"
+            app:iconTint="#37D6AE"
+            app:text="Test BTN"
+            app:textColor="@color/white"
+            app:textIconPadding="5dp" />
+
+        <!--
+String textStr;
+float textIconPadding;
+
+int backgroundTint;
+int textColor;
+int iconTint;
+
+Drawable icon;
+float iconMinWidth;
+-->
+
+
+    </LinearLayout>
+</ScrollView>

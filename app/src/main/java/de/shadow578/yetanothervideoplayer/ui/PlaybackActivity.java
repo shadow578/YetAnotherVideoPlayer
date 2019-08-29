@@ -124,6 +124,11 @@ public class PlaybackActivity extends AppCompatActivity
     private View bufferingSpinner;
 
     /**
+     * The View that contains the quick settings buttons
+     */
+    private View quickSettingsView;
+
+    /**
      * The uri that this activity was created with (retried from intent)
      */
     private Uri playbackUri;
@@ -272,6 +277,7 @@ public class PlaybackActivity extends AppCompatActivity
         infoTextView = findViewById(R.id.pb_infoText);
         titleTextView = findViewById(R.id.pb_streamTitle);
         bufferingSpinner = findViewById(R.id.pb_playerBufferingCont);
+        quickSettingsView = findViewById(R.id.pb_quick_settings_panel);
 
         //set fast-forward and rewind increments
         playerView.setFastForwardIncrementMs(SEEK_BUTTON_INCREMENT);
@@ -488,7 +494,7 @@ public class PlaybackActivity extends AppCompatActivity
                 else
                 {
                     //swipe on left site of screen, adjust brightness
-                    if (deltaY > 0.0)
+                    if (deltaY > 0)
                     {
                         //swipe up, increase brightness
                         adjustScreenBrightness(BRIGHTNESS_ADJUST_STEP, false);
@@ -508,6 +514,10 @@ public class PlaybackActivity extends AppCompatActivity
             @Override
             public void onHorizontalFling(float deltaX, PointF flingStart, PointF flingEnd, SizeF screenSize)
             {
+                if (deltaX < 0)
+                {
+                    quickSettingsView.setVisibility(View.GONE);
+                }
             }
 
             @Override
@@ -695,6 +705,7 @@ public class PlaybackActivity extends AppCompatActivity
             case R.id.pb_settings:
             {
                 //open settings page button
+                quickSettingsView.setVisibility(View.VISIBLE);
                 break;
             }
         }
@@ -920,6 +931,7 @@ public class PlaybackActivity extends AppCompatActivity
 
     /**
      * Check if the player is currently playing
+     *
      * @return is it?
      */
     private boolean isPlayerPlaying()
