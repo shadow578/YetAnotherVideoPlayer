@@ -54,4 +54,12 @@
         android:onClick="videoTest_OnClick"
         android:text="Stream 3GP Video (Techslides.com)"
         android:textAllCaps="false" />
+
+    <Button
+        android:id="@+id/vtest_btn_settings"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="videoTest_OnClick"
+        android:text="Open Settings Activity"
+        android:textAllCaps="false" />
 </LinearLayout>

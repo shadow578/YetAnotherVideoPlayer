@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="de.shadow578.yetanothervideoplayer">
-
     <!-- To Stream Video -->
-    <uses-permission android:name="android.permission.INTERNET" />
-
-    <!-- To Play local files -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-
-    <!-- To adjust Media Volume by swiping -->
+    <uses-permission android:name="android.permission.INTERNET" /> <!-- To Play local files -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> <!-- To adjust Media Volume by swiping -->
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 
     <application
@@ -21,21 +16,24 @@
         android:usesCleartextTraffic="true">
         <!-- ^^allow traffic over http, since not all (eg most) streams wont be via https by default -->
         <activity
+            android:name=".ui.AppSettingsActivity"
+            android:label="@string/settings_title_root"></activity>
+        <activity
             android:name=".ui.VideoTestActivity"
             android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".ui.PlaybackActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
+            android:label="@string/app_name"
             android:resizeableActivity="true"
             android:supportsPictureInPicture="true"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
-            android:label="@string/app_name">
-
+            android:theme="@style/AppTheme.PlaybackActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -51,9 +49,7 @@
                 <!-- video -->
                 <data android:pathPattern=".*\\.mp4" />
                 <data android:pathPattern=".*\\.MP4" />
-
             </intent-filter>
-
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 

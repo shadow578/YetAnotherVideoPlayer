@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Default values of the preferences -->
+
+    <!-- general settings -->
+    <bool name="DEF_BACK_DOUBLE_PRESS_EN">true</bool>
+    <integer name="DEF_BACK_DOUBLE_PRESS_TIMEOUT">2000</integer>
+
+    <!-- swipe settings -->
+    <bool name="DEF_SWIPE_GESTURES_EN">true</bool>
+    <integer name="DEF_BRIGHTNESS_ADJUST_STEP">1</integer>
+    <bool name="DEF_BRIGHTNESS_HARD_SWIPE_EN">true</bool>
+    <integer name="DEF_BRIGHTNESS_HARD_SWIPE_THRESHOLD">37</integer>
+    <integer name="DEF_INFO_TEXT_DURATION">750</integer>
+
+    <!-- swipe advanced settings -->
+    <integer name="DEF_SWIPE_DEAD_ZONE_TOP">20</integer>
+    <integer name="DEF_SWIPE_DEAD_ZONE_BOTTOM">75</integer>
+    <integer name="DEF_SWIPE_DEAD_ZONE_LEFT">0</integer>
+    <integer name="DEF_SWIPE_DEAD_ZONE_RIGHT">0</integer>
+
+    <integer name="DEF_TOUCH_DECAY_TIME">1500</integer>
+    <integer name="DEF_SWIPE_FLING_THRESHOLD">5</integer>
+
+    <!-- player settings -->
+    <bool name="DEF_AUTO_PLAY">true</bool>
+    <bool name="DEF_CLOSE_WHEN_FINISHED_PLAYING">false</bool>
+    <bool name="DEF_ENTER_PIP_ON_LEAVE">true</bool>
+    <integer name="DEF_SEEK_BUTTON_INCREMENT">5000</integer>
+</resources>

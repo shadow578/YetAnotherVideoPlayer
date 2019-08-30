@@ -7,6 +7,7 @@ import androidx.core.content.ContextCompat;
 
 import de.shadow578.yetanothervideoplayer.R;
 import de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton;
+import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
 import de.shadow578.yetanothervideoplayer.util.Logging;
 import de.shadow578.yetanothervideoplayer.util.SwipeGestureListener;
 import de.shadow578.yetanothervideoplayer.util.UniversalMediaSourceFactory;
@@ -59,38 +60,44 @@ import java.util.ArrayList;
 public class PlaybackActivity extends AppCompatActivity
 {
     //region ~~ Constants, change to shared prefs OR remove later ~~
-    //auto start playback as soon as playback is ready
-    private final boolean AUTO_PLAY = true;
-
-    //close the player view when playback ended
-    private final boolean CLOSE_WHEN_FINISHED_PLAYING = false;
-
-    //info text duration for volume and brightness info (ms)
-    private final long INFO_TEXT_DURATION_VB = 750;
-
     //how long the fade out of the info text lasts (ms)
     private final long INFO_TEXT_FADE_DURATION = 500;
 
-    //how fast the "press back again to exit" flag resets (ms)
-    private final long BACK_DOUBLE_PRESS_TIMEOUT = 1000;
+    /**
 
-    //how much to change the screen brightness in one "step"
-    private final float BRIGHTNESS_ADJUST_STEP = 0.01f;
+     //auto start playback as soon as playback is ready
+     private final boolean AUTO_PLAY = true;
 
-    //the threshold for a "hard" swipe. Only with a "hard" swipe, the brightness level can be set to 0 (=auto/device default) (dp)
-    private final float BRIGHTNESS_HARD_SWIPE_THRESHOLD = 37.0f;
+     //close the player view when playback ended
+     private final boolean CLOSE_WHEN_FINISHED_PLAYING = false;
 
-    //settings for SwipeGestureListener (in setupGestures)
-    private final long TOUCH_DECAY_TIME = 1500;
-    private final float SWIPE_THRESHOLD_N = 5f;
-    private final float FLING_THRESHOLD_N = 10f;
+     //info text duration for volume and brightness info (ms)
+     private final long INFO_TEXT_DURATION_VB = 750;
 
-    //fast-forward and rewind intervals of player (ms)
-    private final int SEEK_BUTTON_INCREMENT = 5000;
+     //how long the fade out of the info text lasts (ms)
+     private final long INFO_TEXT_FADE_DURATION = 500;
 
-    //go to picture- in- picture mode when leaving the app and video is playing
-    private final boolean ENTER_PIP_ON_LEAVE = true;
+     //how fast the "press back again to exit" flag resets (ms)
+     private final long BACK_DOUBLE_PRESS_TIMEOUT = 1000;
 
+     //how much to change the screen brightness in one "step"
+     private final float BRIGHTNESS_ADJUST_STEP = 0.01f;
+
+     //the threshold for a "hard" swipe. Only with a "hard" swipe, the brightness level can be set to 0 (=auto/device default) (dp)
+     private final float BRIGHTNESS_HARD_SWIPE_THRESHOLD = 37.0f;
+
+     //settings for SwipeGestureListener (in setupGestures)
+     private final long TOUCH_DECAY_TIME = 1500;
+     private final float SWIPE_THRESHOLD_N = 5f;
+     private final float FLING_THRESHOLD_N = 10f;
+
+     //fast-forward and rewind intervals of player (ms)
+     private final int SEEK_BUTTON_INCREMENT = 5000;
+
+     //go to picture- in- picture mode when leaving the app and video is playing
+     private final boolean ENTER_PIP_ON_LEAVE = true;
+
+     */
     //endregion
 
     //region ~~ Constants ~~
@@ -201,6 +208,11 @@ public class PlaybackActivity extends AppCompatActivity
      */
     private boolean replayButtonVisible;
 
+    /**
+     * How long the Volume/Brightness info text is visible
+     */
+    private int infoTextDurationMs;
+
     //endregion
 
     //region ~~ Message Handler (delayHandler) ~~
@@ -281,8 +293,8 @@ public class PlaybackActivity extends AppCompatActivity
         quickSettingsView = findViewById(R.id.pb_quick_settings_panel);
 
         //set fast-forward and rewind increments
-        playerView.setFastForwardIncrementMs(SEEK_BUTTON_INCREMENT);
-        playerView.setRewindIncrementMs(SEEK_BUTTON_INCREMENT);
+        playerView.setFastForwardIncrementMs(getPrefInt(ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT));
+        playerView.setRewindIncrementMs(getPrefInt(ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT));
 
         //init screen rotation manager
         screenRotationManager = new ScreenRotationManager();
@@ -323,7 +335,10 @@ public class PlaybackActivity extends AppCompatActivity
         }
 
         //enable / disable autoplay
-        playWhenReady = AUTO_PLAY;
+        playWhenReady = getPrefBool(ConfigKeys.KEY_AUTO_PLAY, R.bool.DEF_AUTO_PLAY);
+
+        //get info text duration once
+        infoTextDurationMs = getPrefInt(ConfigKeys.KEY_INFO_TEXT_DURATION, R.integer.DEF_INFO_TEXT_DURATION);
     }
 
     @SuppressWarnings("SwitchStatementWithTooFewBranches")
@@ -432,14 +447,14 @@ public class PlaybackActivity extends AppCompatActivity
         super.onUserLeaveHint();
 
         //enter pip mode if enabled
-        if (ENTER_PIP_ON_LEAVE && isPlayerPlaying())
+        if (getPrefBool(ConfigKeys.KEY_ENTER_PIP_ON_LEAVE, R.bool.DEF_ENTER_PIP_ON_LEAVE) && isPlayerPlaying())
             tryGoPip();
     }
 
     @Override
     public void onBackPressed()
     {
-        if (backPressedOnce)
+        if (backPressedOnce || !getPrefBool(ConfigKeys.KEY_BACK_DOUBLE_PRESS_EN, R.bool.DEF_BACK_DOUBLE_PRESS_EN))
         {
             //back pressed once already, do normal thing...
             super.onBackPressed();
@@ -451,7 +466,7 @@ public class PlaybackActivity extends AppCompatActivity
         backPressedOnce = true;
 
         //send reset message delayed
-        delayHandler.sendEmptyMessageDelayed(Messages.RESET_BACK_PRESSED, BACK_DOUBLE_PRESS_TIMEOUT);
+        delayHandler.sendEmptyMessageDelayed(Messages.RESET_BACK_PRESSED, getPrefInt(ConfigKeys.KEY_BACK_DOUBLE_PRESS_TIMEOUT, R.integer.DEF_BACK_DOUBLE_PRESS_TIMEOUT));
 
         //show user a Toast
         Toast.makeText(this, getString(R.string.toast_press_back_again_to_exit), Toast.LENGTH_SHORT).show();
@@ -466,9 +481,27 @@ public class PlaybackActivity extends AppCompatActivity
      */
     private void setupGestures()
     {
+        //check if swipe gestures are enables
+        if (!getPrefBool(ConfigKeys.KEY_SWIPE_GESTURE_EN, R.bool.DEF_SWIPE_GESTURES_EN))
+        {
+            Logging.logD("Not initializing swipe gestures: swipe gestures are disabled!");
+            return;
+        }
+
+        //get configuration values needed in swipe handler (avoid looking up values constantly)
+        final int brightnessAdjustStep = getPrefInt(ConfigKeys.KEY_BRIGHTNESS_ADJUST_STEP, R.integer.DEF_BRIGHTNESS_ADJUST_STEP);
+        final int hardSwipeThreshold = getPrefInt(ConfigKeys.KEY_BRIGHTNESS_HARD_SWIPE_THRESHOLD, R.integer.DEF_BRIGHTNESS_HARD_SWIPE_THRESHOLD);
+        final boolean hardSwipeEnable = getPrefBool(ConfigKeys.KEY_BRIGHTNESS_HARD_SWIPE_EN, R.bool.DEF_BRIGHTNESS_HARD_SWIPE_EN);
+
         //init and set listener
-        playerView.setOnTouchListener(new SwipeGestureListener(TOUCH_DECAY_TIME, SWIPE_THRESHOLD_N, FLING_THRESHOLD_N,
-                new RectF(0, 20, 0, 75))
+        // playerView.setOnTouchListener(new SwipeGestureListener(TOUCH_DECAY_TIME, SWIPE_THRESHOLD_N, FLING_THRESHOLD_N,
+        // new RectF(0, 20, 0, 75))
+        int swipeFlingThreshold = getPrefInt(ConfigKeys.KEY_SWIPE_FLING_THRESHOLD, R.integer.DEF_SWIPE_FLING_THRESHOLD);
+        playerView.setOnTouchListener(new SwipeGestureListener(getPrefInt(ConfigKeys.KEY_TOUCH_DECAY_TIME, R.integer.DEF_TOUCH_DECAY_TIME), swipeFlingThreshold, swipeFlingThreshold,
+                new RectF(getPrefInt(ConfigKeys.KEY_SWIPE_DEAD_ZONE_RECT_LEFT, R.integer.DEF_SWIPE_DEAD_ZONE_LEFT),
+                        getPrefInt(ConfigKeys.KEY_SWIPE_DEAD_ZONE_RECT_TOP, R.integer.DEF_SWIPE_DEAD_ZONE_TOP),
+                        getPrefInt(ConfigKeys.KEY_SWIPE_DEAD_ZONE_RECT_RIGHT, R.integer.DEF_SWIPE_DEAD_ZONE_RIGHT),
+                        getPrefInt(ConfigKeys.KEY_SWIPE_DEAD_ZONE_RECT_BOTTOM, R.integer.DEF_SWIPE_DEAD_ZONE_BOTTOM)))
         {
             @Override
             public void onHorizontalSwipe(float deltaX, PointF swipeStart, PointF swipeEnd, PointF firstContact, SizeF screenSize)
@@ -499,16 +532,17 @@ public class PlaybackActivity extends AppCompatActivity
                     if (deltaY > 0)
                     {
                         //swipe up, increase brightness
-                        adjustScreenBrightness(BRIGHTNESS_ADJUST_STEP, false);
+                        adjustScreenBrightness(brightnessAdjustStep, false);
                     }
                     else
                     {
                         //swipe down, decrease brightness:
-                        //check if "hard" swipe
-                        boolean hardSwipe = Math.abs(deltaY) > BRIGHTNESS_HARD_SWIPE_THRESHOLD;
+                        //check if "hard" swipe, override hard swipe if not enabled
+                        boolean hardSwipe = hardSwipeEnable || Math.abs(deltaY) > hardSwipeThreshold;
+
 
                         //allow setting brightness to 0 when hard swiping (but ONLY then)
-                        adjustScreenBrightness(-BRIGHTNESS_ADJUST_STEP, hardSwipe);
+                        adjustScreenBrightness(-brightnessAdjustStep, hardSwipe);
                     }
                 }
             }
@@ -564,7 +598,7 @@ public class PlaybackActivity extends AppCompatActivity
         {
             brightnessStr = getString(R.string.info_brightness_auto);
         }
-        showInfoText(INFO_TEXT_DURATION_VB, getString(R.string.info_brightness_change), brightnessStr);
+        showInfoText(infoTextDurationMs, getString(R.string.info_brightness_change), brightnessStr);
     }
 
     /**
@@ -599,7 +633,7 @@ public class PlaybackActivity extends AppCompatActivity
         int volumePercent = (int) Math.floor(((float) currentVolume - (float) minVolume) / ((float) maxVolume - (float) minVolume) * 100);
 
         //show info text
-        showInfoText(INFO_TEXT_DURATION_VB, getString(R.string.info_volume_change), volumePercent);
+        showInfoText(infoTextDurationMs, getString(R.string.info_volume_change), volumePercent);
     }
 
     //endregion
@@ -619,7 +653,7 @@ public class PlaybackActivity extends AppCompatActivity
         //create media source factory
         if (mediaSourceFactory == null)
         {
-            mediaSourceFactory = new UniversalMediaSourceFactory(this, getString(R.string.app_user_agent_str));
+            mediaSourceFactory = new UniversalMediaSourceFactory(this, Util.getUserAgent(this, getString(R.string.app_name)));
         }
 
         //create new simple exoplayer instance
@@ -768,7 +802,7 @@ public class PlaybackActivity extends AppCompatActivity
             case R.id.qs_btn_app_settings:
             {
                 //open global app settings
-                Toast.makeText(this, "OPEN_GLOBAL_SETTINGS", Toast.LENGTH_SHORT).show();
+                this.startActivity(new Intent(this, AppSettingsActivity.class));
                 break;
             }
 
@@ -909,13 +943,13 @@ public class PlaybackActivity extends AppCompatActivity
                     case PIPConstants.REQUEST_FAST_FORWARD:
                     {
                         //fast- forward request, fast- forward video
-                        player.seekTo(player.getCurrentPosition() + SEEK_BUTTON_INCREMENT);
+                        player.seekTo(player.getCurrentPosition() + getPrefInt(ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT));
                         break;
                     }
                     case PIPConstants.REQUEST_REWIND:
                     {
                         //rewind request, rewind video
-                        player.seekTo(player.getCurrentPosition() - SEEK_BUTTON_INCREMENT);
+                        player.seekTo(player.getCurrentPosition() - getPrefInt(ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT));
                         break;
                     }
                     default:
@@ -1012,6 +1046,32 @@ public class PlaybackActivity extends AppCompatActivity
     //endregion
 
     //region ~~ Utility ~~
+
+    /**
+     * Get a boolean from shared preferences
+     *
+     * @param key   the key of the value
+     * @param defId the id of the default value in R.bool
+     * @return the boolean value
+     */
+    private boolean getPrefBool(String key, int defId)
+    {
+        Logging.logD("Getting Boolean Preference \"%s\"...", key);
+        return getPreferences(MODE_PRIVATE).getBoolean(key, getResources().getBoolean(defId));
+    }
+
+    /**
+     * Get a int from shared preferences
+     *
+     * @param key   the key of the value
+     * @param defId the id of the default value in R.integer
+     * @return the int value
+     */
+    private int getPrefInt(String key, int defId)
+    {
+        Logging.logD("Getting Integer Preference \"%s\"...", key);
+        return getPreferences(MODE_PRIVATE).getInt(key, getResources().getInteger(defId));
+    }
 
     /**
      * Check if the player is currently playing
@@ -1262,7 +1322,7 @@ public class PlaybackActivity extends AppCompatActivity
                     //release screen lock
                     forceScreenOn(false);
 
-                    if (CLOSE_WHEN_FINISHED_PLAYING)
+                    if (getPrefBool(ConfigKeys.KEY_CLOSE_WHEN_FINISHED_PLAYING, R.bool.DEF_CLOSE_WHEN_FINISHED_PLAYING))
                     {
                         //close app
                         finish();

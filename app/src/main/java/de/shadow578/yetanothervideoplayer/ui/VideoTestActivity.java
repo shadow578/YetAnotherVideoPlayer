@@ -56,6 +56,12 @@ public class VideoTestActivity extends AppCompatActivity
                 uri = "http://techslides.com/demos/sample-videos/small.3gp";
                 break;
             }
+            case R.id.vtest_btn_settings:
+            {
+                //open settings
+                startActivity(new Intent(this, AppSettingsActivity.class));
+                return;
+            }
             case R.id.vtest_btn_mp4:
             default:
             {

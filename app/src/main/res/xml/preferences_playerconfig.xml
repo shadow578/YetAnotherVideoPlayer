@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+        android:title="Player Settings"/>
+
+    <SwitchPreference
+        android:defaultValue="@bool/DEF_AUTO_PLAY"
+        android:key="AUTO_PLAY"
+        android:summaryOff="Playback has to be manually started"
+        android:summaryOn="Playback automatically starts once loaded"
+        android:title="Auto- Start Playback" />
+
+    <SwitchPreference
+        android:defaultValue="@bool/DEF_CLOSE_WHEN_FINISHED_PLAYING"
+        android:key="CLOSE_WHEN_FINISHED_PLAYING"
+        android:summaryOff="Player stays open after Playback ended"
+        android:summaryOn="Player automatically closes after Playback ended"
+        android:title="Auto- Close Player" />
+
+    <SwitchPreference
+        android:defaultValue="@bool/DEF_ENTER_PIP_ON_LEAVE"
+        android:key="ENTER_PIP_ON_LEAVE"
+        android:summaryOff="Pause Playback when minimizing app"
+        android:summaryOn="Enter Picture- in- Picture Mode when minimizing app"
+        android:title="Auto- Enter PiP" />
+
+    <EditTextPreference
+        android:defaultValue="@integer/DEF_SEEK_BUTTON_INCREMENT"
+        android:key="SEEK_BUTTON_INCREMENT"
+        android:title="Seek Increment"
+        android:summary="By how many milliseconds the Seek buttons adjust the playback position"/>
+
+</PreferenceScreen>

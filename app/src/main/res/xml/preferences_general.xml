@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="General" />
+
+    <SwitchPreference
+        android:defaultValue="@bool/DEF_BACK_DOUBLE_PRESS_EN"
+        android:key="BACK_DOUBLE_PRESS_EN"
+        android:summaryOff="Back button closes app without confirmation"
+        android:summaryOn="Back button has to be pressed twice to exit"
+        android:title="Prevent Accidental Closing" />
+
+    <EditTextPreference
+        android:defaultValue="@integer/DEF_BACK_DOUBLE_PRESS_TIMEOUT"
+        android:dependency="BACK_DOUBLE_PRESS_EN"
+        android:key="BACK_DOUBLE_PRESS_TIMEOUT"
+        android:numeric="integer"
+        android:summary="How fast you have to press the Back button to exit (milliseconds)"
+        android:title="Double Press Timeout" />
+</PreferenceScreen>
