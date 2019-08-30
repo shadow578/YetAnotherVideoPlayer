@@ -26,6 +26,11 @@ public class UniversalMediaSourceFactory
     private final DataSource.Factory dataSourceFactory;
 
     /**
+     * The Cache directory
+     */
+    private File cacheDir;
+
+    /**
      * The cache used to download video data
      */
     private Cache downloadCache;
@@ -52,8 +57,8 @@ public class UniversalMediaSourceFactory
         //initialize download cache
         if (downloadCache == null)
         {
-            File downloadContentDir = new File(context.getFilesDir(), "stream-cache");
-            downloadCache = new SimpleCache(downloadContentDir, new NoOpCacheEvictor(), databaseProvider);
+            cacheDir = new File(context.getFilesDir(), "cache");
+            downloadCache = new SimpleCache(cacheDir, new NoOpCacheEvictor(), databaseProvider);
         }
 
         //create http data source factory that allows http -> https redirects
@@ -81,16 +86,22 @@ public class UniversalMediaSourceFactory
      */
     public void release()
     {
+        //log release + cached bytes
+        Logging.logD("Releasing UniversalMediaSourceFactory and clearing %d bytes of cache...", downloadCache.getCacheSpace());
+
         //release cache
         if (downloadCache != null)
         {
             downloadCache.release();
+            Logging.logD("Cache released!");
         }
 
-        //close database connection
+        //clear cache & close database connection
         if (databaseProvider != null)
         {
+            SimpleCache.delete(cacheDir, databaseProvider);
             databaseProvider.close();
+            Logging.logD("Cache cleared + database connection closed!");
         }
     }
 }
