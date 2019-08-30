@@ -23,7 +23,7 @@ public class UniversalMediaSourceFactory
     /**
      * Datasource factory of this app
      */
-    private DataSource.Factory dataSourceFactory;
+    private final DataSource.Factory dataSourceFactory;
 
     /**
      * The cache used to download video data

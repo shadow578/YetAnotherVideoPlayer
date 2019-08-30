@@ -6,7 +6,6 @@
     android:orientation="horizontal">
 
     <!-- content description is set in code -->
-    <!-- todo: quick width fix -->
     <ImageView
         android:id="@+id/comp_qs_button_img"
         android:layout_width="30dp"

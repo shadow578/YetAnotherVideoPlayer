@@ -31,4 +31,5 @@ dependencies {
 
     implementation 'com.google.android.exoplayer:exoplayer:2.10.4'
     implementation 'com.pnikosis:materialish-progress:1.7'
+    implementation 'mobi.upod:time-duration-picker:1.1.3'
 }

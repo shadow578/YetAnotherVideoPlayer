@@ -114,6 +114,7 @@ public class SwipeGestureListener implements View.OnTouchListener
                 else
                 {
                     //finger pressed down inside dead zone, pass through
+                    onNoSwipeClick(view, currentPos, screenSize);
                     view.performClick();
                 }
 
@@ -133,6 +134,7 @@ public class SwipeGestureListener implements View.OnTouchListener
                 if (Math.abs(deltaX) < flingThreshold && Math.abs(deltaY) < flingThreshold)
                 {
                     //does not qualify as fling, make click
+                    onNoSwipeClick(view, currentPos, screenSize);
                     view.performClick();
 
                     //null values
@@ -271,7 +273,7 @@ public class SwipeGestureListener implements View.OnTouchListener
      * @param firstContact the first contact point of the finger
      * @param screenSize   the size of the screen
      */
-    public void onVerticalSwipe(float deltaY, PointF swipeStart, PointF swipeEnd, PointF firstContact, SizeF screenSize)
+    protected void onVerticalSwipe(float deltaY, PointF swipeStart, PointF swipeEnd, PointF firstContact, SizeF screenSize)
     {
 
     }
@@ -306,6 +308,19 @@ public class SwipeGestureListener implements View.OnTouchListener
     public void onVerticalFling(float deltaY, PointF flingStart, PointF flingEnd, SizeF screenSize)
     {
 
+    }
+
+    /**
+     * Called when a click is detected and performed
+     * (all units, positions, etc. in dp (density- independent- pixels))
+     *
+     * @param view       the view that was clicked
+     * @param clickPos   the position of the click
+     * @param screenSize the size of the screen
+     */
+    @SuppressWarnings({"EmptyMethod", "unused"})
+    public void onNoSwipeClick(View view, PointF clickPos, SizeF screenSize)
+    {
     }
 
     //endregion

@@ -5,7 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/black"
-    tools:context=".ui.PlaybackActivity">
+    tools:context=".ui.PlaybackActivity"
+    android:animateLayoutChanges="true">
 
     <!-- Player -->
     <com.google.android.exoplayer2.ui.PlayerView
@@ -63,10 +64,10 @@
     <!-- quick settings -->
     <include
         android:id="@+id/pb_quick_settings_panel"
-        android:visibility="gone"
-        android:layout_height="wrap_content"
+        layout="@layout/layout_playback_quick_settings"
         android:layout_width="wrap_content"
-        android:layout_marginBottom="5dp"
+        android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
-        layout="@layout/layout_playback_quick_settings" />
+        android:layout_marginBottom="5dp"
+        android:visibility="visible" />
 </RelativeLayout>

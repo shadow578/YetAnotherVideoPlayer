@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- App Theme colors -->
     <color name="colorPrimary">#008577</color>
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#D81B60</color>
@@ -55,5 +56,5 @@
 
     <color name="qs_item_icon_default">@color/white</color>
 
-    <color name="qs_item_icon_active">@color/hotpink</color>
+    <color name="qs_item_icon_active">#FC9191</color>
 </resources>

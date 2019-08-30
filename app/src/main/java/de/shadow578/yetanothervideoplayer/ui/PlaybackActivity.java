@@ -364,6 +364,7 @@ public class PlaybackActivity extends AppCompatActivity
         super.onStart();
         Logging.logD("onStart of PlaybackActivity called.");
 
+        hideSysUI();
         if (supportMultiWindow())
         {
             //initialize player onStart with multi-window support, because
@@ -524,6 +525,14 @@ public class PlaybackActivity extends AppCompatActivity
             @Override
             public void onVerticalFling(float deltaY, PointF flingStart, PointF flingEnd, SizeF screenSize)
             {
+            }
+
+            @Override
+            public void onNoSwipeClick(View view, PointF clickPos, SizeF screenSize)
+            {
+                //hide system ui with click
+                hideSysUI();
+                super.onNoSwipeClick(view, clickPos, screenSize);
             }
         });
     }
@@ -707,8 +716,13 @@ public class PlaybackActivity extends AppCompatActivity
             }
             case R.id.qs_btn_jump_to:
             {
-                //jump to position in video
-                Toast.makeText(this, "JUMP_TO_DIALOG", Toast.LENGTH_SHORT).show();
+                //jump to position in video:
+                //show dialog
+                JumpToFragment jumpTo = new JumpToFragment();
+                jumpTo.show(getSupportFragmentManager(), player);
+
+                //hide quick settings
+                quickSettingsView.setVisibility(View.GONE);
                 break;
             }
             case R.id.qs_btn_pip:

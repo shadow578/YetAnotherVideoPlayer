@@ -8,8 +8,6 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <!-- todo: add accessibility description to buttons -->
-
     <!-- Base for Buttons -->
     <style name="AppButton">
         <item name="android:background">?selectableItemBackgroundBorderless</item>
@@ -68,7 +66,7 @@
 
     <!-- shared style of all Quick Settings buttons -->
     <style name="QuickSettingsButton">
-        <item name="android:layout_height">40dp</item>
+        <item name="android:layout_height">50dp</item>
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_marginTop">2dp</item>
         <item name="android:layout_marginBottom">2dp</item>

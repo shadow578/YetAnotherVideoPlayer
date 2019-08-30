@@ -14,19 +14,19 @@ import de.shadow578.yetanothervideoplayer.R;
 
 public class ControlQuickSettingsButton extends LinearLayout
 {
-    String textStr;
-    float textIconPadding;
+    private String textStr;
+    private float textIconPadding;
 
-    int backgroundTint;
-    int textColor;
-    int iconTint;
+    private int backgroundTint;
+    private int textColor;
+    private int iconTint;
 
-    Drawable icon;
-    float iconMinWidth;
+    private Drawable icon;
+    private float iconMinWidth;
 
-    View rootView;
-    TextView textView;
-    ImageView iconView;
+    private View rootView;
+    private TextView textView;
+    private ImageView iconView;
 
     public ControlQuickSettingsButton(Context context)
     {
