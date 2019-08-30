@@ -5,6 +5,8 @@
     <!-- general settings -->
     <bool name="DEF_BACK_DOUBLE_PRESS_EN">true</bool>
     <integer name="DEF_BACK_DOUBLE_PRESS_TIMEOUT">2000</integer>
+    <bool name="DEF_PERSIST_BRIGHTNESS_EN">true</bool>
+    <bool name="DEF_PERSIST_VOLUME_EN">true</bool>
 
     <!-- swipe settings -->
     <bool name="DEF_SWIPE_GESTURES_EN">true</bool>

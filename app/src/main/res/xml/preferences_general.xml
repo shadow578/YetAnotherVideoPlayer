@@ -17,4 +17,18 @@
         android:numeric="integer"
         android:summary="How fast you have to press the Back button to exit (milliseconds)"
         android:title="Double Press Timeout" />
+
+    <SwitchPreference
+        android:defaultValue="@bool/DEF_PERSIST_VOLUME_EN"
+        android:key="PERSIST_VOLUME_EN"
+        android:summaryOff="Volume Level does not Persist between Playback Sessions"
+        android:summaryOn="Volume Level Persists between Playback Sessions"
+        android:title="Persistent Volume" />
+
+    <SwitchPreference
+        android:defaultValue="@bool/DEF_PERSIST_BRIGHTNESS_EN"
+        android:key="PERSIST_BRIGHTNESS_EN"
+        android:summaryOff="Brightness Level does not Persist between Playback Sessions"
+        android:summaryOn="Brightness Level Persists between Playback Sessions"
+        android:title="Persistent Brightness" />
 </PreferenceScreen>

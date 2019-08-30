@@ -69,3 +69,4 @@ That said, here are some reasons to pick YAVP over other apps:
 * [google/ExoPlayer](https://github.com/google/ExoPlayer)
 * [google/Material-Design-Icons](https://github.com/google/material-design-icons)
 * [pnikosis/materialish-progress](https://github.com/pnikosis/materialish-progress)
+* [svenwiegand/time-duration-picker](https://github.com/svenwiegand/time-duration-picker)

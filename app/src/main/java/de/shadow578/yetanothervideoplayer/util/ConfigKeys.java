@@ -83,7 +83,27 @@ public final class ConfigKeys
     public static final String KEY_ENTER_PIP_ON_LEAVE = "ENTER_PIP_ON_LEAVE";
 
     /**
-     * player seek button increment
+     * player seek button increment (ms)
      */
     public static final String KEY_SEEK_BUTTON_INCREMENT = "SEEK_BUTTON_INCREMENT";
+
+    /**
+     * persistent brightness enable (true/false)
+     */
+    public static final String KEY_PERSIST_BRIGHTNESS_EN = "PERSIST_BRIGHTNESS_EN";
+
+    /**
+     * persistent brightness value (%, 0-100)
+     */
+    public static final String KEY_PERSIST_BRIGHTNESS = "PERSIST_BRIGHTNESS";
+
+    /**
+     * persistent volume enable (true/false)
+     */
+    public static final String KEY_PERSIST_VOLUME_EN = "PERSIST_VOLUME_EN";
+
+    /**
+     * persistent volume value (audio manager volume index)
+     */
+    public static final String KEY_PERSIST_VOLUME = "PERSIST_VOLUME";
 }

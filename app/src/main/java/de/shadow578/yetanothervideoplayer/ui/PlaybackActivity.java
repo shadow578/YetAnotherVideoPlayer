@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.preference.PreferenceManager;
 
 import de.shadow578.yetanothervideoplayer.R;
 import de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton;
@@ -21,6 +22,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.PointF;
@@ -63,41 +65,6 @@ public class PlaybackActivity extends AppCompatActivity
     //how long the fade out of the info text lasts (ms)
     private final long INFO_TEXT_FADE_DURATION = 500;
 
-    /**
-
-     //auto start playback as soon as playback is ready
-     private final boolean AUTO_PLAY = true;
-
-     //close the player view when playback ended
-     private final boolean CLOSE_WHEN_FINISHED_PLAYING = false;
-
-     //info text duration for volume and brightness info (ms)
-     private final long INFO_TEXT_DURATION_VB = 750;
-
-     //how long the fade out of the info text lasts (ms)
-     private final long INFO_TEXT_FADE_DURATION = 500;
-
-     //how fast the "press back again to exit" flag resets (ms)
-     private final long BACK_DOUBLE_PRESS_TIMEOUT = 1000;
-
-     //how much to change the screen brightness in one "step"
-     private final float BRIGHTNESS_ADJUST_STEP = 0.01f;
-
-     //the threshold for a "hard" swipe. Only with a "hard" swipe, the brightness level can be set to 0 (=auto/device default) (dp)
-     private final float BRIGHTNESS_HARD_SWIPE_THRESHOLD = 37.0f;
-
-     //settings for SwipeGestureListener (in setupGestures)
-     private final long TOUCH_DECAY_TIME = 1500;
-     private final float SWIPE_THRESHOLD_N = 5f;
-     private final float FLING_THRESHOLD_N = 10f;
-
-     //fast-forward and rewind intervals of player (ms)
-     private final int SEEK_BUTTON_INCREMENT = 5000;
-
-     //go to picture- in- picture mode when leaving the app and video is playing
-     private final boolean ENTER_PIP_ON_LEAVE = true;
-
-     */
     //endregion
 
     //region ~~ Constants ~~
@@ -177,6 +144,11 @@ public class PlaybackActivity extends AppCompatActivity
     private BroadcastReceiver pipBroadcastReceiver;
 
     /**
+     * The Preferences of the app
+     */
+    private SharedPreferences appPreferences;
+
+    /**
      * The current playback position, used for resuming playback
      */
     private long playbackPosition;
@@ -212,6 +184,11 @@ public class PlaybackActivity extends AppCompatActivity
      * How long the Volume/Brightness info text is visible
      */
     private int infoTextDurationMs;
+
+    /**
+     * The original volume index before the playback activity was opened
+     */
+    private int originalVolumeIndex;
 
     //endregion
 
@@ -284,6 +261,9 @@ public class PlaybackActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_playback);
         Logging.logD("onCreate of PlaybackActivity called.");
+
+        //get preferences
+        appPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         //get views
         playerView = findViewById(R.id.pb_playerView);
@@ -489,8 +469,8 @@ public class PlaybackActivity extends AppCompatActivity
         }
 
         //get configuration values needed in swipe handler (avoid looking up values constantly)
-        final int brightnessAdjustStep = getPrefInt(ConfigKeys.KEY_BRIGHTNESS_ADJUST_STEP, R.integer.DEF_BRIGHTNESS_ADJUST_STEP);
-        final int hardSwipeThreshold = getPrefInt(ConfigKeys.KEY_BRIGHTNESS_HARD_SWIPE_THRESHOLD, R.integer.DEF_BRIGHTNESS_HARD_SWIPE_THRESHOLD);
+        final float brightnessAdjustStep = getPrefInt(ConfigKeys.KEY_BRIGHTNESS_ADJUST_STEP, R.integer.DEF_BRIGHTNESS_ADJUST_STEP) / 100.0f;
+        final float hardSwipeThreshold = getPrefInt(ConfigKeys.KEY_BRIGHTNESS_HARD_SWIPE_THRESHOLD, R.integer.DEF_BRIGHTNESS_HARD_SWIPE_THRESHOLD);
         final boolean hardSwipeEnable = getPrefBool(ConfigKeys.KEY_BRIGHTNESS_HARD_SWIPE_EN, R.bool.DEF_BRIGHTNESS_HARD_SWIPE_EN);
 
         //init and set listener
@@ -677,6 +657,32 @@ public class PlaybackActivity extends AppCompatActivity
         //resume playback where we left off
         player.setPlayWhenReady(playWhenReady);
         player.seekTo(currentPlayWindow, playbackPosition);
+
+        //save original volume level
+        originalVolumeIndex = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+
+        //restore persistent volume and brightness levels
+        if (getPrefBool(ConfigKeys.KEY_PERSIST_VOLUME_EN, R.bool.DEF_PERSIST_VOLUME_EN))
+        {
+            int persistVolume = appPreferences.getInt(ConfigKeys.KEY_PERSIST_VOLUME, originalVolumeIndex);
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, persistVolume, 0);
+        }
+
+        if (getPrefBool(ConfigKeys.KEY_PERSIST_BRIGHTNESS_EN, R.bool.DEF_PERSIST_BRIGHTNESS_EN))
+        {
+            //get window attributes
+            WindowManager.LayoutParams windowAttributes = getWindow().getAttributes();
+
+            //modify screen brightness attribute withing range
+            float persistBrightness = (float) appPreferences.getInt(ConfigKeys.KEY_PERSIST_BRIGHTNESS, -100) / 100.0f;
+            if (persistBrightness > 0)
+            {
+                windowAttributes.screenBrightness = Math.min(Math.max(persistBrightness, 0f), 1f);
+            }
+
+            //set changed window attributes
+            getWindow().setAttributes(windowAttributes);
+        }
     }
 
     /**
@@ -706,6 +712,24 @@ public class PlaybackActivity extends AppCompatActivity
             mediaSourceFactory.release();
             mediaSourceFactory = null;
         }
+
+        //save current volume and brightness levels for persistence
+        if (originalVolumeIndex != -1)
+        {
+            SharedPreferences.Editor editor = appPreferences.edit();
+            if (getPrefBool(ConfigKeys.KEY_PERSIST_VOLUME_EN, R.bool.DEF_PERSIST_VOLUME_EN))
+                editor.putInt(ConfigKeys.KEY_PERSIST_VOLUME, audioManager.getStreamVolume(AudioManager.STREAM_MUSIC));
+
+            if (getPrefBool(ConfigKeys.KEY_PERSIST_BRIGHTNESS_EN, R.bool.DEF_PERSIST_BRIGHTNESS_EN))
+                editor.putInt(ConfigKeys.KEY_PERSIST_BRIGHTNESS, (int) Math.floor(getWindow().getAttributes().screenBrightness * 100));
+
+            //save config
+            editor.apply();
+        }
+
+        //restore original volume level
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, originalVolumeIndex, 0);
+        originalVolumeIndex = -1;
     }
 
     //endregion
@@ -1043,7 +1067,7 @@ public class PlaybackActivity extends AppCompatActivity
         return new RemoteAction(icon, getString(titleId), getString(contentDescriptionId), pIntent);
     }
 
-    //endregion
+    //endregionm
 
     //region ~~ Utility ~~
 
@@ -1057,7 +1081,7 @@ public class PlaybackActivity extends AppCompatActivity
     private boolean getPrefBool(String key, int defId)
     {
         Logging.logD("Getting Boolean Preference \"%s\"...", key);
-        return getPreferences(MODE_PRIVATE).getBoolean(key, getResources().getBoolean(defId));
+        return appPreferences.getBoolean(key, getResources().getBoolean(defId));
     }
 
     /**
@@ -1070,7 +1094,7 @@ public class PlaybackActivity extends AppCompatActivity
     private int getPrefInt(String key, int defId)
     {
         Logging.logD("Getting Integer Preference \"%s\"...", key);
-        return getPreferences(MODE_PRIVATE).getInt(key, getResources().getInteger(defId));
+        return appPreferences.getInt(key, getResources().getInteger(defId));
     }
 
     /**
