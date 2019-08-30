@@ -662,27 +662,8 @@ public class PlaybackActivity extends AppCompatActivity
         originalVolumeIndex = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
 
         //restore persistent volume and brightness levels
-        if (getPrefBool(ConfigKeys.KEY_PERSIST_VOLUME_EN, R.bool.DEF_PERSIST_VOLUME_EN))
-        {
-            int persistVolume = appPreferences.getInt(ConfigKeys.KEY_PERSIST_VOLUME, originalVolumeIndex);
-            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, persistVolume, 0);
-        }
-
-        if (getPrefBool(ConfigKeys.KEY_PERSIST_BRIGHTNESS_EN, R.bool.DEF_PERSIST_BRIGHTNESS_EN))
-        {
-            //get window attributes
-            WindowManager.LayoutParams windowAttributes = getWindow().getAttributes();
-
-            //modify screen brightness attribute withing range
-            float persistBrightness = (float) appPreferences.getInt(ConfigKeys.KEY_PERSIST_BRIGHTNESS, -100) / 100.0f;
-            if (persistBrightness > 0)
-            {
-                windowAttributes.screenBrightness = Math.min(Math.max(persistBrightness, 0f), 1f);
-            }
-
-            //set changed window attributes
-            getWindow().setAttributes(windowAttributes);
-        }
+        restorePersistentVolume();
+        restorePersistentBrightness();
     }
 
     /**
@@ -716,15 +697,8 @@ public class PlaybackActivity extends AppCompatActivity
         //save current volume and brightness levels for persistence
         if (originalVolumeIndex != -1)
         {
-            SharedPreferences.Editor editor = appPreferences.edit();
-            if (getPrefBool(ConfigKeys.KEY_PERSIST_VOLUME_EN, R.bool.DEF_PERSIST_VOLUME_EN))
-                editor.putInt(ConfigKeys.KEY_PERSIST_VOLUME, audioManager.getStreamVolume(AudioManager.STREAM_MUSIC));
-
-            if (getPrefBool(ConfigKeys.KEY_PERSIST_BRIGHTNESS_EN, R.bool.DEF_PERSIST_BRIGHTNESS_EN))
-                editor.putInt(ConfigKeys.KEY_PERSIST_BRIGHTNESS, (int) Math.floor(getWindow().getAttributes().screenBrightness * 100));
-
-            //save config
-            editor.apply();
+            savePersistentVolume();
+            savePersistentBrightness();
         }
 
         //restore original volume level
@@ -896,12 +870,22 @@ public class PlaybackActivity extends AppCompatActivity
             //register broadcast receiver
             initPipBroadcastReceiverOnce();
             registerReceiver(pipBroadcastReceiver, new IntentFilter(PIPConstants.ACTION_MEDIA_CONTROL));
+
+            //save + reset brightness
+            savePersistentBrightness();
+
+            //set screen brightness to 0 (=auto) (kinda hacky, but should work just fine)
+            adjustScreenBrightness(-1000, true);
+            delayHandler.sendEmptyMessage(Messages.SET_INFO_TEXT_INVISIBLE);
         }
         else
         {
             //changed to normal mode (no PIP):
             //remove broadcast receiver
             unregisterReceiver(pipBroadcastReceiver);
+
+            //restore brightness
+            restorePersistentBrightness();
         }
     }
 
@@ -910,8 +894,12 @@ public class PlaybackActivity extends AppCompatActivity
      */
     private void tryGoPip()
     {
+        //lock out devices below API26 (don't support PIP)
+        if (Util.SDK_INT < 26) return;
+
         //update pip and enter pip if update succeeded
-        if (updatePip())
+        PictureInPictureParams params = updatePip();
+        if (params != null)
         {
             //can enter pip mode, hide ui elements:
             //hide player controls
@@ -924,7 +912,7 @@ public class PlaybackActivity extends AppCompatActivity
             delayHandler.sendEmptyMessage(Messages.SET_INFO_TEXT_INVISIBLE);
 
             //enter pip
-            enterPictureInPictureMode();
+            enterPictureInPictureMode(params);
         }
     }
 
@@ -991,12 +979,12 @@ public class PlaybackActivity extends AppCompatActivity
      * Update the controls of PIP mode
      * Only enter PIP mode when returned true using enterPictureInPictureMode()
      *
-     * @return true if the controls were updated successfully, or false if PIP is not supported
+     * @return the set pictureInPictureParams object, or null if not supported
      */
-    private boolean updatePip()
+    private PictureInPictureParams updatePip()
     {
         //lock out devices below API26 (don't support PIP)
-        if (Util.SDK_INT < 26) return false;
+        if (Util.SDK_INT < 26) return null;
 
         //create a list with all actions
         ArrayList<RemoteAction> actions = new ArrayList<>();
@@ -1037,7 +1025,7 @@ public class PlaybackActivity extends AppCompatActivity
         //this call can happen even if not in pip mode. In that case, the params
         //will be used for the next call of enterPictureInPictureMode
         setPictureInPictureParams(params);
-        return true;
+        return params;
     }
 
     /**
@@ -1067,9 +1055,61 @@ public class PlaybackActivity extends AppCompatActivity
         return new RemoteAction(icon, getString(titleId), getString(contentDescriptionId), pIntent);
     }
 
-    //endregionm
+    //endregion
 
     //region ~~ Utility ~~
+
+    /**
+     * Save the current volume as persistent volume
+     */
+    private void savePersistentVolume()
+    {
+        if (getPrefBool(ConfigKeys.KEY_PERSIST_VOLUME_EN, R.bool.DEF_PERSIST_VOLUME_EN))
+            appPreferences.edit().putInt(ConfigKeys.KEY_PERSIST_VOLUME, audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)).apply();
+    }
+
+    /**
+     * Save the current brightness as persistent brightness
+     */
+    private void savePersistentBrightness()
+    {
+        if (getPrefBool(ConfigKeys.KEY_PERSIST_BRIGHTNESS_EN, R.bool.DEF_PERSIST_BRIGHTNESS_EN))
+            appPreferences.edit().putInt(ConfigKeys.KEY_PERSIST_BRIGHTNESS, (int) Math.floor(getWindow().getAttributes().screenBrightness * 100)).apply();
+    }
+
+    /**
+     * restore the saved persistent volume level
+     */
+    private void restorePersistentVolume()
+    {
+        if (getPrefBool(ConfigKeys.KEY_PERSIST_VOLUME_EN, R.bool.DEF_PERSIST_VOLUME_EN))
+        {
+            int persistVolume = appPreferences.getInt(ConfigKeys.KEY_PERSIST_VOLUME, originalVolumeIndex);
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, persistVolume, 0);
+        }
+    }
+
+    /**
+     * Restore the saved persistent brightness level
+     */
+    private void restorePersistentBrightness()
+    {
+        if (getPrefBool(ConfigKeys.KEY_PERSIST_BRIGHTNESS_EN, R.bool.DEF_PERSIST_BRIGHTNESS_EN))
+        {
+            //get window attributes
+            WindowManager.LayoutParams windowAttributes = getWindow().getAttributes();
+
+            //modify screen brightness attribute withing range
+            float persistBrightness = (float) appPreferences.getInt(ConfigKeys.KEY_PERSIST_BRIGHTNESS, -100) / 100.0f;
+            if (persistBrightness > 0)
+            {
+                windowAttributes.screenBrightness = Math.min(Math.max(persistBrightness, 0f), 1f);
+            }
+
+            //set changed window attributes
+            getWindow().setAttributes(windowAttributes);
+        }
+    }
 
     /**
      * Get a boolean from shared preferences
