@@ -62,6 +62,7 @@ import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.util.Util;
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class PlaybackActivity extends AppCompatActivity
 {
@@ -289,10 +290,23 @@ public class PlaybackActivity extends AppCompatActivity
         setupGestures();
 
         //get intent this activity was called with to retrieve playback uri
-        Intent intent = getIntent();
+        Intent callIntent = getIntent();
+
+        //log intent info
+        Logging.logD("call Intent: %s", callIntent.toString());
+        Bundle extra = callIntent.getExtras();
+        if (extra != null)
+        {
+            Logging.logD("call Intent Extras: ");
+            for (String key : extra.keySet())
+            {
+                Object val = extra.get(key);
+                Logging.logD("\"%s\" : \"%s\"", key, (val == null ? "NULL" : val.toString()));
+            }
+        }
 
         //get playback uri from intent + log it
-        playbackUri = intent.getData();
+        playbackUri = callIntent.getData();
         if (playbackUri == null)
         {
             //playback uri is null (invalid), abort and show error
@@ -305,7 +319,7 @@ public class PlaybackActivity extends AppCompatActivity
         Logging.logD("Received play intent with uri \"%s\".", playbackUri.toString());
 
         //set initial title to filename parsed from uri
-        setTitle(parseFileNameFromUri(playbackUri));
+        setTitle(parseTitle(playbackUri, callIntent));
 
         //check if uri is of local file and request read permission if so
         if (isLocalFileUri(playbackUri))
@@ -1237,7 +1251,7 @@ public class PlaybackActivity extends AppCompatActivity
      */
     private void setTitle(String title)
     {
-        if (title.isEmpty())
+        if (title == null || title.isEmpty())
         {
             //no title, hide title label
             titleTextView.setText("N/A");
@@ -1254,27 +1268,73 @@ public class PlaybackActivity extends AppCompatActivity
     /**
      * Parse the name of the streamed file from the playback uri
      *
-     * @param uri the playback uri
-     * @return the parsed file name, or a empty string if parsing failed
+     * @param uri          the playback uri (fallback to filename)
+     * @param invokeIntent the intent that invoked this activity (parse Title Extra)
+     * @return the parsed file name, or null if parsing failed
      */
-    private String parseFileNameFromUri(@NonNull Uri uri)
+    private String parseTitle(@NonNull Uri uri, @NonNull Intent invokeIntent)
     {
-        //sample uri: "https://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4".
+        //prep title
+        String title = null;
 
-        //try to get the title using the last path segment of the uri
-        String fileName = uri.getLastPathSegment();
-        if (fileName != null && !fileName.isEmpty())
+        //get intent extras
+        Bundle extraData = invokeIntent.getExtras();
+        if (extraData != null)
         {
-            Logging.logD("parse filename from uri: %s", fileName);
+            //try to get title from extras
+            if (extraData.containsKey(Intent.EXTRA_TITLE))
+            {
+                //has default title extra, use that
+                title = extraData.getString(Intent.EXTRA_TITLE);
+                Logging.logD("Parsing title from default EXTRA_TITLE...");
+            }
+            else
+            {
+                //check each key if it contains "title" and has a String value that is not null or empty
+                for (String key : extraData.keySet())
+                {
+                    if (key.toLowerCase(Locale.US).contains("title"))
+                    {
+                        //key contains "title" in some sort, get value
+                        Object val = extraData.get(key);
 
-            //last path segment worked, remove file extension and re- format some
+                        //check if value is not null and a string
+                        if (val instanceof String)
+                        {
+                            //convert value to string
+                            String valStr = (String) val;
+
+                            //check if string value is not empty
+                            if (!valStr.isEmpty())
+                            {
+                                //could be our title, set it
+                                title = valStr;
+                                Logging.logD("Parsing title from non- default title extra (\"%s\" : \"%s\")", key, valStr);
+                            }
+                        }
+                    }
+                }
+            }
 
 
-            //return filename parsed from last path segment
-            return fileName;
+            if (title != null) Logging.logD("parsed final title from extra: %s", title);
         }
 
-        return "";
+        //check if got title from extras
+        if (title == null || title.isEmpty())
+        {
+            //no title set yet, try to get the title using the last path segment of the uri
+            title = uri.getLastPathSegment();
+            if (title != null && !title.isEmpty())
+            {
+                //last path segment worked, remove file extension
+                title = title.substring(0, title.lastIndexOf('.'));
+                Logging.logD("parse title from uri: %s", title);
+            }
+        }
+
+        //return title
+        return title;
     }
 
     /**

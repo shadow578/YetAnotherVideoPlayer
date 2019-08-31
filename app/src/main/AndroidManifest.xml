@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="de.shadow578.yetanothervideoplayer">
-    <!-- To Play local files -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
     <!-- To adjust Media Volume by swiping -->
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <!-- To Stream Video -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- To Play local files -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
