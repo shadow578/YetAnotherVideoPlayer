@@ -17,11 +17,13 @@ import de.shadow578.yetanothervideoplayer.util.UniversalMediaSourceFactory;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.app.PictureInPictureParams;
 import android.app.RemoteAction;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -63,12 +65,6 @@ import java.util.ArrayList;
 
 public class PlaybackActivity extends AppCompatActivity
 {
-    //region ~~ Constants, change to shared prefs OR remove later ~~
-    //how long the fade out of the info text lasts (ms)
-    private final long INFO_TEXT_FADE_DURATION = 500;
-
-    //endregion
-
     //region ~~ Constants ~~
 
     /**
@@ -229,14 +225,17 @@ public class PlaybackActivity extends AppCompatActivity
             {
                 case Messages.START_FADE_OUT_INFO_TEXT:
                 {
+                    //get fade out duration
+                    int fadeDuration = getResources().getInteger(R.integer.info_text_fade_duration);
+
                     //start fade out animation
                     Animation fadeOut = new AlphaAnimation(1.0f, 0.0f);
                     fadeOut.setInterpolator(new DecelerateInterpolator());
-                    fadeOut.setDuration(INFO_TEXT_FADE_DURATION);
+                    fadeOut.setDuration(fadeDuration);
                     infoTextView.setAnimation(fadeOut);
 
                     //make invisible after animation
-                    delayHandler.sendEmptyMessageDelayed(Messages.SET_INFO_TEXT_INVISIBLE, INFO_TEXT_FADE_DURATION);
+                    delayHandler.sendEmptyMessageDelayed(Messages.SET_INFO_TEXT_INVISIBLE, fadeDuration);
                     break;
                 }
                 case Messages.SET_INFO_TEXT_INVISIBLE:
@@ -652,7 +651,8 @@ public class PlaybackActivity extends AppCompatActivity
         playerView.setPlayer(player);
 
         //load media from uri
-        MediaSource mediaSource = mediaSourceFactory.createMediaSource(playbackUri);
+        MediaSource mediaSource = createMediaSource(playbackUri);
+        if (mediaSource == null) return;
         player.prepare(mediaSource, true, false);
 
         //resume playback where we left off
@@ -705,6 +705,58 @@ public class PlaybackActivity extends AppCompatActivity
         //restore original volume level
         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, originalVolumeIndex, 0);
         originalVolumeIndex = -1;
+    }
+
+    /**
+     * Create a media source from the uri, and inform the user if the media type is NOT supported
+     *
+     * @param uri the uri of the media
+     * @return the media source, or null if not supported
+     */
+    private MediaSource createMediaSource(Uri uri)
+    {
+        //create media source using universal factory
+        MediaSource source = mediaSourceFactory.createMediaSource(uri);
+
+        //show error message to user if not supported (=null)
+        if (source == null)
+        {
+            //get file extension of the file
+            String fileExt = uri.getLastPathSegment();
+            if (fileExt == null) fileExt = "dummy.ERROR";
+            fileExt = fileExt.substring(fileExt.lastIndexOf('.'));
+
+            //format dialog message
+            String dialogMsg = String.format(getString(R.string.dialog_format_not_supported_message), fileExt);
+
+            //show dialog
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(R.string.dialog_format_not_supported_title)
+                    .setMessage(dialogMsg)
+                    .setCancelable(false)
+                    .setNeutralButton(R.string.dialog_format_not_supported_btn_issue, new DialogInterface.OnClickListener()
+                    {
+                        public void onClick(DialogInterface dialog, int id)
+                        {
+                            //open issues page + close app
+                            Intent issueWebIntent = new Intent(Intent.ACTION_VIEW);
+                            issueWebIntent.setData(Uri.parse(getString(R.string.yavp_new_issue_url)));
+                            startActivity(issueWebIntent);
+                            finish();
+                        }
+                    })
+                    .setPositiveButton(R.string.dialog_format_not_supported_btn_exit, new DialogInterface.OnClickListener()
+                    {
+                        public void onClick(DialogInterface dialog, int id)
+                        {
+                            //close app
+                            finish();
+                        }
+                    });
+            builder.create().show();
+        }
+
+        return source;
     }
 
     //endregion

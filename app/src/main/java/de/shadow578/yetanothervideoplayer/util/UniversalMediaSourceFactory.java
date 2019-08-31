@@ -3,9 +3,13 @@ package de.shadow578.yetanothervideoplayer.util;
 import android.content.Context;
 import android.net.Uri;
 
+import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.database.ExoDatabaseProvider;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
+import com.google.android.exoplayer2.source.dash.DashMediaSource;
+import com.google.android.exoplayer2.source.hls.HlsMediaSource;
+import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
@@ -15,6 +19,7 @@ import com.google.android.exoplayer2.upstream.cache.CacheDataSource;
 import com.google.android.exoplayer2.upstream.cache.CacheDataSourceFactory;
 import com.google.android.exoplayer2.upstream.cache.NoOpCacheEvictor;
 import com.google.android.exoplayer2.upstream.cache.SimpleCache;
+import com.google.android.exoplayer2.util.Util;
 
 import java.io.File;
 
@@ -74,11 +79,46 @@ public class UniversalMediaSourceFactory
      * Create a MediaSource from the given uri
      *
      * @param uri the uri to create the media source from
-     * @return the media source created
+     * @return the media source created, or null if the media type is NOT supported
      */
     public MediaSource createMediaSource(Uri uri)
     {
-        return new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(uri);
+        //return new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(uri);
+
+        //create MediaSource according to stream type
+        switch (Util.inferContentType(uri))
+        {
+            case C.TYPE_DASH:
+            {
+                //DASH stream
+                Logging.logD("Creating DASH MediaSource from uri %s", uri.toString());
+                return new DashMediaSource.Factory(dataSourceFactory).createMediaSource(uri);
+            }
+            case C.TYPE_HLS:
+            {
+                //HLS stream
+                Logging.logD("Creating HLS MediaSource from uri %s", uri.toString());
+                return new HlsMediaSource.Factory(dataSourceFactory).createMediaSource(uri);
+            }
+            case C.TYPE_SS:
+            {
+                //SmoothStreaming stream
+                Logging.logD("Creating SS MediaSource from uri %s", uri.toString());
+                return new SsMediaSource.Factory(dataSourceFactory).createMediaSource(uri);
+            }
+            case C.TYPE_OTHER:
+            {
+                //Progressive stream
+                Logging.logD("Creating Progressive MediaSource from uri %s", uri.toString());
+                return new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(uri);
+            }
+            default:
+            {
+                //invalid = type not supported
+                Logging.logD("Cannot create MediaSource from uri %s : FileType not supported!", uri.toString());
+                return null;
+            }
+        }
     }
 
     /**

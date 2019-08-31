@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">YetAnotherVideoPlayer</string>
 
-    <!-- Content Descriptions in layout_exo_controls -->
+    <!-- Content Descriptions -->
     <string name="pb_controls_screen_auto">Automatically Rotate Screen</string>
     <string name="pb_controls_screen_lock_portrait">Lock Screen to Portrait</string>
     <string name="pb_controls_screen_lock_landscape">Lock Screen to Landscape</string>
@@ -19,6 +19,12 @@
     <string name="info_brightness_change">Brightness: %s</string><!-- 1st arg: brightness% ["1%"-"100%" + "@strings\info_brightness_auto"] -->
     <string name="info_brightness_auto">AUTO</string>
 
+    <!-- info dialog: format not supported -->
+    <string name="dialog_format_not_supported_title">Format not Supported!</string>
+    <string name="dialog_format_not_supported_message">Sorry, but it seems as if the File Format \"%s\" is currently not supported.\nIf you think this may be a bug, please open a Issue.</string>
+    <string name="dialog_format_not_supported_btn_issue">Open Issue</string>
+    <string name="dialog_format_not_supported_btn_exit">Not a bug, Exit</string>
+
     <!-- Quick Settings -->
     <string name="qs_quality">Quality</string>
     <string name="qs_jump_to">Jump to</string>
@@ -32,6 +38,10 @@
     <string name="toast_no_storage_permissions_granted">No Storage Permissions granted! Permissions are required to play local files.</string>
     <string name="toast_invalid_playback_uri">Invalid Playback URI!</string>
     <string name="toast_press_back_again_to_exit">Press Back again to exit</string>
+
+    <!-- urls to yavp pages -->
+    <string name="yavp_github_url">https://github.com/shadow578/YetAnotherVideoPlayer</string>
+    <string name="yavp_new_issue_url">https://github.com/shadow578/YetAnotherVideoPlayer/issues</string>
 
     <!-- Settings -->
     <string name="settings_root_title">Settings</string>
@@ -95,7 +105,6 @@
     <!-- Settings: about -->
     <string name="settings_about_title">About YAVP</string>
     <string name="settings_about_yavp">YAVP by shadow578</string>
-    <string name="settings_about_github_url">https://github.com/shadow578/YetAnotherVideoPlayer</string>
     <!-- 1st. arg (%s)= Version String, 2nd. arg (%d)= Version number-->
     <string name="settings_about_version_f">Version %s (%d)</string>
 
