@@ -273,8 +273,9 @@ public class PlaybackActivity extends AppCompatActivity
         quickSettingsView = findViewById(R.id.pb_quick_settings_panel);
 
         //set fast-forward and rewind increments
-        playerView.setFastForwardIncrementMs(getPrefInt(ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT));
-        playerView.setRewindIncrementMs(getPrefInt(ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT));
+        int seekIncrement = getPrefInt(ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT);
+        playerView.setFastForwardIncrementMs(seekIncrement);
+        playerView.setRewindIncrementMs(seekIncrement);
 
         //init screen rotation manager
         screenRotationManager = new ScreenRotationManager();
@@ -1121,7 +1122,8 @@ public class PlaybackActivity extends AppCompatActivity
     private boolean getPrefBool(String key, int defId)
     {
         Logging.logD("Getting Boolean Preference \"%s\"...", key);
-        return appPreferences.getBoolean(key, getResources().getBoolean(defId));
+        boolean def = getResources().getBoolean(defId);
+        return appPreferences.getBoolean(key, def);
     }
 
     /**
@@ -1134,7 +1136,11 @@ public class PlaybackActivity extends AppCompatActivity
     private int getPrefInt(String key, int defId)
     {
         Logging.logD("Getting Integer Preference \"%s\"...", key);
-        return appPreferences.getInt(key, getResources().getInteger(defId));
+        int def = getResources().getInteger(defId);
+
+        //read value as string: workaround needed because i'm using a EditText to change these values in the settings activity, which
+        //changes the type of the preference to string...
+        return Integer.valueOf(appPreferences.getString(key, "" + def));
     }
 
     /**
