@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- how long the fade out of the info text lasts (ms) -->
+    <integer name="info_text_fade_duration">500</integer>
+
+</resources>
