@@ -112,6 +112,7 @@ public class AppSettingsActivity extends AppCompatActivity implements
         }
     }
 
+    @SuppressWarnings("WeakerAccess")
     public static class PreferencesSwipeFragment extends PreferenceFragmentCompat
     {
 
@@ -122,6 +123,7 @@ public class AppSettingsActivity extends AppCompatActivity implements
         }
     }
 
+    @SuppressWarnings("WeakerAccess")
     public static class PreferencesSwipeAdvancedFragment extends PreferenceFragmentCompat
     {
 
@@ -132,6 +134,7 @@ public class AppSettingsActivity extends AppCompatActivity implements
         }
     }
 
+    @SuppressWarnings("WeakerAccess")
     public static class PreferencesPlayerConfigFragment extends PreferenceFragmentCompat
     {
 
@@ -142,6 +145,7 @@ public class AppSettingsActivity extends AppCompatActivity implements
         }
     }
 
+    @SuppressWarnings("WeakerAccess")
     public static class PreferencesAboutFragment extends PreferenceFragmentCompat
     {
 
