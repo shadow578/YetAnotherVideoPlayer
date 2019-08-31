@@ -1,6 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <PreferenceCategory android:title="WIP: ABOUT" />
+    <PreferenceCategory android:title="@string/settings_about_title" />
+
+    <PreferenceScreen
+        android:key="version_info"
+        android:summary="@string/settings_about_version_f"
+        android:title="@string/settings_about_yavp">
+
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="https://home.openweathermap.org/users/sign_up" />
+    </PreferenceScreen>
+
+    <PreferenceCategory android:title="@string/settings_about_libs_title" />
+
+    <PreferenceScreen
+        android:summary="@string/settings_about_libs_exoplayer_url"
+        android:title="@string/settings_about_libs_exoplayer_title">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="@string/settings_about_libs_exoplayer_url" />
+    </PreferenceScreen>
+
+    <PreferenceScreen
+        android:summary="@string/settings_about_libs_mat_icons_url"
+        android:title="@string/settings_about_libs_mat_icons_title">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="@string/settings_about_libs_mat_icons_url" />
+    </PreferenceScreen>
+
+    <PreferenceScreen
+        android:summary="@string/settings_about_libs_mat_progress_url"
+        android:title="@string/settings_about_libs_mat_progress_title">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="@string/settings_about_libs_mat_progress_url" />
+    </PreferenceScreen>
+
+    <PreferenceScreen
+        android:summary="@string/settings_about_libs_time_dur_pick_url"
+        android:title="@string/settings_about_libs_time_dur_pick_url">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="@string/settings_about_libs_time_dur_pick_url" />
+    </PreferenceScreen>
 
 </PreferenceScreen>

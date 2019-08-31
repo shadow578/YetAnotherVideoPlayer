@@ -2,21 +2,21 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <Preference
         android:fragment="de.shadow578.yetanothervideoplayer.ui.AppSettingsActivity$PreferencesGeneralFragment"
-        android:title="General"
-        android:icon="@drawable/ic_settings_48px"/>
+        android:icon="@drawable/ic_settings_48px"
+        android:title="@string/settings_general_title" />
 
     <Preference
         android:fragment="de.shadow578.yetanothervideoplayer.ui.AppSettingsActivity$PreferencesSwipeFragment"
-        android:title="Swipe Controls"
-        android:icon="@drawable/ic_touch_app_48px"/>
+        android:icon="@drawable/ic_touch_app_48px"
+        android:title="@string/settings_swipe_title" />
 
     <Preference
         android:fragment="de.shadow578.yetanothervideoplayer.ui.AppSettingsActivity$PreferencesPlayerConfigFragment"
-        android:title="Player Settings"
-        android:icon="@drawable/ic_play_arrow_48px"/>
+        android:icon="@drawable/ic_play_arrow_48px"
+        android:title="@string/settings_player_title" />
 
     <Preference
         android:fragment="de.shadow578.yetanothervideoplayer.ui.AppSettingsActivity$PreferencesAboutFragment"
-        android:title="About"
-        android:icon="@drawable/ic_info_outline_48px"/>
+        android:icon="@drawable/ic_info_outline_48px"
+        android:title="@string/settings_about_title" />
 </PreferenceScreen>

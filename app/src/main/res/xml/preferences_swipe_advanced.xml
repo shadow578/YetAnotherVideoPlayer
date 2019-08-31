@@ -1,52 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <PreferenceCategory
-        android:title="Dead Zone"/>
-
-    <EditTextPreference
-        android:defaultValue="@integer/DEF_SWIPE_DEAD_ZONE_TOP"
-        android:key="SWIPE_DEAD_ZONE_TOP"
-        android:numeric="integer"
-        android:title="Ignored Pixels (Top)"
-        android:summary="How many pixels are ignored for Swipes at this Edge"/>
-
-    <EditTextPreference
-        android:defaultValue="@integer/DEF_SWIPE_DEAD_ZONE_BOTTOM"
-        android:key="SWIPE_DEAD_ZONE_BOTTOM"
-        android:numeric="integer"
-        android:title="Ignored Pixels (Bottom)"
-        android:summary="How many pixels are ignored for Swipes at this Edge"/>
-
-    <EditTextPreference
-        android:defaultValue="@integer/DEF_SWIPE_DEAD_ZONE_LEFT"
-        android:key="SWIPE_DEAD_ZONE_LEFT"
-        android:numeric="integer"
-        android:title="Ignored Pixels (Left)"
-        android:summary="How many pixels are ignored for Swipes at this Edge"/>
-
-    <EditTextPreference
-        android:defaultValue="@integer/DEF_SWIPE_DEAD_ZONE_RIGHT"
-        android:key="SWIPE_DEAD_ZONE_RIGHT"
-        android:numeric="integer"
-        android:title="Ignored Pixels (Right)"
-        android:summary="How many pixels are ignored for Swipes at this Edge"/>
-
-    <PreferenceCategory
-        android:title="Other"/>
+    <PreferenceCategory android:title="@string/settings_swipe_adv_title" />
 
     <EditTextPreference
         android:defaultValue="@integer/DEF_TOUCH_DECAY_TIME"
         android:key="TOUCH_DECAY_TIME"
         android:numeric="integer"
-        android:title="Touch Decay Time"
-        android:summary="How many milliseconds a touch stays valid without moving (Swipe Detection)"/>
+        android:summary="@string/settings_swipe_adv_touch_decay_summary"
+        android:title="@string/settings_swipe_adv_touch_decay_title" />
 
     <EditTextPreference
         android:defaultValue="@integer/DEF_SWIPE_FLING_THRESHOLD"
         android:key="SWIPE_FLING_THRESHOLD"
         android:numeric="integer"
-        android:title="Swipe Threshold"
-        android:summary="How many Pixels long a swipe has to be to be detected as a Swipe (Swipe Detection)"/>
+        android:summary="@string/settings_swipe_adv_swipe_thresh_summary"
+        android:title="@string/settings_swipe_adv_swipe_thresh_title" />
+
+    <PreferenceCategory android:title="@string/settings_swipe_adv_cat_dead_zone" />
+
+    <EditTextPreference
+        android:defaultValue="@integer/DEF_SWIPE_DEAD_ZONE_TOP"
+        android:key="SWIPE_DEAD_ZONE_TOP"
+        android:numeric="integer"
+        android:summary="@string/settings_swipe_adv_dead_zone_summary"
+        android:title="@string/settings_swipe_adv_dead_zone_t_title" />
+
+    <EditTextPreference
+        android:defaultValue="@integer/DEF_SWIPE_DEAD_ZONE_BOTTOM"
+        android:key="SWIPE_DEAD_ZONE_BOTTOM"
+        android:numeric="integer"
+        android:summary="@string/settings_swipe_adv_dead_zone_summary"
+        android:title="@string/settings_swipe_adv_dead_zone_b_title" />
+
+    <EditTextPreference
+        android:defaultValue="@integer/DEF_SWIPE_DEAD_ZONE_LEFT"
+        android:key="SWIPE_DEAD_ZONE_LEFT"
+        android:numeric="integer"
+        android:summary="@string/settings_swipe_adv_dead_zone_summary"
+        android:title="@string/settings_swipe_adv_dead_zone_l_title" />
+
+    <EditTextPreference
+        android:defaultValue="@integer/DEF_SWIPE_DEAD_ZONE_RIGHT"
+        android:key="SWIPE_DEAD_ZONE_RIGHT"
+        android:numeric="integer"
+        android:summary="@string/settings_swipe_adv_dead_zone_summary"
+        android:title="@string/settings_swipe_adv_dead_zone_r_title" />
 
 </PreferenceScreen>

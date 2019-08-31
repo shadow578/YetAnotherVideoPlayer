@@ -1,47 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <PreferenceCategory android:title="Swipe Controls" />
+    <PreferenceCategory android:title="@string/settings_swipe_title" />
 
     <SwitchPreference
         android:defaultValue="@bool/DEF_SWIPE_GESTURES_EN"
         android:key="SWIPE_GESTURES_EN"
-        android:summaryOff="Swipe Gestures are disabled"
-        android:summaryOn="Brightness&amp;Volume can be adjusted by swipe gesture"
-        android:title="Enable Swipe Gestures" />
+        android:summaryOff="@string/settings_swipe_enable_off"
+        android:summaryOn="@string/settings_swipe_enable_on"
+        android:title="@string/settings_swipe_enable_title" />
 
     <EditTextPreference
         android:defaultValue="@integer/DEF_BRIGHTNESS_ADJUST_STEP"
         android:dependency="SWIPE_GESTURES_EN"
         android:key="BRIGHTNESS_ADJUST_STEP"
         android:numeric="integer"
-        android:summary="By how many Percent the Brightness is adjusted per swipe"
-        android:title="Brightness Step Size" />
+        android:summary="@string/settings_swipe_brightness_step_summary"
+        android:title="@string/settings_swipe_brightness_step_title" />
 
     <SwitchPreference
         android:defaultValue="@bool/DEF_BRIGHTNESS_HARD_SWIPE_EN"
         android:dependency="SWIPE_GESTURES_EN"
         android:key="BRIGHTNESS_HARD_SWIPE_EN"
-        android:summaryOff="Auto- Brightness can be set with normal swipe"
-        android:summaryOn="You have to Hard- Swipe to change the Brightness to Auto"
-        android:title="Hard- Swipe for Auto Brightness" />
+        android:summaryOff="@string/settings_swipe_hard_swipe_enable_off"
+        android:summaryOn="@string/settings_swipe_hard_swipe_enable_on"
+        android:title="@string/settings_swipe_hard_swipe_enable_title" />
 
     <EditTextPreference
         android:defaultValue="@integer/DEF_BRIGHTNESS_HARD_SWIPE_THRESHOLD"
         android:dependency="BRIGHTNESS_HARD_SWIPE_EN"
         android:key="BRIGHTNESS_HARD_SWIPE_THRESHOLD"
-        android:summary="How many Pixels long a Swipe has to be to be counted as a Hard- Swipe"
-        android:title="Hard- Swipe Threshold" />
+        android:summary="@string/settings_swipe_hard_swipe_thresh_summary"
+        android:title="@string/settings_swipe_hard_swipe_thresh_title" />
 
     <EditTextPreference
         android:defaultValue="@integer/DEF_INFO_TEXT_DURATION"
         android:dependency="SWIPE_GESTURES_EN"
         android:key="INFO_TEXT_DURATION"
-        android:summary="How many milliseconds the Info Text (Brightness&amp;Volume) stays visible"
-        android:title="Info Text duration" />
+        android:summary="@string/settings_swipe_info_duration_summary"
+        android:title="@string/settings_swipe_info_duration_title" />
 
     <Preference
         android:dependency="SWIPE_GESTURES_EN"
         android:fragment="de.shadow578.yetanothervideoplayer.ui.AppSettingsActivity$PreferencesSwipeAdvancedFragment"
-        android:title="Advanced Settings" />
+        android:title="@string/settings_swipe_adv_title" />
 </PreferenceScreen>

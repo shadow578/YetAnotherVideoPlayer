@@ -2,33 +2,33 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <PreferenceCategory
-        android:title="Player Settings"/>
+        android:title="string/settings_player_title"/>
 
     <SwitchPreference
         android:defaultValue="@bool/DEF_AUTO_PLAY"
         android:key="AUTO_PLAY"
-        android:summaryOff="Playback has to be manually started"
-        android:summaryOn="Playback automatically starts once loaded"
-        android:title="Auto- Start Playback" />
+        android:summaryOff="@string/settings_player_auto_play_off"
+        android:summaryOn="@string/settings_player_auto_play_on"
+        android:title="@string/settings_player_auto_play_title" />
 
     <SwitchPreference
         android:defaultValue="@bool/DEF_CLOSE_WHEN_FINISHED_PLAYING"
         android:key="CLOSE_WHEN_FINISHED_PLAYING"
-        android:summaryOff="Player stays open after Playback ended"
-        android:summaryOn="Player automatically closes after Playback ended"
-        android:title="Auto- Close Player" />
+        android:summaryOff="@string/settings_player_auto_close_off"
+        android:summaryOn="@string/settings_player_auto_close_on"
+        android:title="@string/settings_player_auto_close_title" />
 
     <SwitchPreference
         android:defaultValue="@bool/DEF_ENTER_PIP_ON_LEAVE"
         android:key="ENTER_PIP_ON_LEAVE"
-        android:summaryOff="Pause Playback when minimizing app"
-        android:summaryOn="Enter Picture- in- Picture Mode when minimizing app"
-        android:title="Auto- Enter PiP" />
+        android:summaryOff="@string/settings_player_auto_pip_off"
+        android:summaryOn="@string/settings_player_auto_pip_on"
+        android:title="@string/settings_player_auto_pip_title" />
 
     <EditTextPreference
         android:defaultValue="@integer/DEF_SEEK_BUTTON_INCREMENT"
         android:key="SEEK_BUTTON_INCREMENT"
-        android:title="Seek Increment"
-        android:summary="By how many milliseconds the Seek buttons adjust the playback position"/>
+        android:title="@string/settings_player_seek_increment_title"
+        android:summary="@string/settings_player_seek_increment_summary"/>
 
 </PreferenceScreen>

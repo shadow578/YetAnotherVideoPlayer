@@ -1,34 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <PreferenceCategory android:title="General" />
+    <PreferenceCategory android:title="@string/settings_general_title" />
 
     <SwitchPreference
         android:defaultValue="@bool/DEF_BACK_DOUBLE_PRESS_EN"
         android:key="BACK_DOUBLE_PRESS_EN"
-        android:summaryOff="Back button closes app without confirmation"
-        android:summaryOn="Back button has to be pressed twice to exit"
-        android:title="Prevent Accidental Closing" />
+        android:summaryOff="@string/settings_general_confirm_exit_off"
+        android:summaryOn="@string/settings_general_confirm_exit_on"
+        android:title="@string/settings_general_confirm_exit_title" />
 
     <EditTextPreference
         android:defaultValue="@integer/DEF_BACK_DOUBLE_PRESS_TIMEOUT"
         android:dependency="BACK_DOUBLE_PRESS_EN"
         android:key="BACK_DOUBLE_PRESS_TIMEOUT"
         android:numeric="integer"
-        android:summary="How fast you have to press the Back button to exit (milliseconds)"
-        android:title="Double Press Timeout" />
+        android:summary="@string/settings_general_confirm_exit_timeout_summary"
+        android:title="@string/settings_general_confirm_exit_timeout_title" />
 
     <SwitchPreference
         android:defaultValue="@bool/DEF_PERSIST_VOLUME_EN"
         android:key="PERSIST_VOLUME_EN"
-        android:summaryOff="Volume Level does not Persist between Playback Sessions"
-        android:summaryOn="Volume Level Persists between Playback Sessions"
-        android:title="Persistent Volume" />
+        android:summaryOff="@string/settings_general_persist_volume_off"
+        android:summaryOn="@string/settings_general_persist_volume_on"
+        android:title="@string/settings_general_persist_volume_title" />
 
     <SwitchPreference
         android:defaultValue="@bool/DEF_PERSIST_BRIGHTNESS_EN"
         android:key="PERSIST_BRIGHTNESS_EN"
-        android:summaryOff="Brightness Level does not Persist between Playback Sessions"
-        android:summaryOn="Brightness Level Persists between Playback Sessions"
-        android:title="Persistent Brightness" />
+        android:summaryOff="@string/settings_general_persist_brightness_off"
+        android:summaryOn="@string/settings_general_persist_brightness_on"
+        android:title="@string/settings_general_persist_brightness_title" />
 </PreferenceScreen>

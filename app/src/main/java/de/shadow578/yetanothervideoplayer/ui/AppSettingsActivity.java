@@ -2,6 +2,7 @@ package de.shadow578.yetanothervideoplayer.ui;
 
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
@@ -9,6 +10,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
+import de.shadow578.yetanothervideoplayer.BuildConfig;
 import de.shadow578.yetanothervideoplayer.R;
 
 public class AppSettingsActivity extends AppCompatActivity implements
@@ -41,7 +43,7 @@ public class AppSettingsActivity extends AppCompatActivity implements
                     {
                         if (getSupportFragmentManager().getBackStackEntryCount() == 0)
                         {
-                            setTitle(R.string.settings_title_root);
+                            setTitle(R.string.settings_root_title);
                         }
                     }
                 });
@@ -53,7 +55,7 @@ public class AppSettingsActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState)
+    public void onSaveInstanceState(@NonNull Bundle outState)
     {
         super.onSaveInstanceState(outState);
         // Save current activity title so we can set it again after a configuration change
@@ -147,6 +149,9 @@ public class AppSettingsActivity extends AppCompatActivity implements
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey)
         {
             setPreferencesFromResource(R.xml.preferences_about, rootKey);
+            Preference versionPref = findPreference("version_info");
+            if (versionPref != null)
+                versionPref.setSummary(String.format(getString(R.string.settings_about_version_f), BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE));
         }
     }
 }
