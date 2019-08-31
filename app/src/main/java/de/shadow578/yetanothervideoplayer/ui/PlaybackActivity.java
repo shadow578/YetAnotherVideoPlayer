@@ -466,8 +466,6 @@ public class PlaybackActivity extends AppCompatActivity
     @Override
     public void onBackPressed()
     {
-        super.onBackPressed();
-
         if (backPressedOnce || !getPrefBool(ConfigKeys.KEY_BACK_DOUBLE_PRESS_EN, R.bool.DEF_BACK_DOUBLE_PRESS_EN))
         {
             //back pressed once already, do normal thing...
