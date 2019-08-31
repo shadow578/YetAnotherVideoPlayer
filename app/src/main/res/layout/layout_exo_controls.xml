@@ -12,10 +12,10 @@
     <!-- top bar -->
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
-        android:layout_marginHorizontal="5dp"
+        android:layout_height="35dp"
         android:layout_alignParentTop="true"
+        android:layout_marginHorizontal="5dp"
+        android:layout_marginTop="5dp"
         android:background="@color/transparent"
         android:orientation="vertical">
 
@@ -23,7 +23,8 @@
         <TextView
             android:id="@+id/pb_streamTitle"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
             android:text="Video Title"
             android:textAlignment="center"
             android:textAllCaps="false"
@@ -36,10 +37,10 @@
         <!-- top controls -->
         <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="25dp"
+            android:layout_height="match_parent"
+            android:layout_alignParentRight="true"
             android:orientation="horizontal"
             android:visibility="visible"
-            android:layout_alignParentRight="true"
             tools:ignore="RtlHardcoded">
 
             <!-- settings button -->
@@ -106,7 +107,7 @@
     <!-- bottom controls -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="22dp"
+        android:layout_height="25dp"
         android:layout_alignParentBottom="true"
         android:layout_marginHorizontal="5dp"
         android:layout_marginVertical="5dp"
@@ -118,7 +119,8 @@
         <TextView
             android:id="@id/exo_position"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
             android:includeFontPadding="false"
             android:paddingLeft="4dp"
             android:paddingRight="4dp"
@@ -137,7 +139,8 @@
         <TextView
             android:id="@id/exo_duration"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
             android:includeFontPadding="false"
             android:paddingLeft="4dp"
             android:paddingRight="4dp"
