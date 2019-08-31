@@ -52,13 +52,21 @@ import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.LoadControl;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.drm.DefaultDrmSessionManager;
+import com.google.android.exoplayer2.drm.FrameworkMediaCrypto;
 import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.metadata.MetadataOutput;
 import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+import com.google.android.exoplayer2.trackselection.TrackSelection;
+import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.ui.PlayerView;
+import com.google.android.exoplayer2.upstream.BandwidthMeter;
+import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.util.Util;
 
 import java.util.ArrayList;
@@ -146,6 +154,11 @@ public class PlaybackActivity extends AppCompatActivity
      * The Preferences of the app
      */
     private SharedPreferences appPreferences;
+
+    /**
+     * Bandwidth meter used to measure the bandwidth and select stream quality accordingly
+     */
+    private BandwidthMeter bandwidthMeter;
 
     /**
      * The current playback position, used for resuming playback
@@ -285,6 +298,9 @@ public class PlaybackActivity extends AppCompatActivity
 
         //get audio manager
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+
+        //create bandwidth meter
+        bandwidthMeter = new DefaultBandwidthMeter.Builder(this).build();
 
         //setup gestures
         setupGestures();
@@ -651,7 +667,11 @@ public class PlaybackActivity extends AppCompatActivity
         }
 
         //create new simple exoplayer instance
-        player = ExoPlayerFactory.newSimpleInstance(this, new DefaultRenderersFactory(this), new DefaultTrackSelector(), new DefaultLoadControl());
+        TrackSelector trackSelector = new DefaultTrackSelector(new AdaptiveTrackSelection.Factory());
+
+        DefaultRenderersFactory rendersFactory = new DefaultRenderersFactory(this);
+        LoadControl loadController = new DefaultLoadControl();
+        player = ExoPlayerFactory.newSimpleInstance(this, rendersFactory, trackSelector, loadController, null, bandwidthMeter);
 
         //register Event Listener on player
         componentListener = new ExoEventListener();
