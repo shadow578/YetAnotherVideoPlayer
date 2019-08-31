@@ -95,7 +95,7 @@
     <!-- Settings: about -->
     <string name="settings_about_title">About YAVP</string>
     <string name="settings_about_yavp">YAVP by shadow578</string>
-    <string name="settings_about_github_url">https://www.google.de</string>
+    <string name="settings_about_github_url">https://github.com/shadow578/YetAnotherVideoPlayer</string>
     <!-- 1st. arg (%s)= Version String, 2nd. arg (%d)= Version number-->
     <string name="settings_about_version_f">Version %s (%d)</string>
 
