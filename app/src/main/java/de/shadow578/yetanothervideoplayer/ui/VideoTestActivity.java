@@ -56,6 +56,18 @@ public class VideoTestActivity extends AppCompatActivity
                 uri = "http://techslides.com/demos/sample-videos/small.3gp";
                 break;
             }
+            case R.id.vtest_btn_dash:
+            {
+                //
+                uri = "https://dash.akamaized.net/dash264/TestCasesIOP33/adapatationSetSwitching/5/manifest.mpd";
+                break;
+            }
+            case R.id.vtest_btn_hls:
+            {
+                //
+                uri = "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8";
+                break;
+            }
             case R.id.vtest_btn_settings:
             {
                 //open settings

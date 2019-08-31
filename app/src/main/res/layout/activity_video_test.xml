@@ -32,7 +32,7 @@
         android:textAllCaps="false" />
 
     <Button
-        android:id="@+id/vtest_btn_mp4-2"
+        android:id="@+id/vtest_btn_mp4_2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:onClick="videoTest_OnClick"
@@ -53,6 +53,22 @@
         android:layout_height="wrap_content"
         android:onClick="videoTest_OnClick"
         android:text="Stream 3GP Video (Techslides.com)"
+        android:textAllCaps="false" />
+
+    <Button
+        android:id="@+id/vtest_btn_dash"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="videoTest_OnClick"
+        android:text="Stream DASH Video (DASH IF - Tears of Steel)"
+        android:textAllCaps="false" />
+
+    <Button
+        android:id="@+id/vtest_btn_hls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="videoTest_OnClick"
+        android:text="Stream HLS Video (bitdash/bitmovin - sintel)"
         android:textAllCaps="false" />
 
     <Button
