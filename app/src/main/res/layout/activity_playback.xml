@@ -1,73 +1,25 @@
-<?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/pb_quick_settings_drawer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/black"
-    tools:context=".ui.PlaybackActivity"
-    android:animateLayoutChanges="true">
+    tools:context=".ui.PlaybackActivity">
 
-    <!-- Player -->
-    <com.google.android.exoplayer2.ui.PlayerView
-        android:id="@+id/pb_playerView"
+    <!-- main screen = main playback view = video-->
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:controller_layout_id="@layout/layout_exo_controls"
-        app:use_artwork="true" />
+        android:background="@color/black">
 
-    <!-- Info Text (Volume/Brightness) -->
-    <TextView
-        android:id="@+id/pb_infoText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:background="@color/info_text_background"
-        android:text="Volume: xxx%"
-        android:textAllCaps="true"
-        android:textColor="@color/info_text_text"
-        android:textSize="20sp"
-        android:visibility="invisible"
-        tools:ignore="HardcodedText" />
-
-    <!-- Buffering Progress Wheels for normal + pip mode -->
-    <RelativeLayout
-        android:id="@+id/pb_playerBufferingCont"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        android:layout_centerInParent="true"
-        android:visibility="visible">
-
-        <!-- Buffering Progress Wheel, normal mode-->
-        <com.pnikosis.materialishprogress.ProgressWheel
-            android:id="@+id/pb_playerBufferingWheel_normal"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="visible"
-            app:matProg_barColor="@color/player_buffering_progress"
-            app:matProg_barWidth="5dp"
-            app:matProg_fillRadius="true"
-            app:matProg_progressIndeterminate="true" />
-
-        <!-- Buffering Progress Wheel, pip mode-->
-        <com.pnikosis.materialishprogress.ProgressWheel
-            android:id="@+id/pb_playerBufferingWheel_pipmode"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="invisible"
-            app:matProg_barColor="@color/player_buffering_progress"
-            app:matProg_barWidth="5dp"
-            app:matProg_fillRadius="false"
-            app:matProg_progressIndeterminate="true" />
+        <include layout="@layout/layout_playback_main" />
     </RelativeLayout>
 
-    <!-- quick settings -->
-    <include
-        android:id="@+id/pb_quick_settings_panel"
-        layout="@layout/layout_playback_quick_settings"
+    <!-- left drawer = quick settings-->
+    <RelativeLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_marginBottom="5dp"
-        android:visibility="gone" />
-</RelativeLayout>
+        android:layout_height="match_parent"
+        android:layout_gravity="end">
+
+        <include layout="@layout/layout_playback_quick_settings" />
+    </RelativeLayout>
+</androidx.drawerlayout.widget.DrawerLayout>

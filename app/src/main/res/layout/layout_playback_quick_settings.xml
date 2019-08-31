@@ -1,24 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="20dp"
+    android:layout_marginBottom="20dp"
     android:background="@color/qs_background">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minWidth="250dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="10dp"
         android:layout_marginStart="5dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:minWidth="250dp"
         android:orientation="vertical">
 
         <!-- Quality -->
         <de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton
-            android:visibility="gone"
             android:id="@+id/qs_btn_quality"
             style="@style/QuickSettingsButton"
+            android:visibility="gone"
             app:icon="@drawable/ic_high_quality_48px"
             app:text="@string/qs_quality" />
 
@@ -38,9 +40,9 @@
 
         <!-- Cast -->
         <de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton
-            android:visibility="gone"
             android:id="@+id/qs_btn_cast"
             style="@style/QuickSettingsButton"
+            android:visibility="gone"
             app:icon="@drawable/ic_cast_48px"
             app:text="@string/qs_cast" />
 
@@ -53,9 +55,9 @@
 
         <!-- captions -->
         <de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton
-            android:visibility="gone"
             android:id="@+id/qs_btn_captions"
             style="@style/QuickSettingsButton"
+            android:visibility="gone"
             app:icon="@drawable/ic_closed_caption_48px"
             app:text="@string/qs_closed_captions" />
 

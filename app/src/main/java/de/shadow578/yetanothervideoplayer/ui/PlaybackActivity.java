@@ -4,6 +4,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.preference.PreferenceManager;
 
 import de.shadow578.yetanothervideoplayer.R;
@@ -99,9 +101,9 @@ public class PlaybackActivity extends AppCompatActivity
     private View bufferingSpinner;
 
     /**
-     * The View that contains the quick settings buttons
+     * The drawer that contains the quick settings
      */
-    private View quickSettingsView;
+    private DrawerLayout quickSettingsDrawer;
 
     /**
      * The uri that this activity was created with (retried from intent)
@@ -270,7 +272,7 @@ public class PlaybackActivity extends AppCompatActivity
         infoTextView = findViewById(R.id.pb_infoText);
         titleTextView = findViewById(R.id.pb_streamTitle);
         bufferingSpinner = findViewById(R.id.pb_playerBufferingCont);
-        quickSettingsView = findViewById(R.id.pb_quick_settings_panel);
+        quickSettingsDrawer = findViewById(R.id.pb_quick_settings_drawer);
 
         //set fast-forward and rewind increments
         int seekIncrement = getPrefInt(ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT);
@@ -435,6 +437,8 @@ public class PlaybackActivity extends AppCompatActivity
     @Override
     public void onBackPressed()
     {
+        super.onBackPressed();
+
         if (backPressedOnce || !getPrefBool(ConfigKeys.KEY_BACK_DOUBLE_PRESS_EN, R.bool.DEF_BACK_DOUBLE_PRESS_EN))
         {
             //back pressed once already, do normal thing...
@@ -531,10 +535,6 @@ public class PlaybackActivity extends AppCompatActivity
             @Override
             public void onHorizontalFling(float deltaX, PointF flingStart, PointF flingEnd, SizeF screenSize)
             {
-                if (deltaX < 0)
-                {
-                    quickSettingsView.setVisibility(View.GONE);
-                }
             }
 
             @Override
@@ -755,7 +755,7 @@ public class PlaybackActivity extends AppCompatActivity
                 jumpTo.show(getSupportFragmentManager(), player);
 
                 //hide quick settings
-                quickSettingsView.setVisibility(View.GONE);
+                hideQuickSettingsDrawer();
                 break;
             }
             case R.id.qs_btn_pip:
@@ -809,7 +809,7 @@ public class PlaybackActivity extends AppCompatActivity
             case R.id.pb_quick_settings:
             {
                 //open quick settings
-                quickSettingsView.setVisibility(View.VISIBLE);
+                quickSettingsDrawer.openDrawer(GravityCompat.END);
                 break;
             }
         }
@@ -906,8 +906,8 @@ public class PlaybackActivity extends AppCompatActivity
             //hide player controls
             playerView.setUseController(false);
 
-            //hide quick settings panel
-            quickSettingsView.setVisibility(View.GONE);
+            //hide quick settings drawer
+            hideQuickSettingsDrawer();
 
             //hide info text immediately
             delayHandler.sendEmptyMessage(Messages.SET_INFO_TEXT_INVISIBLE);
@@ -1059,6 +1059,15 @@ public class PlaybackActivity extends AppCompatActivity
     //endregion
 
     //region ~~ Utility ~~
+
+    /**
+     * Closes the quick settings drawer
+     */
+    private void hideQuickSettingsDrawer()
+    {
+        //quickSettingsDrawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+        quickSettingsDrawer.closeDrawer(GravityCompat.END);
+    }
 
     /**
      * Save the current volume as persistent volume

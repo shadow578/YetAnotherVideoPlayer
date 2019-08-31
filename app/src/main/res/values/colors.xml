@@ -11,12 +11,11 @@
     <color name="transparent">#00000000</color>
     <color name="hotpink">#FF64B4</color>
     <color name="default_text">#FFBEBEBE</color>
-    <color name="default_trans_background">#80000000</color>
 
     <!-- specific colors -->
     <!-- ~~ activity_playback ~~ -->
     <!-- background color of info text (Volume: x%) label -->
-    <color name="info_text_background">@color/default_trans_background</color>
+    <color name="info_text_background">#80000000</color>
 
     <!-- text color of info text (Volume: x%) label -->
     <color name="info_text_text">@color/default_text</color>
@@ -48,13 +47,18 @@
     <color name="player_screen_rotation_buttons">@color/default_text</color>
 
     <!-- ~~ layout_playback_quick_settings ~~ -->
-    <color name="qs_background">@color/default_trans_background</color>
+    <!-- general background of quick settings panel -->
+    <color name="qs_background">#43000000</color>
 
+    <!-- background of quick setting items -->
     <color name="qs_item_background">#69000000</color>
 
+    <!-- color of quick setting item text -->
     <color name="qs_item_text">@color/default_text</color>
 
+    <!-- default (not- active) icon tint of quick settings icons -->
     <color name="qs_item_icon_default">@color/white</color>
 
-    <color name="qs_item_icon_active">#FC9191</color>
+    <!-- active (...) icon tint of quick settings icons -->
+    <color name="qs_item_icon_active">#FFEE99</color>
 </resources>
