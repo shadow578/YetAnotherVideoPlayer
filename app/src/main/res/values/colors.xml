@@ -3,7 +3,8 @@
     <!-- App Theme colors -->
     <color name="colorPrimary">#008577</color>
     <color name="colorPrimaryDark">#00574B</color>
-    <color name="colorAccent">#D81B60</color>
+    <color name="colorAccent">#f55449</color>
+    <color name="ic_launcher_background">#008577</color>
 
     <!-- shared colors -->
     <color name="white">#FFFFFF</color>
@@ -60,5 +61,5 @@
     <color name="qs_item_icon_default">@color/white</color>
 
     <!-- active (...) icon tint of quick settings icons -->
-    <color name="qs_item_icon_active">#FFEE99</color>
+    <color name="qs_item_icon_active">@color/colorAccent</color>
 </resources>
