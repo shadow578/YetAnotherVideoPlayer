@@ -15,6 +15,75 @@
         android:textAlignment="center"
         android:textSize="24sp" />
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Switch
+            android:id="@+id/vtest_tgl_open_direct"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:text="Directly launch Playback Activity"/>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Switch
+            android:id="@+id/vtest_tgl_open_share"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="false"
+            android:enabled="false"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:text="Use ACTION_SEND instead of ACTION_VIEW"/>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Switch
+            android:id="@+id/vtest_tgl_add_title_extra"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:text="Add title as Intent Extra"/>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Switch
+            android:id="@+id/vtest_tgl_non_standard_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:text="Use non- standard title id for Extra"/>
+    </LinearLayout>
+
     <Button
         android:id="@+id/vtest_btn_mp3"
         android:layout_width="match_parent"
@@ -30,6 +99,7 @@
         android:onClick="videoTest_OnClick"
         android:text="Stream MP4 Video (BuckBunny 320x180)"
         android:textAllCaps="false" />
+
 
     <Button
         android:id="@+id/vtest_btn_mp4_2"
@@ -68,7 +138,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:onClick="videoTest_OnClick"
-        android:text="Stream HLS Video (bitdash/bitmovin - sintel)"
+        android:text="Stream HLS Video (bitdash/bitmovin - sintel [+SUBS))"
         android:textAllCaps="false" />
 
     <Button
