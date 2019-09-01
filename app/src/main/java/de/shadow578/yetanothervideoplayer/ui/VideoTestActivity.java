@@ -115,6 +115,13 @@ public class VideoTestActivity extends AppCompatActivity implements CompoundButt
                 title = "Tears of Steel";
                 break;
             }
+            case R.id.vtest_btn_dash_2:
+            {
+                //DASH IF Sample: Elephants Dream
+                uri = "https://dash.akamaized.net/dash264/TestCases/1a/netflix/exMPD_BIP_TC1.mpd";
+                title = "Elephants Dream";
+                break;
+            }
             case R.id.vtest_btn_hls:
             {
                 //bitdash/bitmovin: sintel
