@@ -40,6 +40,21 @@
             android:supportsPictureInPicture="true"
             android:theme="@style/AppTheme.PlaybackActivity">
 
+            <!-- share with yavp -->
+            <intent-filter android:label="@string/app_open_with">
+                <action android:name="android.intent.action.SEND"/>
+
+                <category android:name="android.intent.category.DEFAULT"/>
+
+                <!-- links -->
+                <data android:mimeType="text/plain"/>
+
+                <!-- audio + video -->
+                <data android:mimeType="video/*"/>
+                <data android:mimeType="audio/*"/>
+            </intent-filter>
+
+
             <!-- by file extension -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />

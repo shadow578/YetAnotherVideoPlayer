@@ -310,21 +310,8 @@ public class PlaybackActivity extends AppCompatActivity
         //get intent this activity was called with to retrieve playback uri
         Intent callIntent = getIntent();
 
-        //log intent info
-        Logging.logD("call Intent: %s", callIntent.toString());
-        Bundle extra = callIntent.getExtras();
-        if (extra != null)
-        {
-            Logging.logD("call Intent Extras: ");
-            for (String key : extra.keySet())
-            {
-                Object val = extra.get(key);
-                Logging.logD("\"%s\" : \"%s\"", key, (val == null ? "NULL" : val.toString()));
-            }
-        }
-
-        //get playback uri from intent + log it
-        playbackUri = callIntent.getData();
+        //get + check uri
+        playbackUri = getUriFromIntent(callIntent);
         if (playbackUri == null)
         {
             //playback uri is null (invalid), abort and show error
@@ -1172,6 +1159,69 @@ public class PlaybackActivity extends AppCompatActivity
     //region ~~ Utility ~~
 
     /**
+     * Retrieve the Uri to play from the intent
+     *
+     * @param intent the intent
+     * @return the retried uri, or null if no uri was found
+     */
+    private Uri getUriFromIntent(Intent intent)
+    {
+        //log intent info
+        Logging.logD("call Intent: %s", intent.toString());
+        Bundle extra = intent.getExtras();
+        if (extra != null)
+        {
+            Logging.logD("call Intent Extras: ");
+            for (String key : extra.keySet())
+            {
+                Object val = extra.get(key);
+                Logging.logD("\"%s\" : \"%s\"", key, (val == null ? "NULL" : val.toString()));
+            }
+        }
+
+        //get playback uri from intent
+        String action = intent.getAction();
+        if (action == null || action.equalsIgnoreCase(Intent.ACTION_VIEW))
+        {
+            //action: open with OR directly open
+            return intent.getData();
+        }
+        else if (action.equalsIgnoreCase(Intent.ACTION_SEND))
+        {
+            //action: send to
+            String type = intent.getType();
+            if (type == null) return null;
+
+            if (type.equalsIgnoreCase("text/plain"))
+            {
+                //share a url from something like chrome, uri is in extra TEXT
+                if (intent.hasExtra(Intent.EXTRA_TEXT))
+                {
+                    return Uri.parse(intent.getStringExtra(Intent.EXTRA_TEXT));
+                }
+            }
+            else if (type.startsWith("video/")
+                    || type.startsWith("audio/"))
+            {
+                //probably shared from gallery, uri is in extra STREAM
+                if (intent.hasExtra(Intent.EXTRA_STREAM))
+                {
+                    return (Uri) intent.getExtras().get(Intent.EXTRA_STREAM);
+                }
+            }
+
+            //failed to parse
+            return null;
+        }
+        else
+        {
+            //unknown
+            Logging.logW("Received Intent with unknown action: %s", intent.getAction());
+            return null;
+        }
+    }
+
+    /**
      * Closes the quick settings drawer
      */
     private void hideQuickSettingsDrawer()
@@ -1370,7 +1420,7 @@ public class PlaybackActivity extends AppCompatActivity
         {
             //no title set yet, try to get the title using the last path segment of the uri
             title = uri.getLastPathSegment();
-            if (title != null && !title.isEmpty())
+            if (title != null && !title.isEmpty() && title.indexOf('.') != -1)
             {
                 //last path segment worked, remove file extension
                 title = title.substring(0, title.lastIndexOf('.'));
