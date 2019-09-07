@@ -25,6 +25,10 @@
     <string name="dialog_format_not_supported_btn_issue">Open Issue</string>
     <string name="dialog_format_not_supported_btn_exit">Not a bug, Exit</string>
 
+    <!-- info dialog: player error -->
+    <string name="dialog_player_error_title">A Player Error has occurred!</string>
+    <string name="dialog_player_error_btn_exit">Exit now</string>
+
     <!-- Quick Settings -->
     <string name="qs_quality">Quality</string>
     <string name="qs_jump_to">Jump to</string>

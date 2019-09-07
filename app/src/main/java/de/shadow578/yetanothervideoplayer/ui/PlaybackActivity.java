@@ -108,9 +108,14 @@ public class PlaybackActivity extends AppCompatActivity
     private DrawerLayout quickSettingsDrawer;
 
     /**
-     * The uri that this activity was created with (retried from intent)
+     * The Uri of the media to play back
      */
     private Uri playbackUri;
+
+    /**
+     * The MediaSource to play back
+     */
+    private MediaSource playbackMedia;
 
     /**
      * The exoplayer instance
@@ -348,6 +353,13 @@ public class PlaybackActivity extends AppCompatActivity
 
         //get info text duration once
         infoTextDurationMs = getPrefInt(ConfigKeys.KEY_INFO_TEXT_DURATION, R.integer.DEF_INFO_TEXT_DURATION);
+
+        //prepare media
+        if (!localFilePermissionPending)
+        {
+            //not waiting for permissions
+            initMedia(playbackUri);
+        }
     }
 
     @SuppressWarnings("SwitchStatementWithTooFewBranches")
@@ -368,7 +380,8 @@ public class PlaybackActivity extends AppCompatActivity
                 {
                     //have permissions now, init player + start playing
                     localFilePermissionPending = false;
-                    initPlayer(playbackUri);
+                    initMedia(playbackUri);
+                    initPlayer(playbackMedia);
                 }
                 else
                 {
@@ -393,7 +406,7 @@ public class PlaybackActivity extends AppCompatActivity
         {
             //initialize player onStart with multi-window support, because
             //app can be visible but NOT active in split window mode
-            initPlayer(playbackUri);
+            initPlayer(playbackMedia);
         }
     }
 
@@ -408,7 +421,7 @@ public class PlaybackActivity extends AppCompatActivity
         {
             //initialize player onResume without multi-window support (or not yet initialized), because
             //app cannot be visible without being active...
-            initPlayer(playbackUri);
+            initPlayer(playbackMedia);
         }
     }
 
@@ -438,16 +451,6 @@ public class PlaybackActivity extends AppCompatActivity
             //onStop was not guaranteed to be called
             freePlayer();
         }
-    }
-
-    @Override
-    protected void onDestroy()
-    {
-        super.onDestroy();
-        Logging.logD("onDestroy of PlaybackActivity called.");
-
-        //app closed, free resources if not happened already
-        freePlayer();
     }
 
     @Override
@@ -646,11 +649,11 @@ public class PlaybackActivity extends AppCompatActivity
     //region ~~ Exoplayer setup and lifecycle ~~
 
     /**
-     * Initializes the ExoPlayer to render to the playerView
+     * Initialize the media for playback
      *
      * @param playbackUri the Uri of the file / stream to play back
      */
-    private void initPlayer(Uri playbackUri)
+    private void initMedia(Uri playbackUri)
     {
         //don't do anything if permissions are pending currently
         if (localFilePermissionPending) return;
@@ -660,6 +663,20 @@ public class PlaybackActivity extends AppCompatActivity
         {
             mediaSourceFactory = new UniversalMediaSourceFactory(this, Util.getUserAgent(this, getString(R.string.app_name)));
         }
+
+        //load media from uri
+        playbackMedia = createMediaSource(playbackUri);
+    }
+
+    /**
+     * Initializes the ExoPlayer to render to the playerView
+     *
+     * @param media the MediaSource to play back
+     */
+    private void initPlayer(MediaSource media)
+    {
+        //check if media is valid
+        if (media == null) return;
 
         //create new simple exoplayer instance
         TrackSelector trackSelector = new DefaultTrackSelector(new AdaptiveTrackSelection.Factory());
@@ -679,10 +696,8 @@ public class PlaybackActivity extends AppCompatActivity
         //set the view to render to
         playerView.setPlayer(player);
 
-        //load media from uri
-        MediaSource mediaSource = createMediaSource(playbackUri);
-        if (mediaSource == null) return;
-        player.prepare(mediaSource, true, false);
+        //prepare media for playback
+        player.prepare(media, true, false);
 
         //resume playback where we left off
         player.setPlayWhenReady(playWhenReady);
@@ -698,9 +713,12 @@ public class PlaybackActivity extends AppCompatActivity
 
     /**
      * Free resources allocated by the player
+     * -Don't free cache etc, as playback may be continued later
+     * -Do save (+ restore) volume & brightness levels
      */
     private void freePlayer()
     {
+        Logging.logD("Freeing player...");
         if (player != null)
         {
             //save player state
@@ -717,23 +735,35 @@ public class PlaybackActivity extends AppCompatActivity
             player = null;
         }
 
+        //dispose media resources
+        freeMedia();
+
+        //do volume restore
+        if (originalVolumeIndex != -1)
+        {
+            //save current volume and brightness levels for persistence
+            savePersistentVolume();
+            savePersistentBrightness();
+
+            //restore original volume level
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, originalVolumeIndex, 0);
+            originalVolumeIndex = -1;
+        }
+    }
+
+    /**
+     * Free all resources allocated for playback (player, cache, ...)
+     */
+    private void freeMedia()
+    {
+        Logging.logD("Disposing playback resources...");
+
         //release media source factory
         if (mediaSourceFactory != null)
         {
             mediaSourceFactory.release();
             mediaSourceFactory = null;
         }
-
-        //save current volume and brightness levels for persistence
-        if (originalVolumeIndex != -1)
-        {
-            savePersistentVolume();
-            savePersistentBrightness();
-        }
-
-        //restore original volume level
-        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, originalVolumeIndex, 0);
-        originalVolumeIndex = -1;
     }
 
     /**
@@ -1472,7 +1502,6 @@ public class PlaybackActivity extends AppCompatActivity
         @Override
         public void onLoadingChanged(boolean isLoading)
         {
-            Logging.logD("isLoading: " + (isLoading ? "True" : "False"));
         }
 
         @Override
@@ -1552,8 +1581,24 @@ public class PlaybackActivity extends AppCompatActivity
         @Override
         public void onPlayerError(ExoPlaybackException error)
         {
+            //a error occurred:
+            //log error
             Logging.logE("ExoPlayer error occurred: %s", error.toString());
-            Toast.makeText(getApplicationContext(), "Internal Error: \r\n" + error.toString(), Toast.LENGTH_LONG).show();
+
+            //show dialog
+            AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
+            builder.setTitle(R.string.dialog_player_error_title)
+                    .setMessage(error.toString())
+                    .setCancelable(false)
+                    .setPositiveButton(R.string.dialog_player_error_btn_exit, new DialogInterface.OnClickListener()
+                    {
+                        public void onClick(DialogInterface dialog, int id)
+                        {
+                            //close app
+                            finish();
+                        }
+                    });
+            builder.create().show();
         }
     }
 
