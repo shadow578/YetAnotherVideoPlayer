@@ -60,7 +60,6 @@ import com.google.android.exoplayer2.metadata.MetadataOutput;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.BandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
@@ -666,7 +665,7 @@ public class PlaybackActivity extends AppCompatActivity
         if (media == null) return;
 
         //create new simple exoplayer instance
-        TrackSelector trackSelector = new DefaultTrackSelector(new AdaptiveTrackSelection.Factory());
+        DefaultTrackSelector trackSelector = new DefaultTrackSelector(new AdaptiveTrackSelection.Factory());
 
         DefaultRenderersFactory rendersFactory = new DefaultRenderersFactory(this);
         LoadControl loadController = new DefaultLoadControl();

@@ -12,7 +12,7 @@
     <!-- top bar -->
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="30dp"
+        android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_marginHorizontal="5dp"
         android:layout_marginTop="5dp"
@@ -23,10 +23,9 @@
         <TextView
             android:id="@+id/pb_streamTitle"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:text="Video Title"
-            android:textAlignment="center"
+            android:layout_height="wrap_content"
+            android:gravity="left"
+            android:text="Video Title that could actually be really long, so we should add some sort of text wrapping here or whatever idk"
             android:textAllCaps="false"
             android:textColor="@color/player_title_text"
             android:textSize="18sp"
@@ -34,13 +33,13 @@
             android:visibility="visible"
             tools:ignore="HardcodedText,RtlHardcoded" />
 
-        <!-- top controls -->
+        <!-- top controls (swipe from right to access)-->
         <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_height="30dp"
             android:layout_alignParentRight="true"
             android:orientation="horizontal"
-            android:visibility="visible"
+            android:visibility="invisible"
             tools:ignore="RtlHardcoded">
 
             <!-- settings button -->

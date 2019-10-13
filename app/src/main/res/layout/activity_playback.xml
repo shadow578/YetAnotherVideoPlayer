@@ -20,6 +20,9 @@
         android:layout_height="match_parent"
         android:layout_gravity="end">
 
-        <include layout="@layout/layout_playback_quick_settings" />
+        <include layout="@layout/layout_playback_quick_settings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"/>
     </RelativeLayout>
 </androidx.drawerlayout.widget.DrawerLayout>
