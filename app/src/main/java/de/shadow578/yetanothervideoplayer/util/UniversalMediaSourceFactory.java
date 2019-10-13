@@ -62,7 +62,7 @@ public class UniversalMediaSourceFactory
         //initialize download cache
         if (downloadCache == null)
         {
-            cacheDir = new File(context.getFilesDir(), "cache");
+            cacheDir = new File(context.getCacheDir(), "yavp_exo_cache");
             downloadCache = new SimpleCache(cacheDir, new NoOpCacheEvictor(), databaseProvider);
         }
 
@@ -122,7 +122,7 @@ public class UniversalMediaSourceFactory
     }
 
     /**
-     * Release resources allocated by the UniversalMediaSourceFactory     *
+     * Release resources allocated by the UniversalMediaSourceFactory
      */
     public void release()
     {
