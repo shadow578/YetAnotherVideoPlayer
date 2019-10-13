@@ -17,7 +17,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
-        <!-- ^^allow traffic over http, since not all (eg most) streams wont be via https by default -->
+        <!-- ^^allow traffic over http, since not all streams will be via https -->
         <activity
             android:name=".ui.AppSettingsActivity"
             android:label="@string/settings_root_title" />
@@ -69,7 +69,7 @@
                 <data android:host="*" />
 
                 <!-- any -->
-                <data android:pathPattern=".*\\.*" />
+                <!--<data android:pathPattern=".*\\.*" />-->
 
                 <!-- mp4 / fmp4-->
                 <data android:pathPattern=".*\\.mp4" />
@@ -143,7 +143,7 @@
                 <!-- any -->
                 <data android:mimeType="video/*" />
                 <data android:mimeType="audio/*" />
-                <data android:mimeType="application/*"/>
+                <!--<data android:mimeType="application/*"/>-->
 
                 <!-- mp4 -->
                 <data android:mimeType="video/mp4" />
