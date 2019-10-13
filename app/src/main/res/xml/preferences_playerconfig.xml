@@ -2,7 +2,7 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <PreferenceCategory
-        android:title="string/settings_player_title"/>
+        android:title="@string/settings_player_title"/>
 
     <SwitchPreference
         android:defaultValue="@bool/DEF_AUTO_PLAY"
