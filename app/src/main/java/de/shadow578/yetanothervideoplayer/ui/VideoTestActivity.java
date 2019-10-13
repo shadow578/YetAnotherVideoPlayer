@@ -122,6 +122,13 @@ public class VideoTestActivity extends AppCompatActivity implements CompoundButt
                 title = "Elephants Dream";
                 break;
             }
+            case R.id.vtest_btn_dash_and_subs:
+            {
+                //DASH + TTML subtitles
+                uri = "http://media.axprod.net/dash/ED_TTML_NEW/Clear/Manifest_sub_in.mpd";
+                title = "Demo (DASH + TTML Subs)";
+                break;
+            }
             case R.id.vtest_btn_hls:
             {
                 //bitdash/bitmovin: sintel

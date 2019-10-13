@@ -144,6 +144,15 @@
             android:textAllCaps="false" />
 
         <Button
+            android:id="@+id/vtest_btn_dash_and_subs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="videoTest_OnClick"
+            android:text="Stream DASH Video + TTML Subs ()"
+            android:textAllCaps="false"
+            android:visibility="gone"/>
+
+        <Button
             android:id="@+id/vtest_btn_hls"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
