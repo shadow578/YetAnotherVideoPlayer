@@ -40,14 +40,18 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.SizeF;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageButton;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.daasuu.epf.EPlayerView;
+import com.daasuu.epf.filter.GlGrayScaleFilter;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlaybackException;
@@ -680,7 +684,19 @@ public class PlaybackActivity extends AppCompatActivity
         player.addMetadataOutput(metadataListener);
 
         //set the view to render to
-        playerView.setPlayer(player);
+        //playerView.setPlayer(player);
+
+        EPlayerView ePlayerView = new EPlayerView(this);
+
+        // set SimpleExoPlayer
+        ePlayerView.setSimpleExoPlayer(player);
+        ePlayerView.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+
+        // add ePlayerView to WrapperView
+        playerView.addView(ePlayerView);
+        ePlayerView.onResume();
+
+        ePlayerView.setGlFilter(new GlGrayScaleFilter());
 
         //prepare media for playback
         player.prepare(media, true, false);
