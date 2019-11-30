@@ -48,7 +48,7 @@
                 style="@style/AppButton.PlayerQuickSettings"
                 android:layout_height="match_parent"
                 android:contentDescription="@string/pb_controls_player_quick_settings"
-                android:onClick="playback_OnClick" />
+                android:onClick="quickSettings_OnClick" />
 
         </LinearLayout>
 
@@ -62,14 +62,15 @@
 
         <!-- rewind button -->
         <ImageButton
-            android:id="@id/exo_rew"
-            style="@style/AppButton.FastRewindButton"
+            android:id="@+id/ctrl_rew"
+            android:onClick="playerControl_OnClick"
+            style="@style/ControlButton.FastRewindButton"
             android:layout_height="35dp"
             android:layout_gravity="center"
             android:contentDescription="@string/exo_controls_rewind_description"
             android:visibility="visible" />
 
-        <!-- play/pause button -->
+        <!-- play/pause/replay button -->
         <FrameLayout
             android:layout_width="60dp"
             android:layout_height="60dp"
@@ -78,25 +79,37 @@
             android:clipChildren="false">
 
             <ImageButton
-                android:id="@id/exo_play"
-                style="@style/AppButton.PlayButton"
+                android:id="@+id/ctrl_play"
+                android:onClick="playerControl_OnClick"
+                style="@style/ControlButton.PlayButton"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:contentDescription="@string/exo_controls_play_description" />
 
             <ImageButton
-                android:id="@id/exo_pause"
-                style="@style/AppButton.PauseButton"
+                android:id="@+id/ctrl_pause"
+                android:onClick="playerControl_OnClick"
+                style="@style/ControlButton.PauseButton"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:contentDescription="@string/exo_controls_pause_description"
                 android:visibility="invisible" />
+
+            <ImageButton
+                android:id="@+id/ctrl_replay"
+                android:onClick="playerControl_OnClick"
+                style="@style/ControlButton.ReplayButton"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@string/exo_controls_play_description"
+                android:visibility="invisible"/>
         </FrameLayout>
 
         <!-- fast forward button -->
         <ImageButton
-            android:id="@id/exo_ffwd"
-            style="@style/AppButton.FastForwardButton"
+            android:id="@+id/ctrl_ffwd"
+            android:onClick="playerControl_OnClick"
+            style="@style/ControlButton.FastForwardButton"
             android:layout_height="35dp"
             android:layout_gravity="center"
             android:contentDescription="@string/exo_controls_fastforward_description"

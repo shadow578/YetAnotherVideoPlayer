@@ -40,18 +40,16 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.SizeF;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageButton;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.daasuu.epf.EPlayerView;
-import com.daasuu.epf.filter.GlGrayScaleFilter;
+import com.daasuu.epf.PlayerScaleType;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlaybackException;
@@ -64,7 +62,6 @@ import com.google.android.exoplayer2.metadata.MetadataOutput;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.BandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.util.Util;
@@ -88,7 +85,7 @@ public class PlaybackActivity extends AppCompatActivity
     /**
      * The View the Player Renders Video to
      */
-    private PlayerView playerView;
+    private EPlayerView playerView;
 
     /**
      * The TextView in the center of the screen, used to show information
@@ -104,6 +101,16 @@ public class PlaybackActivity extends AppCompatActivity
      * The ProgressBar in the center of the screen, used to show that the player is currently buffering
      */
     private View bufferingSpinner;
+
+    /**
+     * The view that contains the player controls
+     */
+    private View playerControlsPanel;
+
+    /**
+     * The Main view that contains the playback view and player controls
+     */
+    private View playerMainView;
 
     /**
      * The drawer that contains the quick settings
@@ -291,11 +298,17 @@ public class PlaybackActivity extends AppCompatActivity
         titleTextView = findViewById(R.id.pb_streamTitle);
         bufferingSpinner = findViewById(R.id.pb_playerBufferingCont);
         quickSettingsDrawer = findViewById(R.id.pb_quick_settings_drawer);
+        playerControlsPanel = findViewById(R.id.pb_playerControlsPanel);
+        playerMainView = findViewById(R.id.pb_playbackMainView);
 
         //set fast-forward and rewind increments
-        int seekIncrement = getPrefInt(ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT);
-        playerView.setFastForwardIncrementMs(seekIncrement);
-        playerView.setRewindIncrementMs(seekIncrement);
+        //int seekIncrement = getPrefInt(ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT);
+        //TODO seek increment
+        //playerView.setFastForwardIncrementMs(seekIncrement);
+        //playerView.setRewindIncrementMs(seekIncrement);
+
+        //set player view scaling mode
+        playerView.setPlayerScaleType(PlayerScaleType.RESIZE_FIT_WIDTH);
 
         //init screen rotation manager
         screenRotationManager = new ScreenRotationManager();
@@ -499,7 +512,7 @@ public class PlaybackActivity extends AppCompatActivity
         // playerView.setOnTouchListener(new SwipeGestureListener(TOUCH_DECAY_TIME, SWIPE_THRESHOLD_N, FLING_THRESHOLD_N,
         // new RectF(0, 20, 0, 75))
         int swipeFlingThreshold = getPrefInt(ConfigKeys.KEY_SWIPE_FLING_THRESHOLD, R.integer.DEF_SWIPE_FLING_THRESHOLD);
-        playerView.setOnTouchListener(new SwipeGestureListener(getPrefInt(ConfigKeys.KEY_TOUCH_DECAY_TIME, R.integer.DEF_TOUCH_DECAY_TIME), swipeFlingThreshold, swipeFlingThreshold,
+        playerMainView.setOnTouchListener(new SwipeGestureListener(getPrefInt(ConfigKeys.KEY_TOUCH_DECAY_TIME, R.integer.DEF_TOUCH_DECAY_TIME), swipeFlingThreshold, swipeFlingThreshold,
                 new RectF(getPrefInt(ConfigKeys.KEY_SWIPE_DEAD_ZONE_RECT_LEFT, R.integer.DEF_SWIPE_DEAD_ZONE_LEFT),
                         getPrefInt(ConfigKeys.KEY_SWIPE_DEAD_ZONE_RECT_TOP, R.integer.DEF_SWIPE_DEAD_ZONE_TOP),
                         getPrefInt(ConfigKeys.KEY_SWIPE_DEAD_ZONE_RECT_RIGHT, R.integer.DEF_SWIPE_DEAD_ZONE_RIGHT),
@@ -564,6 +577,10 @@ public class PlaybackActivity extends AppCompatActivity
             {
                 //hide system ui with click
                 hideSysUI();
+
+                //toggle player controls panel visibility
+                playerControlsPanel.setVisibility(playerControlsPanel.getVisibility() == View.VISIBLE ? View.INVISIBLE : View.VISIBLE);
+
                 super.onNoSwipeClick(view, clickPos, screenSize);
             }
         });
@@ -684,19 +701,22 @@ public class PlaybackActivity extends AppCompatActivity
         player.addMetadataOutput(metadataListener);
 
         //set the view to render to
-        //playerView.setPlayer(player);
+        playerView.setSimpleExoPlayer(player);
 
-        EPlayerView ePlayerView = new EPlayerView(this);
 
-        // set SimpleExoPlayer
-        ePlayerView.setSimpleExoPlayer(player);
-        ePlayerView.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-
-        // add ePlayerView to WrapperView
-        playerView.addView(ePlayerView);
-        ePlayerView.onResume();
-
-        ePlayerView.setGlFilter(new GlGrayScaleFilter());
+        // region ExoPlayer GLSL Shader tests
+        //EPlayerView ePlayerView = new EPlayerView(this);
+//
+        //// set SimpleExoPlayer
+        //ePlayerView.setSimpleExoPlayer(player);
+        //ePlayerView.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+//
+        //// add ePlayerView to WrapperView
+        //playerView.addView(ePlayerView);
+        //ePlayerView.onResume();
+//
+        //ePlayerView.setGlFilter(new GlAnime4K());
+        // endregion
 
         //prepare media for playback
         player.prepare(media, true, false);
@@ -822,6 +842,43 @@ public class PlaybackActivity extends AppCompatActivity
 
     //endregion
 
+    // region ~~ Player Control Functions ~~
+
+    /**
+     * toggle player playback
+     */
+    private void playerTogglePlayback()
+    {
+        player.setPlayWhenReady(!player.getPlayWhenReady());
+    }
+
+    /**
+     * replay the current video
+     */
+    private void playerReplay()
+    {
+        player.seekTo(0);
+        player.setPlayWhenReady(true);
+    }
+
+    /**
+     * fast forward the playback position
+     */
+    private void playerFastForward()
+    {
+        player.seekTo(player.getCurrentPosition() + getPrefInt(ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT));
+    }
+
+    /**
+     * fast reverse the playback position
+     */
+    private void playerRewind()
+    {
+        player.seekTo(player.getCurrentPosition() - getPrefInt(ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT));
+    }
+
+    //endregion
+
     //region ~~ Button Handling ~~
 
     /**
@@ -853,7 +910,18 @@ public class PlaybackActivity extends AppCompatActivity
                 break;
             }
             //endregion
+        }
+    }
 
+    /**
+     * Common click handler for buttons in quick settings drawer
+     *
+     * @param view the view that invoked this handler
+     */
+    public void quickSettings_OnClick(View view)
+    {
+        switch (view.getId())
+        {
             //region ~~ Player Quick Settings ~~
             case R.id.qs_btn_quality:
             {
@@ -927,6 +995,41 @@ public class PlaybackActivity extends AppCompatActivity
             }
         }
     }
+
+    /**
+     * Common click handler for buttons in Player control activity
+     *
+     * @param view the view that invoked this handler
+     */
+    public void playerControl_OnClick(View view)
+    {
+        switch (view.getId())
+        {
+            case R.id.ctrl_pause:
+            case R.id.ctrl_play:
+            {
+                //exo button pause or play clicked
+                playerTogglePlayback();
+            }
+            case R.id.ctrl_replay:
+            {
+                //exo replay button clicked
+                playerReplay();
+            }
+            case R.id.ctrl_ffwd:
+            {
+                //exo button fast forward clicked
+                playerFastForward();
+            }
+            case R.id.ctrl_rew:
+            {
+                //exo button reverse clicked
+                playerRewind();
+
+                //TODO: exo_position for current play pos, exo_duration for video lenght, exo_progress_placeholder for seeking bar
+            }
+        }
+    }
     //endregion
 
     //region ~~ PIP Mode ~~
@@ -973,7 +1076,8 @@ public class PlaybackActivity extends AppCompatActivity
         super.onPictureInPictureModeChanged(isInPictureInPictureMode);
 
         //hide controls when entering pip, re-enable when exiting pip
-        playerView.setUseController(!isInPictureInPictureMode);
+        //playerView.setUseController(!isInPictureInPictureMode);
+        playerControlsPanel.setVisibility(isInPictureInPictureMode ? View.INVISIBLE : View.VISIBLE);
 
         //change the buffering spinner in pip mode
         updateBufferingSpinnerVisibility(isInPictureInPictureMode);
@@ -1017,7 +1121,8 @@ public class PlaybackActivity extends AppCompatActivity
         {
             //can enter pip mode, hide ui elements:
             //hide player controls
-            playerView.setUseController(false);
+            //playerView.setUseController(false);
+            playerControlsPanel.setVisibility(View.INVISIBLE);
 
             //hide quick settings drawer
             hideQuickSettingsDrawer();
@@ -1056,26 +1161,25 @@ public class PlaybackActivity extends AppCompatActivity
                     case PIPConstants.REQUEST_PLAY_PAUSE:
                     {
                         //play/pause request, toggle playWhenReady
-                        player.setPlayWhenReady(!player.getPlayWhenReady());
+                        playerTogglePlayback();
                         break;
                     }
                     case PIPConstants.REQUEST_REPLAY:
                     {
                         //replay request, set playWhenReady and seek to 0
-                        player.seekTo(0);
-                        player.setPlayWhenReady(true);
+                        playerReplay();
                         break;
                     }
                     case PIPConstants.REQUEST_FAST_FORWARD:
                     {
                         //fast- forward request, fast- forward video
-                        player.seekTo(player.getCurrentPosition() + getPrefInt(ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT));
+                        playerFastForward();
                         break;
                     }
                     case PIPConstants.REQUEST_REWIND:
                     {
                         //rewind request, rewind video
-                        player.seekTo(player.getCurrentPosition() - getPrefInt(ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT));
+                        playerRewind();
                         break;
                     }
                     default:
@@ -1564,6 +1668,25 @@ public class PlaybackActivity extends AppCompatActivity
      */
     private class ExoEventListener implements Player.EventListener
     {
+        /**
+         * Exoplayer control buttons
+         */
+        ImageButton exoPlayButton;
+        ImageButton exoPauseButton;
+        ImageButton exoReplayButton;
+        ImageButton exoFFWDButton;
+        ImageButton exoRevButton;
+
+        ExoEventListener()
+        {
+            //get exo player control buttons
+            exoPlayButton = findViewById(R.id.ctrl_play);
+            exoPauseButton = findViewById(R.id.ctrl_pause);
+            exoReplayButton = findViewById(R.id.ctrl_replay);
+            exoFFWDButton = findViewById(R.id.ctrl_ffwd);
+            exoRevButton = findViewById(R.id.ctrl_rew);
+        }
+
         @Override
         public void onLoadingChanged(boolean isLoading)
         {
@@ -1575,19 +1698,12 @@ public class PlaybackActivity extends AppCompatActivity
             //update buffering progress bar
             setBuffering(playbackState == Player.STATE_BUFFERING);
 
-            //get the play button
-            ImageButton playButton = findViewById(R.id.exo_play);
-            if (replayButtonVisible)
-            {
-                //reset graphic to the play button if needed
-                playButton.setImageResource(R.drawable.ic_play_arrow_48px);
-                replayButtonVisible = false;
-            }
-
             //update PIP controls if in pip mode
             if (isInPictureInPictureMode())
                 updatePip();
 
+            //check player state
+            boolean videoEnd = false;
             switch (playbackState)
             {
                 case Player.STATE_IDLE:
@@ -1629,9 +1745,8 @@ public class PlaybackActivity extends AppCompatActivity
                     }
                     else
                     {
-                        //change play button graphic to replay button
-                        playButton.setImageResource(R.drawable.ic_replay_48px);
-                        replayButtonVisible = true;
+                        //set video end flag
+                        videoEnd = true;
                     }
                     break;
                 }
@@ -1640,6 +1755,41 @@ public class PlaybackActivity extends AppCompatActivity
                     Logging.logW("Received invalid Playback State in onPlayerStateChanged: %d", playbackState);
                     break;
                 }
+            }
+
+            //update exo player controls
+            if (videoEnd)
+            {
+                //show replay button on video end
+                exoPlayButton.setVisibility(View.GONE);
+                exoPlayButton.setEnabled(false);
+                exoPauseButton.setVisibility(View.GONE);
+                exoPauseButton.setEnabled(false);
+                exoReplayButton.setVisibility(View.VISIBLE);
+                exoReplayButton.setEnabled(true);
+            }
+            else
+            {
+                //show play or pause button, depending if player is set to play
+                if (playWhenReady)
+                {
+                    exoPlayButton.setVisibility(View.GONE);
+                    exoPlayButton.setEnabled(false);
+                    exoPauseButton.setVisibility(View.VISIBLE);
+                    exoPauseButton.setEnabled(true);
+                }
+                else
+                {
+                    exoPlayButton.setVisibility(View.VISIBLE);
+                    exoPlayButton.setEnabled(true);
+                    exoPauseButton.setVisibility(View.GONE);
+                    exoPauseButton.setEnabled(false);
+                }
+
+                //replay button always hidden
+                exoReplayButton.setVisibility(View.GONE);
+                exoReplayButton.setEnabled(false);
+                exoReplayButton.setActivated(false);
             }
         }
 

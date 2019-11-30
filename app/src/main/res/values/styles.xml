@@ -21,26 +21,36 @@
         <item name="android:scaleType">fitCenter</item>
     </style>
 
+    <!-- Base for Buttons in Player Control -->
+    <style name="ControlButton" parent="AppButton">
+    </style>
+
     <!-- Play button in layout_exo_controls (video controls) -->
-    <style name="AppButton.PlayButton">
+    <style name="ControlButton.PlayButton">
         <item name="android:src">@drawable/ic_play_arrow_48px</item>
         <item name="android:tint">@color/player_center_buttons</item>
     </style>
 
+    <!-- Replay button in layout_exo_controls (video controls) -->
+    <style name="ControlButton.ReplayButton">
+        <item name="android:src">@drawable/ic_replay_48px</item>
+        <item name="android:tint">@color/player_center_buttons</item>
+    </style>
+
     <!-- Pause button in layout_exo_controls (video controls) -->
-    <style name="AppButton.PauseButton">
+    <style name="ControlButton.PauseButton">
         <item name="android:src">@drawable/ic_pause_48px</item>
         <item name="android:tint">@color/player_center_buttons</item>
     </style>
 
     <!-- Fast Forward button in layout_exo_controls (video controls) -->
-    <style name="AppButton.FastForwardButton">
+    <style name="ControlButton.FastForwardButton">
         <item name="android:src">@drawable/ic_fast_forward_48px</item>
         <item name="android:tint">@color/player_center_buttons</item>
     </style>
 
     <!-- Fast Rewind button in layout_exo_controls (video controls) -->
-    <style name="AppButton.FastRewindButton">
+    <style name="ControlButton.FastRewindButton">
         <item name="android:src">@drawable/ic_fast_rewind_48px</item>
         <item name="android:tint">@color/player_center_buttons</item>
     </style>
@@ -75,7 +85,7 @@
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_marginTop">2dp</item>
         <item name="android:layout_marginBottom">2dp</item>
-        <item name="android:onClick">playback_OnClick</item>
+        <item name="android:onClick">quickSettings_OnClick</item>
         <item name="iconMinWidth">5dp</item>
         <item name="backgroundTint">@color/qs_item_background</item>
         <item name="iconTint">@color/qs_item_icon_default</item>
