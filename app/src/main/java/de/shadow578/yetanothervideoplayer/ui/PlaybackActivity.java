@@ -10,6 +10,7 @@ import androidx.preference.PreferenceManager;
 
 import de.shadow578.yetanothervideoplayer.R;
 import de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton;
+import de.shadow578.yetanothervideoplayer.ui.components.PlayerControlViewWrapper;
 import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
 import de.shadow578.yetanothervideoplayer.util.Logging;
 import de.shadow578.yetanothervideoplayer.util.SwipeGestureListener;
@@ -44,7 +45,6 @@ import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.DecelerateInterpolator;
-import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -63,7 +63,6 @@ import com.google.android.exoplayer2.metadata.MetadataOutput;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.ui.PlayerControlView;
 import com.google.android.exoplayer2.upstream.BandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.util.Util;
@@ -83,18 +82,20 @@ public class PlaybackActivity extends AppCompatActivity
     //endregion
 
     //region ~~ Variables ~~
+    /**
+     * The topmost view of the playback activity
+     */
+    private View playbackRootView;
 
     /**
      * The View the Player Renders Video to
      */
-    //private PlayerView playerView;
-
     private EPlayerView playerView;
 
     /**
      * The View that contains and controls the player controls
      */
-    private PlayerControlView playerControlView;
+    private PlayerControlViewWrapper playerControlView;
 
     /**
      * The TextView in the center of the screen, used to show information
@@ -285,6 +286,12 @@ public class PlaybackActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+
+        //make app fullscreen
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+        //set activity layout
         setContentView(R.layout.activity_playback);
         Logging.logD("onCreate of PlaybackActivity called.");
 
@@ -292,6 +299,7 @@ public class PlaybackActivity extends AppCompatActivity
         appPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         //get views
+        playbackRootView = findViewById(R.id.pb_playbackRootView);
         playerView = findViewById(R.id.pb_playerView);
         playerControlView = findViewById(R.id.pb_playerControlView);
         infoTextView = findViewById(R.id.pb_infoText);
@@ -398,7 +406,6 @@ public class PlaybackActivity extends AppCompatActivity
         super.onStart();
         Logging.logD("onStart of PlaybackActivity called.");
 
-        hideSysUI();
         if (supportMultiWindow())
         {
             //initialize player onStart with multi-window support, because
@@ -413,7 +420,6 @@ public class PlaybackActivity extends AppCompatActivity
         super.onResume();
         Logging.logD("onResume of PlaybackActivity called.");
 
-        hideSysUI();
         if (!supportMultiWindow() || player == null)
         {
             //initialize player onResume without multi-window support (or not yet initialized), because
@@ -506,7 +512,7 @@ public class PlaybackActivity extends AppCompatActivity
         // playerView.setOnTouchListener(new SwipeGestureListener(TOUCH_DECAY_TIME, SWIPE_THRESHOLD_N, FLING_THRESHOLD_N,
         // new RectF(0, 20, 0, 75))
         int swipeFlingThreshold = getPrefInt(ConfigKeys.KEY_SWIPE_FLING_THRESHOLD, R.integer.DEF_SWIPE_FLING_THRESHOLD);
-        playerControlView.setOnTouchListener(new SwipeGestureListener(getPrefInt(ConfigKeys.KEY_TOUCH_DECAY_TIME, R.integer.DEF_TOUCH_DECAY_TIME), swipeFlingThreshold, swipeFlingThreshold,
+        playbackRootView.setOnTouchListener(new SwipeGestureListener(getPrefInt(ConfigKeys.KEY_TOUCH_DECAY_TIME, R.integer.DEF_TOUCH_DECAY_TIME), swipeFlingThreshold, swipeFlingThreshold,
                 new RectF(getPrefInt(ConfigKeys.KEY_SWIPE_DEAD_ZONE_RECT_LEFT, R.integer.DEF_SWIPE_DEAD_ZONE_LEFT),
                         getPrefInt(ConfigKeys.KEY_SWIPE_DEAD_ZONE_RECT_TOP, R.integer.DEF_SWIPE_DEAD_ZONE_TOP),
                         getPrefInt(ConfigKeys.KEY_SWIPE_DEAD_ZONE_RECT_RIGHT, R.integer.DEF_SWIPE_DEAD_ZONE_RIGHT),
@@ -569,8 +575,8 @@ public class PlaybackActivity extends AppCompatActivity
             @Override
             public void onNoSwipeClick(View view, PointF clickPos, SizeF screenSize)
             {
-                //hide system ui with click
-                hideSysUI();
+                //forward click to player controls
+                playerControlView.performClick();
                 super.onNoSwipeClick(view, clickPos, screenSize);
             }
         });
@@ -1554,19 +1560,6 @@ public class PlaybackActivity extends AppCompatActivity
             //has permission
             return true;
         }
-    }
-
-    /**
-     * Hide System- UI elements
-     */
-    private void hideSysUI()
-    {
-        playerControlView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
-                | View.SYSTEM_UI_FLAG_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
     }
 
     /**

@@ -10,11 +10,10 @@
         android:id="@+id/pb_playerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_centerInParent="true"
-        android:clickable="false"/>
+        android:layout_centerInParent="true"/>
 
     <!-- Player Controls -->
-    <com.google.android.exoplayer2.ui.PlayerControlView
+    <de.shadow578.yetanothervideoplayer.ui.components.PlayerControlViewWrapper
         android:id="@+id/pb_playerControlView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
