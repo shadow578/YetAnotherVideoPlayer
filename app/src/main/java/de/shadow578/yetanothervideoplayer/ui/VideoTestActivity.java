@@ -170,7 +170,7 @@ public class VideoTestActivity extends AppCompatActivity implements CompoundButt
         if (openDirect)
         {
             //directly open activity
-            playIntent = new Intent(this, PlaybackActivity.class);
+            playIntent = new Intent(this, LaunchActivity.class);
         }
         else
         {
