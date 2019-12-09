@@ -6,12 +6,20 @@
     android:layout_height="match_parent">
 
     <!-- Player -->
-    <com.google.android.exoplayer2.ui.PlayerView
+    <com.daasuu.epf.EPlayerView
         android:id="@+id/pb_playerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_centerInParent="true"
+        android:clickable="false"/>
+
+    <!-- Player Controls -->
+    <com.google.android.exoplayer2.ui.PlayerControlView
+        android:id="@+id/pb_playerControlView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         app:controller_layout_id="@layout/layout_exo_controls"
-        app:use_artwork="true" />
+        app:use_artwork="true"/>
 
     <!-- Info Text (Volume/Brightness) -->
     <TextView

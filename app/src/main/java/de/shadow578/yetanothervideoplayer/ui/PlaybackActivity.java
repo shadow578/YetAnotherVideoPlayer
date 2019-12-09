@@ -44,10 +44,13 @@ import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.DecelerateInterpolator;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.daasuu.epf.EPlayerView;
+import com.daasuu.epf.PlayerScaleType;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlaybackException;
@@ -60,7 +63,7 @@ import com.google.android.exoplayer2.metadata.MetadataOutput;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.ui.PlayerView;
+import com.google.android.exoplayer2.ui.PlayerControlView;
 import com.google.android.exoplayer2.upstream.BandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.util.Util;
@@ -84,7 +87,14 @@ public class PlaybackActivity extends AppCompatActivity
     /**
      * The View the Player Renders Video to
      */
-    private PlayerView playerView;
+    //private PlayerView playerView;
+
+    private EPlayerView playerView;
+
+    /**
+     * The View that contains and controls the player controls
+     */
+    private PlayerControlView playerControlView;
 
     /**
      * The TextView in the center of the screen, used to show information
@@ -283,6 +293,7 @@ public class PlaybackActivity extends AppCompatActivity
 
         //get views
         playerView = findViewById(R.id.pb_playerView);
+        playerControlView = findViewById(R.id.pb_playerControlView);
         infoTextView = findViewById(R.id.pb_infoText);
         titleTextView = findViewById(R.id.pb_streamTitle);
         bufferingSpinner = findViewById(R.id.pb_playerBufferingCont);
@@ -290,8 +301,8 @@ public class PlaybackActivity extends AppCompatActivity
 
         //set fast-forward and rewind increments
         int seekIncrement = getPrefInt(ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT);
-        playerView.setFastForwardIncrementMs(seekIncrement);
-        playerView.setRewindIncrementMs(seekIncrement);
+        playerControlView.setFastForwardIncrementMs(seekIncrement);
+        playerControlView.setRewindIncrementMs(seekIncrement);
 
         //init screen rotation manager
         screenRotationManager = new ScreenRotationManager();
@@ -495,7 +506,7 @@ public class PlaybackActivity extends AppCompatActivity
         // playerView.setOnTouchListener(new SwipeGestureListener(TOUCH_DECAY_TIME, SWIPE_THRESHOLD_N, FLING_THRESHOLD_N,
         // new RectF(0, 20, 0, 75))
         int swipeFlingThreshold = getPrefInt(ConfigKeys.KEY_SWIPE_FLING_THRESHOLD, R.integer.DEF_SWIPE_FLING_THRESHOLD);
-        playerView.setOnTouchListener(new SwipeGestureListener(getPrefInt(ConfigKeys.KEY_TOUCH_DECAY_TIME, R.integer.DEF_TOUCH_DECAY_TIME), swipeFlingThreshold, swipeFlingThreshold,
+        playerControlView.setOnTouchListener(new SwipeGestureListener(getPrefInt(ConfigKeys.KEY_TOUCH_DECAY_TIME, R.integer.DEF_TOUCH_DECAY_TIME), swipeFlingThreshold, swipeFlingThreshold,
                 new RectF(getPrefInt(ConfigKeys.KEY_SWIPE_DEAD_ZONE_RECT_LEFT, R.integer.DEF_SWIPE_DEAD_ZONE_LEFT),
                         getPrefInt(ConfigKeys.KEY_SWIPE_DEAD_ZONE_RECT_TOP, R.integer.DEF_SWIPE_DEAD_ZONE_TOP),
                         getPrefInt(ConfigKeys.KEY_SWIPE_DEAD_ZONE_RECT_RIGHT, R.integer.DEF_SWIPE_DEAD_ZONE_RIGHT),
@@ -680,7 +691,13 @@ public class PlaybackActivity extends AppCompatActivity
         player.addMetadataOutput(metadataListener);
 
         //set the view to render to
-        playerView.setPlayer(player);
+        playerView.setSimpleExoPlayer(player);
+
+        //fit video to width of screen
+        playerView.setPlayerScaleType(PlayerScaleType.RESIZE_FIT_WIDTH);
+
+        //make controls visible
+        setUseController(true);
 
         //prepare media for playback
         player.prepare(media, true, false);
@@ -957,7 +974,7 @@ public class PlaybackActivity extends AppCompatActivity
         super.onPictureInPictureModeChanged(isInPictureInPictureMode);
 
         //hide controls when entering pip, re-enable when exiting pip
-        playerView.setUseController(!isInPictureInPictureMode);
+        setUseController(!isInPictureInPictureMode);
 
         //change the buffering spinner in pip mode
         updateBufferingSpinnerVisibility(isInPictureInPictureMode);
@@ -1001,7 +1018,7 @@ public class PlaybackActivity extends AppCompatActivity
         {
             //can enter pip mode, hide ui elements:
             //hide player controls
-            playerView.setUseController(false);
+            setUseController(false);
 
             //hide quick settings drawer
             hideQuickSettingsDrawer();
@@ -1360,6 +1377,34 @@ public class PlaybackActivity extends AppCompatActivity
     }
 
     /**
+     * Set the visibility of the player controller
+     *
+     * @param useController should the controller be used?
+     */
+    private void setUseController(boolean useController)
+    {
+        //skip if player control view is null
+        if (playerControlView == null) return;
+
+        if (useController)
+        {
+            if (playerControlView.getPlayer() != player)
+            {
+                //has no or wrong player, assign it
+                playerControlView.setPlayer(player);
+            }
+
+            //show controls
+            playerControlView.show();
+        }
+        else
+        {
+            //hide controls
+            playerControlView.hide();
+        }
+    }
+
+    /**
      * Parse the name of the streamed file from the playback uri
      *
      * @param uri          the playback uri (fallback to filename)
@@ -1516,7 +1561,7 @@ public class PlaybackActivity extends AppCompatActivity
      */
     private void hideSysUI()
     {
-        playerView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
+        playerControlView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
                 | View.SYSTEM_UI_FLAG_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
