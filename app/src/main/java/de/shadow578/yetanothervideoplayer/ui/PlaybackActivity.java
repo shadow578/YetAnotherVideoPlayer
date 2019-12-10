@@ -68,7 +68,6 @@ import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.util.Util;
 
 import java.util.ArrayList;
-import java.util.Locale;
 
 public class PlaybackActivity extends AppCompatActivity
 {
@@ -322,27 +321,29 @@ public class PlaybackActivity extends AppCompatActivity
         //create bandwidth meter
         bandwidthMeter = new DefaultBandwidthMeter.Builder(this).build();
 
-        //setup gestures
-        setupGestures();
-
-        //get intent this activity was called with to retrieve playback uri
+        //Get the intent this activity was created with
         Intent callIntent = getIntent();
 
-        //get + check uri
-        playbackUri = getUriFromIntent(callIntent);
+        //get uri (in intents data field)
+        playbackUri = callIntent.getData();
         if (playbackUri == null)
         {
-            //playback uri is null (invalid), abort and show error
-            Toast.makeText(this, getString(R.string.toast_invalid_playback_uri), Toast.LENGTH_SHORT).show();
+            //invalid url
+            Toast.makeText(this, "Invalid Playback URL! Exiting...", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
-        //intent + intent data (=playback uri) seems ok
-        Logging.logD("Received play intent with uri \"%s\".", playbackUri.toString());
+        //get title (in intents EXTRA_TITLE field)
+        String title = callIntent.getStringExtra(Intent.EXTRA_TITLE);
+        if (title == null || title.isEmpty())
+        {
+            title = "N/A";
+        }
+        setTitle(title);
 
-        //set initial title to filename parsed from uri
-        setTitle(parseTitle(playbackUri, callIntent));
+        //setup gesture controls
+        setupGestures();
 
         //check if uri is of local file and request read permission if so
         if (isLocalFileUri(playbackUri))
@@ -462,7 +463,7 @@ public class PlaybackActivity extends AppCompatActivity
         super.onUserLeaveHint();
 
         //enter pip mode if enabled
-        if (getPrefBool(ConfigKeys.KEY_ENTER_PIP_ON_LEAVE, R.bool.DEF_ENTER_PIP_ON_LEAVE) && isPlayerPlaying())
+        if (getPrefBool(ConfigKeys.KEY_ENTER_PIP_ON_LEAVE, R.bool.DEF_ENTER_PIP_ON_LEAVE) && isPlaying())
             tryGoPip();
     }
 
@@ -609,7 +610,7 @@ public class PlaybackActivity extends AppCompatActivity
         {
             brightnessStr = getString(R.string.info_brightness_auto);
         }
-        showInfoText(infoTextDurationMs, getString(R.string.info_brightness_change), brightnessStr);
+        showInfoText(getString(R.string.info_brightness_change), brightnessStr);
     }
 
     /**
@@ -644,7 +645,7 @@ public class PlaybackActivity extends AppCompatActivity
         int volumePercent = (int) Math.floor(((float) currentVolume - (float) minVolume) / ((float) maxVolume - (float) minVolume) * 100);
 
         //show info text
-        showInfoText(infoTextDurationMs, getString(R.string.info_volume_change), volumePercent);
+        showInfoText(getString(R.string.info_volume_change), volumePercent);
     }
 
     //endregion
@@ -1181,69 +1182,6 @@ public class PlaybackActivity extends AppCompatActivity
     //region ~~ Utility ~~
 
     /**
-     * Retrieve the Uri to play from the intent
-     *
-     * @param intent the intent
-     * @return the retried uri, or null if no uri was found
-     */
-    private Uri getUriFromIntent(Intent intent)
-    {
-        //log intent info
-        Logging.logD("call Intent: %s", intent.toString());
-        Bundle extra = intent.getExtras();
-        if (extra != null)
-        {
-            Logging.logD("call Intent Extras: ");
-            for (String key : extra.keySet())
-            {
-                Object val = extra.get(key);
-                Logging.logD("\"%s\" : \"%s\"", key, (val == null ? "NULL" : val.toString()));
-            }
-        }
-
-        //get playback uri from intent
-        String action = intent.getAction();
-        if (action == null || action.equalsIgnoreCase(Intent.ACTION_VIEW))
-        {
-            //action: open with OR directly open
-            return intent.getData();
-        }
-        else if (action.equalsIgnoreCase(Intent.ACTION_SEND))
-        {
-            //action: send to
-            String type = intent.getType();
-            if (type == null) return null;
-
-            if (type.equalsIgnoreCase("text/plain"))
-            {
-                //share a url from something like chrome, uri is in extra TEXT
-                if (intent.hasExtra(Intent.EXTRA_TEXT))
-                {
-                    return Uri.parse(intent.getStringExtra(Intent.EXTRA_TEXT));
-                }
-            }
-            else if (type.startsWith("video/")
-                    || type.startsWith("audio/"))
-            {
-                //probably shared from gallery, uri is in extra STREAM
-                if (intent.hasExtra(Intent.EXTRA_STREAM))
-                {
-                    return (Uri) intent.getExtras().get(Intent.EXTRA_STREAM);
-                }
-            }
-
-            //failed to parse
-            return null;
-        }
-        else
-        {
-            //unknown
-            Logging.logW("Received Intent with unknown action: %s", intent.getAction());
-            return null;
-        }
-    }
-
-    /**
      * Closes the quick settings drawer
      */
     private void hideQuickSettingsDrawer()
@@ -1340,7 +1278,7 @@ public class PlaybackActivity extends AppCompatActivity
      *
      * @return is it?
      */
-    private boolean isPlayerPlaying()
+    private boolean isPlaying()
     {
         return player != null && player.getPlaybackState() == Player.STATE_READY && player.getPlayWhenReady();
     }
@@ -1411,78 +1349,6 @@ public class PlaybackActivity extends AppCompatActivity
     }
 
     /**
-     * Parse the name of the streamed file from the playback uri
-     *
-     * @param uri          the playback uri (fallback to filename)
-     * @param invokeIntent the intent that invoked this activity (parse Title Extra)
-     * @return the parsed file name, or null if parsing failed
-     */
-    private String parseTitle(@NonNull Uri uri, @NonNull Intent invokeIntent)
-    {
-        //prep title
-        String title = null;
-
-        //get intent extras
-        Bundle extraData = invokeIntent.getExtras();
-        if (extraData != null)
-        {
-            //try to get title from extras
-            if (extraData.containsKey(Intent.EXTRA_TITLE))
-            {
-                //has default title extra, use that
-                title = extraData.getString(Intent.EXTRA_TITLE);
-                Logging.logD("Parsing title from default EXTRA_TITLE...");
-            }
-            else
-            {
-                //check each key if it contains "title" and has a String value that is not null or empty
-                for (String key : extraData.keySet())
-                {
-                    if (key.toLowerCase(Locale.US).contains("title"))
-                    {
-                        //key contains "title" in some sort, get value
-                        Object val = extraData.get(key);
-
-                        //check if value is not null and a string
-                        if (val instanceof String)
-                        {
-                            //convert value to string
-                            String valStr = (String) val;
-
-                            //check if string value is not empty
-                            if (!valStr.isEmpty())
-                            {
-                                //could be our title, set it
-                                title = valStr;
-                                Logging.logD("Parsing title from non- default title extra (\"%s\" : \"%s\")", key, valStr);
-                            }
-                        }
-                    }
-                }
-            }
-
-
-            if (title != null) Logging.logD("parsed final title from extra: %s", title);
-        }
-
-        //check if got title from extras
-        if (title == null || title.isEmpty())
-        {
-            //no title set yet, try to get the title using the last path segment of the uri
-            title = uri.getLastPathSegment();
-            if (title != null && !title.isEmpty() && title.indexOf('.') != -1)
-            {
-                //last path segment worked, remove file extension
-                title = title.substring(0, title.lastIndexOf('.'));
-                Logging.logD("parse title from uri: %s", title);
-            }
-        }
-
-        //return title
-        return title;
-    }
-
-    /**
      * Set if the player is currently buffering
      * (buffering progress bar visibility)
      *
@@ -1496,11 +1362,10 @@ public class PlaybackActivity extends AppCompatActivity
     /**
      * Show info text in the middle of the screen, using the InfoText View
      *
-     * @param duration how long to show the info text box, in milliseconds
-     * @param text     the text to show
-     * @param format   formatting options (using US locale)
+     * @param text   the text to show
+     * @param format formatting options (using US locale)
      */
-    private void showInfoText(@SuppressWarnings("SameParameterValue") long duration, String text, Object... format)
+    private void showInfoText(String text, Object... format)
     {
         //remove all previous messages related to fading out the info text
         delayHandler.removeMessages(Messages.START_FADE_OUT_INFO_TEXT);
@@ -1513,8 +1378,11 @@ public class PlaybackActivity extends AppCompatActivity
         infoTextView.setAnimation(null);
         infoTextView.setVisibility(View.VISIBLE);
 
+        //get how long the text should be visible
+
+
         //hide text after delay
-        delayHandler.sendEmptyMessageDelayed(Messages.START_FADE_OUT_INFO_TEXT, duration);
+        delayHandler.sendEmptyMessageDelayed(Messages.START_FADE_OUT_INFO_TEXT, infoTextDurationMs);
     }
 
     /**

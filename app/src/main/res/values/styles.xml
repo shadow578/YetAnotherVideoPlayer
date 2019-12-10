@@ -7,8 +7,14 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <!-- Playback Activity theme (without action bar) -->
+    <!-- Playback Activity theme -->
     <style name="AppTheme.PlaybackActivity">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <!-- Splash Screen (Launch) Activity theme -->
+    <style name="AppTheme.SplashActivity">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
