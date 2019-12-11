@@ -9,6 +9,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.preference.PreferenceManager;
 
 import de.shadow578.yetanothervideoplayer.R;
+import de.shadow578.yetanothervideoplayer.gl.GLMultiFilterTEST;
 import de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton;
 import de.shadow578.yetanothervideoplayer.ui.components.PlayerControlViewWrapper;
 import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
@@ -702,6 +703,12 @@ public class PlaybackActivity extends AppCompatActivity
 
         //fit video to width of screen
         playerView.setPlayerScaleType(PlayerScaleType.RESIZE_FIT_WIDTH);
+
+        //TODO: testing here
+
+        playerView.setGlFilter(new GLMultiFilterTEST());
+
+        //~END
 
         //make controls visible
         setUseController(true);
