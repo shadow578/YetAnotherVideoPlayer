@@ -96,6 +96,9 @@ public class GLMultiFilterTEST extends GlFilter
         glProgramA = EglUtil.createProgram(vertexShaderA, fragmentShaderA);
 
         //setup shader b
+        vertextShaderB = EglUtil.loadShader(VERTEX_TEST_B, GL_VERTEX_SHADER);
+        fragmentShaderB = EglUtil.loadShader(FRAGMENT_TEST_B, GL_FRAGMENT_SHADER);
+        glProgramB = EglUtil.createProgram(vertextShaderB, fragmentShaderB);
 
         //create vertex buffer
         vertexBufferName = EglUtil.createBuffer(VERTICES_DATA);
@@ -112,10 +115,11 @@ public class GLMultiFilterTEST extends GlFilter
     @Override
     public void draw(int toDraw, EFramebufferObject drawTo)
     {
-        //draw using program A
-        drawUsingProgram(glProgramA, toDraw, drawTo);
+        //draw texture to tmpBuffer using program a
+        drawUsingProgram(glProgramA, toDraw, tmpFrameBuffer);
 
-        //draw using program B
+        //draw tmpBuffer to render target using program B
+        drawUsingProgram(glProgramB, tmpFrameBuffer.getTexName(), drawTo);
     }
 
     @Override
