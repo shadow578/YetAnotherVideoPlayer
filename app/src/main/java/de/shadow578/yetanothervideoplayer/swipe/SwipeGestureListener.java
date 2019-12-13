@@ -1,4 +1,4 @@
-package de.shadow578.yetanothervideoplayer.util;
+package de.shadow578.yetanothervideoplayer.swipe;
 
 import android.content.Context;
 import android.graphics.PointF;

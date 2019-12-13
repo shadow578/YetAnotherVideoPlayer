@@ -9,12 +9,12 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.preference.PreferenceManager;
 
 import de.shadow578.yetanothervideoplayer.R;
-import de.shadow578.yetanothervideoplayer.gl.GLMultiFilterTEST;
+import de.shadow578.yetanothervideoplayer.gl.GLFilterBase;
 import de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton;
 import de.shadow578.yetanothervideoplayer.ui.components.PlayerControlViewWrapper;
 import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
 import de.shadow578.yetanothervideoplayer.util.Logging;
-import de.shadow578.yetanothervideoplayer.util.SwipeGestureListener;
+import de.shadow578.yetanothervideoplayer.swipe.SwipeGestureListener;
 import de.shadow578.yetanothervideoplayer.util.UniversalMediaSourceFactory;
 
 import android.Manifest;
@@ -706,7 +706,7 @@ public class PlaybackActivity extends AppCompatActivity
 
         //TODO: testing here
 
-        playerView.setGlFilter(new GLMultiFilterTEST());
+        playerView.setGlFilter(new GLFilterBase());
 
         //~END
 
