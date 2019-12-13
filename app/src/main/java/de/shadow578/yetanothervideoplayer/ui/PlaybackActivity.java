@@ -9,7 +9,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.preference.PreferenceManager;
 
 import de.shadow578.yetanothervideoplayer.R;
-import de.shadow578.yetanothervideoplayer.gl.GLFilterBase;
+import de.shadow578.yetanothervideoplayer.gl.GLAnime4K;
 import de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton;
 import de.shadow578.yetanothervideoplayer.ui.components.PlayerControlViewWrapper;
 import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
@@ -706,7 +706,7 @@ public class PlaybackActivity extends AppCompatActivity
 
         //TODO: testing here
 
-        playerView.setGlFilter(new GLFilterBase());
+        playerView.setGlFilter(new GLAnime4K());
 
         //~END
 
