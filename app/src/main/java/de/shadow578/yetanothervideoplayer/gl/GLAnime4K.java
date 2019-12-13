@@ -1,7 +1,14 @@
 package de.shadow578.yetanothervideoplayer.gl;
 
+import android.content.Context;
+
 import com.daasuu.epf.EFramebufferObject;
 import com.daasuu.epf.EglUtil;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 import de.shadow578.yetanothervideoplayer.util.Logging;
 
@@ -13,6 +20,9 @@ import static android.opengl.GLES20.*;
  */
 public class GLAnime4K extends GLFilterBase
 {
+    //shader sources
+    private final String srcColorGet, srcColorPush, srcGradientGet, srcGradientPush;
+
     //all shaders share the same vertex shader (only doing stuff in fragment shaders)
     private int commonVertexShader;
 
@@ -31,18 +41,23 @@ public class GLAnime4K extends GLFilterBase
     //buffer for rendering of filters
     private EFramebufferObject buffer;
 
+    //how many passes are executed (more = slower)
+    private int a4kPasses = 1;
+
+    public GLAnime4K(Context ctx, int resColorGet, int resColorPush, int resGradGet, int resGradPush)
+    {
+        srcColorGet = readShaderRes(ctx, resColorGet);
+        srcColorPush = readShaderRes(ctx, resColorPush);
+        srcGradientGet = readShaderRes(ctx, resGradGet);
+        srcGradientPush = readShaderRes(ctx, resGradPush);
+    }
+
     /**
      * Set this filter up for use
      */
     @Override
     public void setup()
     {
-        //load shader sources
-        final String srcColorGet = DEFAULT_FRAGMENT_SHADER;
-        final String srcColorPush = DEFAULT_FRAGMENT_SHADER;
-        final String srcGradientGet = DEFAULT_FRAGMENT_SHADER;
-        final String srcGradientPush = DEFAULT_FRAGMENT_SHADER;
-
         //setup shaders:
         //common vertex shader (shared between all programs)
         commonVertexShader = EglUtil.loadShader(DEFAULT_VERTEX_SHADER, GL_VERTEX_SHADER);
@@ -94,7 +109,7 @@ public class GLAnime4K extends GLFilterBase
     public void draw(int sourceTexture, EFramebufferObject target)
     {
         //render x passes of anime4k
-        for (int pass = 0; pass < 2; pass++)
+        for (int pass = 0; pass < a4kPasses; pass++)
         {
             //get color
             if (pass == 0)
@@ -162,5 +177,52 @@ public class GLAnime4K extends GLFilterBase
 
         //log release
         Logging.logD("Released shader.");
+    }
+
+    private String readShaderRes(Context ctx, int res)
+    {
+        try
+        {
+            StringBuilder shaderSrc = new StringBuilder();
+            InputStream resStream = ctx.getResources().openRawResource(res);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(resStream));
+            String ln = reader.readLine();
+            while (ln != null)
+            {
+                shaderSrc.append(ln).append("\n");
+                ln = reader.readLine();
+            }
+
+            reader.close();
+            resStream.close();
+            return shaderSrc.toString();
+        }
+        catch (IOException e)
+        {
+            Logging.logE("Error loading shader source from Res ID " + res + "! Exception: " + e.toString());
+            return DEFAULT_FRAGMENT_SHADER;
+        }
+    }
+
+    /**
+     * Set A4K passes count
+     *
+     * @param passes a4kPasses
+     */
+    @SuppressWarnings("unused")
+    public void setA4kPasses(int passes)
+    {
+        a4kPasses = passes;
+    }
+
+    /**
+     * Get A4K passes count
+     *
+     * @return a4kPasses
+     */
+    @SuppressWarnings("unused")
+    public int getA4kPasses()
+    {
+        return a4kPasses;
     }
 }
