@@ -1,10 +1,16 @@
 precision mediump float;
 
-//coordinates on the current texture
+// coordinates on the current texture
 varying highp vec2 vTextureCoord;
 
-//the current texture
+// the current texture
 uniform lowp sampler2D sTexture;
+
+// the size of the current texture
+uniform highp vec2 vTextureSize;
+
+// push strenght (0.0-1.0)
+uniform float strength;
 
 float getLuminance(vec4 c)
 {
@@ -22,15 +28,15 @@ float getLuminance(vec4 c)
 
 void main()
 {
-    //get color on texture at current position
+    // get color on texture at current position
     vec4 c = texture2D(sTexture, vTextureCoord);
 
-    //calculate luminance
+    // calculate luminance
     float pxLuminance = getLuminance(c);
 
-    //clamp to range 0 - 1
+    // clamp to range 0 - 1
     pxLuminance = clamp(pxLuminance, 0.0, 1.0);
 
-    //set current fragment color
+    // set current fragment color
     gl_FragColor = vec4(c.rgb, pxLuminance);
 }
