@@ -32,9 +32,9 @@ void main()
     vec4 mc = texture2D(sTexture, vTextureCoord);
 
 	// skip first & last row & collumn
-	if(vTextureCoord.x == 0 || vTextureCoord.y == 0 
-	   || vTextureCoord.x == (vTextureSize.x - 1)
-	   || vTextureCoord.y == (vTextureSize.y - 1))
+	if(vTextureCoord.x == 0.0 || vTextureCoord.y == 0.0 
+	   || vTextureCoord.x == (vTextureSize.x - 1.0)
+	   || vTextureCoord.y == (vTextureSize.y - 1.0))
 	{
 		gl_FragColor = mc;
 		return;
@@ -69,7 +69,7 @@ void main()
 	float dY = sobel(sobelY, sobAlpha);
 	
 	// calculate derivata in highp
-	highp float derivata = sqrt(pow(dX, 2) + pow(dY, 2));
+	highp float derivata = sqrt(pow(dX, 2.0) + pow(dY, 2.0));
 	
 	// set pixel based on derivata
 	if(derivata > 1.0)

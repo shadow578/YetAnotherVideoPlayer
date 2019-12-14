@@ -46,28 +46,28 @@ void main()
 
 	// kernel setup:
 	// set translation constants
-	float xNeg = -1;
-	float xPro = 1;
-	float yNeg = -1;
-	float yPro = 1;
-	if(vTextureCoord.x <= 0)
+	float xNeg = -1.0;
+	float xPro = 1.0;
+	float yNeg = -1.0;
+	float yPro = 1.0;
+	if(vTextureCoord.x <= 0.0)
 	{
-		xNeg = 0;
+		xNeg = 0.0;
 	}
 	
 	if(vTextureCoord.x >= vTextureSize.x)
 	{
-		xPro = 0;
+		xPro = 0.0;
 	}
 
-	if(vTextureCoord.y <= 0)
+	if(vTextureCoord.y <= 0.0)
 	{
-		yNeg = 0;
+		yNeg = 0.0;
 	}
 
 	if(vTextureCoord.y >= vTextureSize.y)
 	{
-		yPro = 0;
+		yPro = 0.0;
 	}
 	
 	// get colors:
