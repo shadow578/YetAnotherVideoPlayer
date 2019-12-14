@@ -117,6 +117,7 @@ public class GLAnime4K extends GLFilterBase
         for (int pass = 0; pass < a4kPasses; pass++)
         {
             //get color
+            //Logging.logD("A4K pass " + pass + " - get color");
             if (pass == 0)
             {
                 //first pass, sourceTexture -> buffer
@@ -130,14 +131,17 @@ public class GLAnime4K extends GLFilterBase
 
             //push color
             //buffer -> target
+            //Logging.logD("A4K pass " + pass + " - push color");
             drawUsingProgram(colorPushProgram, buffer.getTexName(), target);
 
             //get gradient
             //target -> buffer
+            //Logging.logD("A4K pass " + pass + " - get gradient");
             drawUsingProgram(gradientGetProgram, target.getTexName(), buffer);
 
             //push gradient
             //buffer -> target
+            //Logging.logD("A4K pass " + pass + " - push gradient");
             drawUsingProgram(gradientPushProgram, buffer.getTexName(), target);
         }
 
@@ -146,25 +150,39 @@ public class GLAnime4K extends GLFilterBase
     }
 
     /**
-     * Sets the following uniforms in every program:
+     * Sets the following uniforms depending on program:
      * -the size of the current texture
      * uniform highp vec2 vTextureSize;
      * <p>
      * -push strenght (0.0-1.0)
      * uniform float fPushStrength;
+     * <p>
+     * uniform          colorget    colorpush   gradget     gradpush
+     * vTextureSize     N           Y           Y           Y
+     * fPushStrength    N           Y           N           Y
+     * <p>
+     * have to do this depending on program since opengl will optimize away unused uniforms
      *
      * @param program the program that is used for drawing
      */
     @Override
     protected void setCustomUniforms(int program)
     {
-        //get handles for vTextureSize and fPushStrenght
-        int hndTextureSize = getGlHandle(program, "vTextureSize");
-        int hndPushStrength = getGlHandle(program, "fPushStrength");
+        //get which uniforms to enable (see table above)
+        boolean enTextureSize = program != colorGetProgram;
+        boolean enPushStrength = program == colorPushProgram || program == gradientPushProgram;
 
-        //set values of uniforms
-        glUniform2f(hndTextureSize, buffer.getWidth(), buffer.getHeight());
-        glUniform1f(hndPushStrength, a4kPushStrength);
+        //set value of vTextureSize
+        if (enTextureSize)
+        {
+            glUniform2f(getGlHandle(program, "vTextureSize"), buffer.getWidth(), buffer.getHeight());
+        }
+
+        //set value of fPushStrenght
+        if (enPushStrength)
+        {
+            glUniform1f(getGlHandle(program, "fPushStrength"), a4kPushStrength);
+        }
     }
 
     /**
@@ -229,6 +247,7 @@ public class GLAnime4K extends GLFilterBase
 
             reader.close();
             resStream.close();
+            Logging.logD(shaderSrc.toString());
             return shaderSrc.toString();
         }
         catch (IOException e)

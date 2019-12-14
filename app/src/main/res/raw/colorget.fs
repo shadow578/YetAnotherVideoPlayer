@@ -7,10 +7,10 @@ varying highp vec2 vTextureCoord;
 uniform lowp sampler2D sTexture;
 
 // the size of the current texture
-uniform highp vec2 vTextureSize;
+//uniform highp vec2 vTextureSize;
 
 // push strenght (0.0-1.0)
-uniform float fPushStrength;
+//uniform float fPushStrength;
 
 float getLuminance(vec4 c)
 {
