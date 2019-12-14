@@ -2,11 +2,14 @@ package de.shadow578.yetanothervideoplayer.ui;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.PreferenceManager;
 
 import de.shadow578.yetanothervideoplayer.R;
+import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
 import de.shadow578.yetanothervideoplayer.util.Logging;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -77,9 +80,25 @@ public class LaunchActivity extends AppCompatActivity
         //dump launch intent
         dumpIntent(launchIntent, "Launch Intent");
 
+        //save the playback url as last played
+        updateLastPlayedUrl(playbackUrl);
+
         //launch the playback activity
         startActivity(launchIntent);
         return true;
+    }
+
+    /**
+     * Save the current url as last played url in shared prefs.
+     * @param url the url to save
+     */
+    private void updateLastPlayedUrl(Uri url)
+    {
+        //get shared preferences
+        SharedPreferences appPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
+        //set value
+        appPreferences.edit().putString(ConfigKeys.KEY_DBG_LAST_PLAYED_URL, url.toString()).apply();
     }
 
     // region Intent Parsing

@@ -106,4 +106,9 @@ public final class ConfigKeys
      * persistent volume value (audio manager volume index)
      */
     public static final String KEY_PERSIST_VOLUME = "PERSIST_VOLUME";
+
+    /**
+     * last played url value (for debugging)
+     */
+    public static final String KEY_DBG_LAST_PLAYED_URL = "DBG_LAST_PLAYED_URL";
 }
