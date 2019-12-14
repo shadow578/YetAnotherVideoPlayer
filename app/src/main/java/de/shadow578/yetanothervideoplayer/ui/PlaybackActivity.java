@@ -173,6 +173,24 @@ public class PlaybackActivity extends AppCompatActivity
     private BandwidthMeter bandwidthMeter;
 
     /**
+     * The Anime4K Quick Settings button
+     */
+    private ControlQuickSettingsButton anime4kQSButton;
+
+    /**
+     * The Anime4K filter instance that may be active currently.
+     * Set to null if filter is inactive
+     */
+    private GLAnime4K anime4KFilter;
+
+    /**
+     * The current anime4k filter mode.
+     * =0  : disabled
+     * >0  : number of anime4k passes
+     */
+    private int currentAnime4kMode = 0;
+
+    /**
      * The current playback position, used for resuming playback
      */
     private long playbackPosition;
@@ -306,6 +324,7 @@ public class PlaybackActivity extends AppCompatActivity
         titleTextView = findViewById(R.id.pb_streamTitle);
         bufferingSpinner = findViewById(R.id.pb_playerBufferingCont);
         quickSettingsDrawer = findViewById(R.id.pb_quick_settings_drawer);
+        anime4kQSButton = findViewById(R.id.qs_btn_a4k_tgl);
 
         //set fast-forward and rewind increments
         int seekIncrement = getPrefInt(ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT);
@@ -708,9 +727,9 @@ public class PlaybackActivity extends AppCompatActivity
         //TODO: testing here
 
         //initialize anime4k shader with raw resource ids
-        GLAnime4K a4k = new GLAnime4K(this, R.raw.common, R.raw.colorget, R.raw.colorpush, R.raw.gradget, R.raw.gradpush);
-        playerView.setGlFilter(a4k);
-        player.addVideoListener(a4k);
+        //GLAnime4K a4k = new GLAnime4K(this, R.raw.common, R.raw.colorget, R.raw.colorpush, R.raw.gradget, R.raw.gradpush);
+        //playerView.setGlFilter(a4k);
+        //player.addVideoListener(a4k);
 
 
         //~END
@@ -937,8 +956,36 @@ public class PlaybackActivity extends AppCompatActivity
                 this.startActivity(new Intent(this, AppSettingsActivity.class));
                 break;
             }
+            case R.id.qs_btn_a4k_tgl:
+            {
+                //cycle between anime4k modes:
+                //increment current mode, reset when above 2 (can be 0, 1, 2)
+                currentAnime4kMode++;
+                if (currentAnime4kMode > 2) currentAnime4kMode = 0;
 
+                //set filter according to mode
+                if (currentAnime4kMode <= 0)
+                {
+                    //disable filter
+                    setAnime4kEnabled(false);
+                }
+                else
+                {
+                    //enable filter, set number of passes
+                    setAnime4kEnabled(true);
+                    if (anime4KFilter != null)
+                    {
+                        Logging.logD("Set Anime4K to " + currentAnime4kMode + " passes.");
+                        anime4KFilter.setPasses(currentAnime4kMode);
+                    }
+                }
+
+                //update qs button
+                updateAnime4kQSButton(currentAnime4kMode);
+                break;
+            }
             //endregion
+
             case R.id.pb_quick_settings:
             {
                 //open quick settings
@@ -1192,6 +1239,78 @@ public class PlaybackActivity extends AppCompatActivity
     //endregion
 
     //region ~~ Utility ~~
+
+    /**
+     * Enable / disable anime4k filter
+     *
+     * @param enable enable anime4k?
+     */
+    private void setAnime4kEnabled(boolean enable)
+    {
+        Logging.logD("Setting Anime4K Filter to enabled=" + enable);
+        if (enable)
+        {
+            if (anime4KFilter == null)
+            {
+                //filter currently not enabled, enable it
+                anime4KFilter = new GLAnime4K(this, R.raw.common, R.raw.colorget, R.raw.colorpush, R.raw.gradget, R.raw.gradpush);
+
+                //set a4k as active filter
+                playerView.setGlFilter(anime4KFilter);
+
+                //set a4k as video listener
+                player.addVideoListener(anime4KFilter);
+                Logging.logD("Enabled Anime4K");
+            }
+        }
+        else
+        {
+            if (anime4KFilter != null)
+            {
+                //filter currently enabled, disable it
+                //remove video listener
+                player.removeVideoListener(anime4KFilter);
+
+                //remove filter (this calls release on the filter)
+                playerView.setGlFilter(null);
+
+                //set variable to null
+                anime4KFilter = null;
+                Logging.logD("Disabled Anime4K");
+            }
+        }
+    }
+
+    /**
+     * Update the Anime4K Quick Settings button to match the given mode (0=disable, 1=1x, 2=2x)
+     *
+     * @param mode the mode to match
+     */
+    private void updateAnime4kQSButton(int mode)
+    {
+        switch (mode)
+        {
+            default:
+            case 0:
+            {
+                anime4kQSButton.setTextStr(getText(R.string.qs_anime4k_off).toString());
+                anime4kQSButton.setIconTint(getColor(R.color.qs_item_icon_default));
+                break;
+            }
+            case 1:
+            {
+                anime4kQSButton.setTextStr(getText(R.string.qs_anime4k_x1).toString());
+                anime4kQSButton.setIconTint(getColor(R.color.qs_item_icon_active));
+                break;
+            }
+            case 2:
+            {
+                anime4kQSButton.setTextStr(getText(R.string.qs_anime4k_x2).toString());
+                anime4kQSButton.setIconTint(getColor(R.color.qs_item_icon_active));
+                break;
+            }
+        }
+    }
 
     /**
      * Closes the quick settings drawer
