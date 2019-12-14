@@ -2,6 +2,10 @@
 // Stage 2/4: Color PUSH
 // pushes color based on luminance in alpha channel.
 
+// DEMO_MODE skips processing the RIGHT half of the screen completely
+#define DEMO_MODE true
+
+
 precision mediump float;
 
 // coordinates on the current texture (range 0.0 - 1.0!)
@@ -55,6 +59,17 @@ vec4 sampleTexture(vec2 texCoord, vec2 pxOffset)
 
 void main()
 {
+	// DEMO mode: only apply for half of the screen
+	if(DEMO_MODE)
+	{
+		if(vTextureCoord.x > 0.5) 
+		{
+			//skip processing right side of screen
+			gl_FragColor = texture2D(sTexture, vTextureCoord);
+			return;
+		}
+	}
+
 	// Kernel defination:
 	// [tl][tc][tr]
 	// [ml][mc][mr]

@@ -2,6 +2,10 @@
 // Stage 1/4: Color GET (also known as Compute Color and Compute Luminance)
 // computes luminance and stores in alpha channel
 
+// DEMO_MODE skips processing the RIGHT half of the screen completely
+#define DEMO_MODE true
+
+
 precision mediump float;
 
 // coordinates on the current texture (range 0.0 - 1.0!)
@@ -24,9 +28,20 @@ float getLuminance(vec4 c)
 
 void main()
 {
+	// DEMO mode: only apply for half of the screen
+	if(DEMO_MODE)
+	{
+		if(vTextureCoord.x > 0.5) 
+		{
+			//skip processing right side of screen
+			gl_FragColor = texture2D(sTexture, vTextureCoord);
+			return;
+		}
+	}
+
     // get color on texture at current position
     vec4 c = texture2D(sTexture, vTextureCoord);
-
+	
     // calculate luminance
     float pxLuminance = getLuminance(c);
 
