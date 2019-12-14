@@ -3,7 +3,7 @@
 // pushes color based on luminance in alpha channel.
 
 // DEMO_MODE skips processing the RIGHT half of the screen completely
-#define DEMO_MODE true
+#define DEMO_MODE false
 
 
 precision mediump float;
@@ -76,46 +76,20 @@ void main()
 	// [bl][bc][br]
 
 	// kernel setup:	
-	// set translation constants
-	highp float xNeg = -1.0;
-	highp float xPro = 1.0;
-	highp float yNeg = -1.0;
-	highp float yPro = 1.0;
-	if(vTextureCoord.x == 0.0)
-	{
-		xNeg = 0.0;
-	}
-	
-	if(vTextureCoord.x == 1.0)
-	{
-		xPro = 0.0;
-	}
-	
-	if(vTextureCoord.y == 0.0)
-	{
-		yNeg = 0.0;
-	}
-	
-	if(vTextureCoord.y == 1.0)
-	{
-		yPro = 0.0;
-	}
-	
-	// get colors:
 	// top
-	vec4 tl = sampleTexture(vTextureCoord, vec2(xNeg, yNeg));
-	vec4 tc = sampleTexture(vTextureCoord, vec2(0.0,  yNeg));
-	vec4 tr = sampleTexture(vTextureCoord, vec2(xPro, yNeg));
+	vec4 tl = sampleTexture(vTextureCoord, vec2(-1.0, -1.0));
+	vec4 tc = sampleTexture(vTextureCoord, vec2( 0.0, -1.0));
+	vec4 tr = sampleTexture(vTextureCoord, vec2( 1.0, -1.0));
 
 	// center
-	vec4 ml = sampleTexture(vTextureCoord, vec2(xNeg, 0.0));
-	vec4 mc = sampleTexture(vTextureCoord, vec2(0.0,  0.0));
-	vec4 mr = sampleTexture(vTextureCoord, vec2(xPro, 0.0));
+	vec4 ml = sampleTexture(vTextureCoord, vec2(-1.0, 0.0));
+	vec4 mc = sampleTexture(vTextureCoord, vec2( 0.0, 0.0));
+	vec4 mr = sampleTexture(vTextureCoord, vec2( 1.0, 0.0));
 
 	// bottom
-	vec4 bl = sampleTexture(vTextureCoord, vec2(xNeg, yPro));
-	vec4 bc = sampleTexture(vTextureCoord, vec2(0.0,  yPro));
-	vec4 br = sampleTexture(vTextureCoord, vec2(xPro, yPro));
+	vec4 bl = sampleTexture(vTextureCoord, vec2(-1.0, 1.0));
+	vec4 bc = sampleTexture(vTextureCoord, vec2( 0.0, 1.0));
+	vec4 br = sampleTexture(vTextureCoord, vec2( 1.0, 1.0));
 	
 	// default lightest color to center
 	vec4 lightest = mc;

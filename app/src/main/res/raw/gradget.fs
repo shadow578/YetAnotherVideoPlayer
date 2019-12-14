@@ -3,7 +3,7 @@
 // computes gradient (edges) and stores into alpha channel
 
 // DEMO_MODE skips processing the RIGHT half of the screen completely
-#define DEMO_MODE true
+#define DEMO_MODE false
 
 
 precision mediump float;
