@@ -708,7 +708,9 @@ public class PlaybackActivity extends AppCompatActivity
         //TODO: testing here
 
         //initialize anime4k shader with raw resource ids
-        playerView.setGlFilter(new GLAnime4K(this, R.raw.common, R.raw.colorget, R.raw.colorpush, R.raw.gradget, R.raw.gradpush));
+        GLAnime4K a4k = new GLAnime4K(this, R.raw.common, R.raw.colorget, R.raw.colorpush, R.raw.gradget, R.raw.gradpush);
+        playerView.setGlFilter(a4k);
+        player.addVideoListener(a4k);
 
 
         //~END
