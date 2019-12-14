@@ -653,7 +653,8 @@ public class PlaybackActivity extends AppCompatActivity
 
     //region ~~ Exoplayer setup and lifecycle ~~
 
-    /**m
+    /**
+     * m
      * Initialize the media for playback
      *
      * @param playbackUri the Uri of the file / stream to play back
@@ -707,7 +708,8 @@ public class PlaybackActivity extends AppCompatActivity
         //TODO: testing here
 
         //initialize anime4k shader with raw resource ids
-        playerView.setGlFilter(new GLAnime4K(this, R.raw.colorget, R.raw.colorpush, R.raw.gradget, R.raw.gradpush));
+        playerView.setGlFilter(new GLAnime4K(this, R.raw.common, R.raw.colorget, R.raw.colorpush, R.raw.gradget, R.raw.gradpush));
+
 
         //~END
 

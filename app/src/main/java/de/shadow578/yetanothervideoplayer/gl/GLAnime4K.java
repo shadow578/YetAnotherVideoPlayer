@@ -21,7 +21,7 @@ import static android.opengl.GLES20.*;
 public class GLAnime4K extends GLFilterBase
 {
     //shader sources
-    private final String srcColorGet, srcColorPush, srcGradientGet, srcGradientPush;
+    private final String srcCommonVertex, srcColorGet, srcColorPush, srcGradientGet, srcGradientPush;
 
     //all shaders share the same vertex shader (only doing stuff in fragment shaders)
     private int commonVertexShader;
@@ -47,8 +47,9 @@ public class GLAnime4K extends GLFilterBase
     //the strength of anime4k push operations
     private float a4kPushStrength = 0.33f;
 
-    public GLAnime4K(Context ctx, int resColorGet, int resColorPush, int resGradGet, int resGradPush)
+    public GLAnime4K(Context ctx, int resComVertex, int resColorGet, int resColorPush, int resGradGet, int resGradPush)
     {
+        srcCommonVertex = readShaderRes(ctx, resComVertex);
         srcColorGet = readShaderRes(ctx, resColorGet);
         srcColorPush = readShaderRes(ctx, resColorPush);
         srcGradientGet = readShaderRes(ctx, resGradGet);
@@ -63,7 +64,7 @@ public class GLAnime4K extends GLFilterBase
     {
         //setup shaders:
         //common vertex shader (shared between all programs)
-        commonVertexShader = EglUtil.loadShader(DEFAULT_VERTEX_SHADER, GL_VERTEX_SHADER);
+        commonVertexShader = EglUtil.loadShader(srcCommonVertex, GL_VERTEX_SHADER);
 
         //color get
         colorGetFragmentShader = EglUtil.loadShader(srcColorGet, GL_FRAGMENT_SHADER);
@@ -117,7 +118,6 @@ public class GLAnime4K extends GLFilterBase
         for (int pass = 0; pass < a4kPasses; pass++)
         {
             //get color
-            //Logging.logD("A4K pass " + pass + " - get color");
             if (pass == 0)
             {
                 //first pass, sourceTexture -> buffer
@@ -131,17 +131,14 @@ public class GLAnime4K extends GLFilterBase
 
             //push color
             //buffer -> target
-            //Logging.logD("A4K pass " + pass + " - push color");
             drawUsingProgram(colorPushProgram, buffer.getTexName(), target);
 
             //get gradient
             //target -> buffer
-            //Logging.logD("A4K pass " + pass + " - get gradient");
             drawUsingProgram(gradientGetProgram, target.getTexName(), buffer);
 
             //push gradient
             //buffer -> target
-            //Logging.logD("A4K pass " + pass + " - push gradient");
             drawUsingProgram(gradientPushProgram, buffer.getTexName(), target);
         }
 
@@ -153,14 +150,14 @@ public class GLAnime4K extends GLFilterBase
      * Sets the following uniforms depending on program:
      * -the size of the current texture
      * uniform highp vec2 vTextureSize;
-     * <p>
+     *
      * -push strenght (0.0-1.0)
      * uniform float fPushStrength;
-     * <p>
+     *
      * uniform          colorget    colorpush   gradget     gradpush
      * vTextureSize     N           Y           Y           Y
      * fPushStrength    N           Y           N           Y
-     * <p>
+     *
      * have to do this depending on program since opengl will optimize away unused uniforms
      *
      * @param program the program that is used for drawing
@@ -247,7 +244,7 @@ public class GLAnime4K extends GLFilterBase
 
             reader.close();
             resStream.close();
-            Logging.logD(shaderSrc.toString());
+            //Logging.logD(shaderSrc.toString());
             return shaderSrc.toString();
         }
         catch (IOException e)

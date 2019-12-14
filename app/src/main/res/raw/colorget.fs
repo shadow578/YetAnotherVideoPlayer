@@ -1,6 +1,10 @@
+// Anime4K GLSL ES fragment shader
+// Stage 1/4: Color GET (also known as Compute Color and Compute Luminance)
+// computes luminance and stores in alpha channel
+
 precision mediump float;
 
-// coordinates on the current texture
+// coordinates on the current texture (range 0.0 - 1.0!)
 varying highp vec2 vTextureCoord;
 
 // the current texture
@@ -14,16 +18,8 @@ uniform lowp sampler2D sTexture;
 
 float getLuminance(vec4 c)
 {
-    float mx = c.r;
-    float mn = c.r;
-
-    if(c.g > mx) mx = c.g;
-    if(c.b > mx) mx = c.b;
-
-    if(c.g < mn) mn = c.g;
-    if(c.b < mn) mn = c.b;
-
-    return (mx + mn) / 2.0;
+	const vec3 W = vec3(0.2125, 0.7154, 0.0721);
+    return dot(c.rgb, W);
 }
 
 void main()

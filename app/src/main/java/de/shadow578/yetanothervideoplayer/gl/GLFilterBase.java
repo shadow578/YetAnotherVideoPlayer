@@ -34,7 +34,6 @@ public class GLFilterBase extends GlFilter
                     "void main() {\n" +
                     "vec4 c = texture2D(sTexture, vTextureCoord);\n" +
                     "gl_FragColor = c.rgba; \n" +
-                    //"gl_FragColor = vec4(c.r, c.g, 0, c.a); \n" +
                     "}\n";
     // endregion
 

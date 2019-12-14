@@ -1,6 +1,10 @@
+// Anime4K GLSL ES fragment shader
+// Stage 4/4: Gradient PUSH
+// pushes gradient based on gradient information in alpha channel.
+
 precision mediump float;
 
-// coordinates on the current texture
+// coordinates on the current texture (range 0.0 - 1.0!)
 varying highp vec2 vTextureCoord;
 
 // the current texture
@@ -22,19 +26,24 @@ float min3(float a, float b, float c)
 	return min(min(a, b), c);
 }
 
-float average3(float a, float b, float c)
-{
-	return (a + b + c) / 3.0;
-}
-
 vec4 getAverage(vec4 cc, vec4 lightest, vec4 a, vec4 b, vec4 c)
 {
-	float aR = (cc.r * (1.0 - fPushStrength) + (average3(a.r, b.r, c.r) * fPushStrength)) / 1.0;
-	float aG = (cc.g * (1.0 - fPushStrength) + (average3(a.g, b.g, c.g) * fPushStrength)) / 1.0;
-	float aB = (cc.b * (1.0 - fPushStrength) + (average3(a.b, b.b, c.b) * fPushStrength)) / 1.0;
-	float aA = (cc.a * (1.0 - fPushStrength) + (average3(a.a, b.a, c.a) * fPushStrength)) / 1.0;
+	//use vertex calculation instead of manual per- component calculation (C# does not have something like this)
+	return (cc * (1.0 - fPushStrength)) + ((a + b + c) / 3.0) * fPushStrength;
+}
+
+vec2 transCoord(vec2 texCoord, vec2 pxAmount)
+{
+	//normalize pxAmount (range 0 - width OR 0 - height to range 0-1)
+	vec2 texAmount = vec2(pxAmount.x / vTextureSize.x, pxAmount.y / vTextureSize.y);
 	
-	return vec4(aR, aG, aB, aA);
+	//translate given texture coordinates
+	return texCoord + texAmount;
+}
+
+vec4 sampleTexture(vec2 texCoord, vec2 pxOffset)
+{
+	return texture2D(sTexture, transCoord(texCoord, pxOffset));
 }
 
 void main()
@@ -46,45 +55,45 @@ void main()
 
 	// kernel setup:
 	// set translation constants
-	float xNeg = -1.0;
-	float xPro = 1.0;
-	float yNeg = -1.0;
-	float yPro = 1.0;
-	if(vTextureCoord.x <= 0.0)
+	highp float xNeg = -1.0;
+	highp float xPro = 1.0;
+	highp float yNeg = -1.0;
+	highp float yPro = 1.0;
+	if(vTextureCoord.x == 0.0)
 	{
 		xNeg = 0.0;
 	}
 	
-	if(vTextureCoord.x >= vTextureSize.x)
+	if(vTextureCoord.x == 1.0)
 	{
 		xPro = 0.0;
 	}
-
-	if(vTextureCoord.y <= 0.0)
+	
+	if(vTextureCoord.y == 0.0)
 	{
 		yNeg = 0.0;
 	}
-
-	if(vTextureCoord.y >= vTextureSize.y)
+	
+	if(vTextureCoord.y == 1.0)
 	{
 		yPro = 0.0;
 	}
 	
 	// get colors:
 	// top
-	vec4 tl = texture2D(sTexture, vTextureCoord + vec2(xNeg, yNeg));
-	vec4 tc = texture2D(sTexture, vTextureCoord + vec2(0.0,  yNeg));
-	vec4 tr = texture2D(sTexture, vTextureCoord + vec2(xPro, yNeg));
+	vec4 tl = sampleTexture(vTextureCoord, vec2(xNeg, yNeg));
+	vec4 tc = sampleTexture(vTextureCoord, vec2(0.0,  yNeg));
+	vec4 tr = sampleTexture(vTextureCoord, vec2(xPro, yNeg));
 
 	// center
-	vec4 ml = texture2D(sTexture, vTextureCoord + vec2(xNeg, 0.0));
-	vec4 mc = texture2D(sTexture, vTextureCoord);
-	vec4 mr = texture2D(sTexture, vTextureCoord + vec2(xPro, 0.0));
+	vec4 ml = sampleTexture(vTextureCoord, vec2(xNeg, 0.0));
+	vec4 mc = sampleTexture(vTextureCoord, vec2(0.0,  0.0));
+	vec4 mr = sampleTexture(vTextureCoord, vec2(xPro, 0.0));
 
 	// bottom
-	vec4 bl = texture2D(sTexture, vTextureCoord + vec2(xNeg, yPro));
-	vec4 bc = texture2D(sTexture, vTextureCoord + vec2(0.0,  yPro));
-	vec4 br = texture2D(sTexture, vTextureCoord + vec2(xPro, yPro));
+	vec4 bl = sampleTexture(vTextureCoord, vec2(xNeg, yPro));
+	vec4 bc = sampleTexture(vTextureCoord, vec2(0.0,  yPro));
+	vec4 br = sampleTexture(vTextureCoord, vec2(xPro, yPro));
 
 	// default lightest color to center
 	vec4 lightest = mc;
@@ -166,6 +175,6 @@ void main()
 	}
 	
     // set current fragment color
-	// also reset alpha channel since it is no longer needed
-	gl_FragColor = vec4(lightest.rgb, 1.0);
+	// resetting alpha not needed since it is ignored anyway.
+	gl_FragColor = lightest;
 }
