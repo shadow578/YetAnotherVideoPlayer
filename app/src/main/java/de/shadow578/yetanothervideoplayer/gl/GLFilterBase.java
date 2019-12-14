@@ -140,7 +140,6 @@ public class GLFilterBase extends GlFilter
         //get attribute handles
         int hndAPosition = getGlHandle(program, "aPosition");
         int hndATextureCoord = getGlHandle(program, "aTextureCoord");
-        int hndSTexture = getGlHandle(program, "sTexture");
 
         //setup gl vertex attributes
         glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
@@ -154,7 +153,7 @@ public class GLFilterBase extends GlFilter
         glBindTexture(GL_TEXTURE_2D, texToDraw);
 
         //set uniform values (texture is default, additionally set custom uniforms
-        glUniform1i(hndSTexture, 0);
+        glUniform1i(getGlHandle(program, "sTexture"), 0);
         setCustomUniforms(program);
 
         //draw a textured quad using the bound texture
@@ -190,7 +189,7 @@ public class GLFilterBase extends GlFilter
     protected int getGlHandle(final int program, final String name)
     {
         //try to get the value from the handle cache
-        final Integer cachedHandle = handleCache.get(name);
+        final Integer cachedHandle = handleCache.get(program + ":" + name);
         if (cachedHandle != null)
         {
             return cachedHandle;
@@ -211,7 +210,7 @@ public class GLFilterBase extends GlFilter
         }
 
         //add handle to cache for faster access next time
-        handleCache.put(name, handle);
+        handleCache.put(program + ":" + name, handle);
         return handle;
     }
 
