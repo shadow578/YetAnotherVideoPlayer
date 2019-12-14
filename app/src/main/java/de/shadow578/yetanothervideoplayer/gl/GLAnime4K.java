@@ -49,7 +49,7 @@ public class GLAnime4K extends GLFilterBase implements VideoListener
     private int renderWidth, renderHeight, videoWidth, videoHeight;
 
     //how many passes are executed (more = slower)
-    private int a4kPasses = 1;
+    private int a4kPasses = 2;
 
     //the strength of anime4k push operations
     private float a4kColorPushStrength = 0.33f;
