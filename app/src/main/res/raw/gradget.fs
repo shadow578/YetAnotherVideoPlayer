@@ -91,26 +91,46 @@ void main()
 	vec4 bl = sampleTexture(vTextureCoord, vec2(-1.0, 1.0));
 	vec4 bc = sampleTexture(vTextureCoord, vec2( 0.0, 1.0));
 	vec4 br = sampleTexture(vTextureCoord, vec2( 1.0, 1.0));
+	
+	
+	// Using function from Anime4K 0.9:
+	//Horizontal Gradient
+	//[-1  0  1]
+	//[-2  0  2]
+	//[-1  0  1]
+	float xGrad = (-tl.a + tr.a - ml.a - ml.a + mr.a + mr.a - bl.a + br.a);
+	
+	//Vertical Gradient
+	//[-1 -2 -1]
+	//[ 0  0  0]
+	//[ 1  2  1]
+	float yGrad = (-tl.a - tc.a - tc.a - tr.a + bl.a + bc.a + bc.a + br.a);
+	
+	//Computes the luminance's gradient and saves it in the unused alpha channel
+	float lum = 1.0 - clamp(sqrt(xGrad * xGrad + yGrad * yGrad), 0.0, 1.0);
+	
+	gl_FragColor = vec4(mc.rgb, lum);
 		
+	// Using Sobel function:
 	// create matrix with alpha values
-	mat3 sobAlpha = mat3(tl.a, tc.a, tr.a,
-						 ml.a, mc.a, mr.a,
-						 bl.a, bc.a, br.a);
-	
-	// run sobel operation on alpha channel
-	float dX = sobel(sobelX, sobAlpha);
-	float dY = sobel(sobelY, sobAlpha);
-	
-	// calculate derivata in highp
-	highp float derivata = sqrt(pow(dX, 2.0) + pow(dY, 2.0));
-	
-	// set pixel based on derivata
-	if(derivata > 1.0)
-	{
-		gl_FragColor = vec4(mc.rgb, 0.0);
-	}
-	else
-	{
-		gl_FragColor = vec4(mc.rgb, 1.0 - derivata);
-	}
+	//mat3 sobAlpha = mat3(tl.a, tc.a, tr.a,
+	//					 ml.a, mc.a, mr.a,
+	//					 bl.a, bc.a, br.a);
+	//
+	//// run sobel operation on alpha channel
+	//float dX = sobel(sobelX, sobAlpha);
+	//float dY = sobel(sobelY, sobAlpha);
+	//
+	//// calculate derivata in highp
+	//highp float derivata = sqrt(pow(dX, 2.0) + pow(dY, 2.0));
+	//
+	//// set pixel based on derivata
+	//if(derivata > 1.0)
+	//{
+	//	gl_FragColor = vec4(mc.rgb, 0.0);
+	//}
+	//else
+	//{
+	//	gl_FragColor = vec4(mc.rgb, 1.0 - derivata);
+	//}
 }
