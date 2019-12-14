@@ -10,7 +10,7 @@ uniform lowp sampler2D sTexture;
 uniform highp vec2 vTextureSize;
 
 // push strenght (0.0-1.0)
-uniform float strength;
+uniform float fPushStrength;
 
 float getLuminance(vec4 c)
 {

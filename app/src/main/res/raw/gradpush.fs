@@ -10,7 +10,7 @@ uniform lowp sampler2D sTexture;
 uniform highp vec2 vTextureSize;
 
 // push strenght (0.0-1.0)
-uniform float strength;
+uniform float fPushStrength;
 
 float max3(float a, float b, float c)
 {
@@ -29,10 +29,10 @@ float average3(float a, float b, float c)
 
 vec4 getAverage(vec4 cc, vec4 lightest, vec4 a, vec4 b, vec4 c)
 {
-	float aR = (cc.r * (1.0 - strength) + (average3(a.r, b.r, c.r) * strength)) / 1.0;
-	float aG = (cc.g * (1.0 - strength) + (average3(a.g, b.g, c.g) * strength)) / 1.0;
-	float aB = (cc.b * (1.0 - strength) + (average3(a.b, b.b, c.b) * strength)) / 1.0;
-	float aA = (cc.a * (1.0 - strength) + (average3(a.a, b.a, c.a) * strength)) / 1.0;
+	float aR = (cc.r * (1.0 - fPushStrength) + (average3(a.r, b.r, c.r) * fPushStrength)) / 1.0;
+	float aG = (cc.g * (1.0 - fPushStrength) + (average3(a.g, b.g, c.g) * fPushStrength)) / 1.0;
+	float aB = (cc.b * (1.0 - fPushStrength) + (average3(a.b, b.b, c.b) * fPushStrength)) / 1.0;
+	float aA = (cc.a * (1.0 - fPushStrength) + (average3(a.a, b.a, c.a) * fPushStrength)) / 1.0;
 	
 	return vec4(aR, aG, aB, aA);
 }

@@ -44,6 +44,9 @@ public class GLAnime4K extends GLFilterBase
     //how many passes are executed (more = slower)
     private int a4kPasses = 1;
 
+    //the strength of anime4k push operations
+    private float a4kPushStrength = 0.33f;
+
     public GLAnime4K(Context ctx, int resColorGet, int resColorPush, int resGradGet, int resGradPush)
     {
         srcColorGet = readShaderRes(ctx, resColorGet);
@@ -102,6 +105,8 @@ public class GLAnime4K extends GLFilterBase
     }
 
     /**
+     * Draw frame using Anime4k shaders
+     *
      * @param sourceTexture the texture to draw
      * @param target        the frame buffer to draw to. is already active framebuffer when this function is called
      */
@@ -138,6 +143,28 @@ public class GLAnime4K extends GLFilterBase
 
         //count fps
         updateAnLogFps();
+    }
+
+    /**
+     * Sets the following uniforms in every program:
+     * -the size of the current texture
+     * uniform highp vec2 vTextureSize;
+     * <p>
+     * -push strenght (0.0-1.0)
+     * uniform float fPushStrength;
+     *
+     * @param program the program that is used for drawing
+     */
+    @Override
+    protected void setCustomUniforms(int program)
+    {
+        //get handles for vTextureSize and fPushStrenght
+        int hndTextureSize = getGlHandle(program, "vTextureSize");
+        int hndPushStrength = getGlHandle(program, "fPushStrength");
+
+        //set values of uniforms
+        glUniform2f(hndTextureSize, buffer.getWidth(), buffer.getHeight());
+        glUniform1f(hndPushStrength, a4kPushStrength);
     }
 
     /**
@@ -179,6 +206,13 @@ public class GLAnime4K extends GLFilterBase
         Logging.logD("Released shader.");
     }
 
+    /**
+     * Read a fragment shader source from res/raw
+     *
+     * @param ctx the context to read in
+     * @param res the resource id in res/raw
+     * @return the loaded shader source. When fails, defaults to DEFAULT_FRAGMENT_SHADER
+     */
     private String readShaderRes(Context ctx, int res)
     {
         try
@@ -205,24 +239,46 @@ public class GLAnime4K extends GLFilterBase
     }
 
     /**
-     * Set A4K passes count
+     * Set Anime4K passes count
      *
      * @param passes a4kPasses
      */
     @SuppressWarnings("unused")
-    public void setA4kPasses(int passes)
+    public void setPasses(int passes)
     {
         a4kPasses = passes;
     }
 
     /**
-     * Get A4K passes count
+     * Get Anime4K passes count
      *
      * @return a4kPasses
      */
     @SuppressWarnings("unused")
-    public int getA4kPasses()
+    public int getPasses()
     {
         return a4kPasses;
+    }
+
+    /**
+     * Set Anime4K push strength
+     *
+     * @param pushStrength a4kPushStrenght
+     */
+    @SuppressWarnings("unused")
+    public void setPushStrength(float pushStrength)
+    {
+        a4kPushStrength = pushStrength;
+    }
+
+    /**
+     * Get Anime4K push strenght
+     *
+     * @return a4kPushStrenght
+     */
+    @SuppressWarnings("unused")
+    public float getPushStrength()
+    {
+        return a4kPushStrength;
     }
 }

@@ -152,7 +152,10 @@ public class GLFilterBase extends GlFilter
         //bind the texture to draw
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texToDraw);
+
+        //set uniform values (texture is default, additionally set custom uniforms
         glUniform1i(hndSTexture, 0);
+        setCustomUniforms(program);
 
         //draw a textured quad using the bound texture
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -162,6 +165,18 @@ public class GLFilterBase extends GlFilter
         glDisableVertexAttribArray(hndATextureCoord);
         glBindTexture(GL_TEXTURE_2D, 0);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+
+    /**
+     * Set custom uniform values for the current program.
+     * Called in drawUsingProgram right before screen is drawn to buffer, but after sTexture uniform is set.
+     * Use getGlHandle to get the handle to the uniform you want to set, then set it using glUniform... function.
+     *
+     * @param program the program that is used for drawing
+     */
+    protected void setCustomUniforms(int program)
+    {
+
     }
 
     /**

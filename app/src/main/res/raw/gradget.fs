@@ -10,7 +10,7 @@ uniform lowp sampler2D sTexture;
 uniform highp vec2 vTextureSize;
 
 // push strenght (0.0-1.0)
-uniform float strength;
+uniform float fPushStrength;
 
 // sobel matrices
 const mat3 sobelX = mat3(-1,  0,  1, 
