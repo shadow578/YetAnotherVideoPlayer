@@ -60,12 +60,11 @@ I do not maintain it for the sake of being better than other apps. It is meant a
 That said, here are some reasons to pick YAVP over other apps:
 
 * **Free with no Ads**
-	* *looking at you, MX Player*
+	* *looking at you, MX Player 😞*
 * **YAVP is built using the most recent SDK build tools** for best compatibility with both phones and tablets
 * **It requires no app permissions**, so it can't spy on you
 	* Storage Permissions are needed to play back local Videos, but granting those permissions is not needed if you just want to stream
 * **YAVP is a native Android App written in Java using Android Studio**
-	* so no Xamarin/Visual Studio🎉
 
 
 ## Credits
