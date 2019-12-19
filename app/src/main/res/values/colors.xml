@@ -14,6 +14,9 @@
     <color name="default_text">#FFBEBEBE</color>
 
     <!-- specific colors -->
+    <!-- ~~ acitvity_launch ~~ -->
+    <color name="launch_progress_bar">@color/ic_launcher_background</color>
+    
     <!-- ~~ activity_playback ~~ -->
     <!-- background color of info text (Volume: x%) label -->
     <color name="info_text_background">#80000000</color>
