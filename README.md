@@ -70,3 +70,7 @@ That said, here are some reasons to pick YAVP over other apps:
 * [google/Material-Design-Icons](https://github.com/google/material-design-icons)
 * [pnikosis/materialish-progress](https://github.com/pnikosis/materialish-progress)
 * [svenwiegand/time-duration-picker](https://github.com/svenwiegand/time-duration-picker)
+* [MasayukiSuda/ExoPlayerFilter](https://github.com/MasayukiSuda/ExoPlayerFilter)
+
+
+This Application uses a custom implementation of [Anime4K v0.9](https://github.com/bloc97/Anime4K/)
