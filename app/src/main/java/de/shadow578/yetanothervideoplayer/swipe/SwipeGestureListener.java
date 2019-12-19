@@ -5,6 +5,7 @@ import android.graphics.PointF;
 import android.graphics.RectF;
 import android.util.SizeF;
 import android.util.TypedValue;
+import android.view.InputDevice;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -89,9 +90,14 @@ public class SwipeGestureListener implements View.OnTouchListener
         //get current finger position in dp
         PointF currentPos = new PointF(pxToDp(e.getX(), ctx), pxToDp(e.getY(), ctx));
 
+        //get input device (=touch screen) this event was invoked on
+        //this device can be null (tho rare), so check for that
+        InputDevice eventDevice = e.getDevice();
+        if (eventDevice == null) return false;
+
         //get screen size in dp
-        float screenWidthRaw = e.getDevice().getMotionRange(MotionEvent.AXIS_X).getRange();
-        float screenHeightRaw = e.getDevice().getMotionRange(MotionEvent.AXIS_Y).getRange();
+        float screenWidthRaw = eventDevice.getMotionRange(MotionEvent.AXIS_X).getRange();
+        float screenHeightRaw = eventDevice.getMotionRange(MotionEvent.AXIS_Y).getRange();
         SizeF screenSize = new SizeF(pxToDp(screenWidthRaw, ctx), pxToDp(screenHeightRaw, ctx));
 
         //check if finger is in dead zone around the edges
