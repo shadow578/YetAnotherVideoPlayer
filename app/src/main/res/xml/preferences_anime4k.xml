@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        android:title="@string/settings_a4k_title"/>
+
+    <SwitchPreference
+        android:defaultValue="@bool/DEF_ANIME4K_FPS_LIMIT_EN"
+        android:key="ANIME4K_FPS_LIMIT_EN"
+        android:summaryOff="@string/settings_a4k_enable_fps_limit_on"
+        android:summaryOn="@string/settings_a4k_enable_fps_limit_off"
+        android:title="@string/settings_a4k_enable_fps_limit_title" />
+
+    <EditTextPreference
+        android:defaultValue="@integer/DEF_ANIME4K_FPS_LIMIT"
+        android:key="ANIME4K_FPS_LIMIT"
+        android:numeric="integer"
+        app:dependency="ANIME4K_FPS_LIMIT_EN"
+        android:summary="@string/settings_a4k_fps_limit_summary"
+        android:title="@string/settings_a4k_fps_limit_title" />
+
+    <PreferenceScreen
+        android:summary="@string/settings_a4k_why_limit_fps_summary"
+        android:title="@string/settings_a4k_why_limit_fps_title">
+    </PreferenceScreen>
+</PreferenceScreen>

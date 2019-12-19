@@ -1260,7 +1260,16 @@ public class PlaybackActivity extends AppCompatActivity
 
                 //set a4k as video listener
                 player.addVideoListener(anime4KFilter);
-                Logging.logD("Enabled Anime4K");
+
+                //set fps limiting values
+                int fpsLimit = -1;
+                if (getPrefBool(ConfigKeys.KEY_ANIME4K_FPS_LIMIT_ENABLE, R.bool.DEF_ANIME4K_FPS_LIMIT_EN))
+                {
+                    //enable the fps limit
+                    fpsLimit = getPrefInt(ConfigKeys.KEY_ANIME4K_FPS_LIMIT, R.integer.DEF_ANIME4K_FPS_LIMIT);
+                }
+                anime4KFilter.setFpsLimit(fpsLimit);
+                Logging.logD("Enabled Anime4K with fps limit %d", fpsLimit);
             }
         }
         else

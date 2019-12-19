@@ -162,7 +162,8 @@ public class GLAnime4K extends GLFilterBase implements VideoListener
         }
 
         //count + limit fps
-        updateFpsLogic(logFps, fpsLimit);
+        //updateFpsLogic(logFps, fpsLimit);
+        updateFpsLogic(true, fpsLimit);
     }
 
     /**

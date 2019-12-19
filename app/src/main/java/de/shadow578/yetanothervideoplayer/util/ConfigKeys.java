@@ -108,6 +108,16 @@ public final class ConfigKeys
     public static final String KEY_PERSIST_VOLUME = "PERSIST_VOLUME";
 
     /**
+     * anime4k fps limiter enable (true/false)
+     */
+    public static final String KEY_ANIME4K_FPS_LIMIT_ENABLE = "ANIME4K_FPS_LIMIT_EN";
+
+    /**
+     * fps limit value for anime4k filter
+     */
+    public static final String KEY_ANIME4K_FPS_LIMIT = "ANIME4K_FPS_LIMIT";
+
+    /**
      * last played url value (for debugging)
      */
     public static final String KEY_DBG_LAST_PLAYED_URL = "DBG_LAST_PLAYED_URL";

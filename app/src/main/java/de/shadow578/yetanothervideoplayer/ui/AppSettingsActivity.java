@@ -146,6 +146,17 @@ public class AppSettingsActivity extends AppCompatActivity implements
     }
 
     @SuppressWarnings("WeakerAccess")
+    public static class PreferencesAnime4KConfigFragment extends PreferenceFragmentCompat
+    {
+
+        @Override
+        public void onCreatePreferences(Bundle savedInstanceState, String rootKey)
+        {
+            setPreferencesFromResource(R.xml.preferences_anime4k, rootKey);
+        }
+    }
+
+    @SuppressWarnings("WeakerAccess")
     public static class PreferencesAboutFragment extends PreferenceFragmentCompat
     {
 

@@ -110,7 +110,17 @@
     <string name="settings_player_auto_pip_on">Enter Picture- in- Picture when minimizing App</string>
     <string name="settings_player_seek_increment_title">Seek Increment</string>
     <string name="settings_player_seek_increment_summary">By how many milliseconds the Seek buttons adjust the playback position</string>
-
+    
+    <!-- Settings: Anime4K -->
+    <string name="settings_a4k_title">Anime4K Settings</string>
+    <string name="settings_a4k_enable_fps_limit_title">Anime4K FPS Limit</string>
+    <string name="settings_a4k_enable_fps_limit_on">Playback FPS are not limited when Anime4K is active</string>
+    <string name="settings_a4k_enable_fps_limit_off">Playback FPS will be limited when Anime4K is active</string>
+    <string name="settings_a4k_fps_limit_title">Anime4K FPS Limit</string>
+    <string name="settings_a4k_fps_limit_summary">At how many FPS videos will render when Anime4K is active</string>
+    <string name="settings_a4k_why_limit_fps_title">Why limit FPS?</string>
+    <string name="settings_a4k_why_limit_fps_summary">Although Anime4K requires comparatively little processing power, it can easily overload a smartphone GPU, especially at higher resolutions. \nLimiting the FPS reduces the load on the GPU and helps to conserve the battery (at least somewhat).</string>
+    
     <!-- Settings: about -->
     <string name="settings_about_title">About YAVP</string>
     <string name="settings_about_yavp">YAVP by shadow578</string>
