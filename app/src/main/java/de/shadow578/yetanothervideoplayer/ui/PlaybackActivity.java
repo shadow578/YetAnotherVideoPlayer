@@ -36,6 +36,7 @@ import android.graphics.RectF;
 import android.graphics.drawable.Icon;
 import android.media.AudioManager;
 import android.net.Uri;
+import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -79,6 +80,15 @@ public class PlaybackActivity extends AppCompatActivity
      */
     private final int PERMISSION_REQUEST_READ_EXT_STORAGE = 0;
 
+    /**
+     * Interval in which the battery level is checked
+     */
+    private final int BATTERY_WARN_CHECK_INTERVAL_MS = 10000;
+
+    /**
+     * Below how many percent the battery has to be for a warning to be shown.
+     */
+    private final int BATTERY_WARN_PERCENT = 15;
     //endregion
 
     //region ~~ Variables ~~
@@ -173,6 +183,11 @@ public class PlaybackActivity extends AppCompatActivity
     private BandwidthMeter bandwidthMeter;
 
     /**
+     * Battery manager system service. used to send a warning to the screen when battery charge is dropping below a threshold value
+     */
+    private BatteryManager batteryManager;
+
+    /**
      * The Anime4K Quick Settings button
      */
     private ControlQuickSettingsButton anime4kQSButton;
@@ -182,6 +197,11 @@ public class PlaybackActivity extends AppCompatActivity
      * Set to null if filter is inactive
      */
     private GLAnime4K anime4KFilter;
+
+    /**
+     * flag to indicate that a battery low warning was shown to the user
+     */
+    private boolean batteryWarningShown = false;
 
     /**
      * The current anime4k filter mode.
@@ -255,6 +275,11 @@ public class PlaybackActivity extends AppCompatActivity
          * Message id to reset backPressedOnce flag
          */
         private static final int RESET_BACK_PRESSED = 2;
+
+        /**
+         * Message to check the battery level. (only call once - this message calls itself)
+         */
+        private static final int BATTERY_WARN_CHECK = 3;
     }
 
     /**
@@ -292,6 +317,35 @@ public class PlaybackActivity extends AppCompatActivity
                 case Messages.RESET_BACK_PRESSED:
                 {
                     backPressedOnce = false;
+                    break;
+                }
+                case Messages.BATTERY_WARN_CHECK:
+                {
+                    //abort if there is no battery manager
+                    if (batteryManager == null) return;
+
+                    //don't send a warning when charging
+                    if (!batteryManager.isCharging())
+                    {
+                        //get battery level in percent
+                        int batteryPercent = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
+                        Logging.logD("[BatWarn] Battery is at %d %%", batteryPercent);
+
+                        if (batteryPercent <= BATTERY_WARN_PERCENT)
+                        {
+                            //send a warning
+                            showInfoText(getText(R.string.info_battery_low).toString());
+                            batteryWarningShown = true;
+                        }
+                    }
+                    else
+                    {
+                        //reset warning shown when started charging
+                        batteryWarningShown = false;
+                    }
+
+                    //call self later
+                    delayHandler.sendEmptyMessageDelayed(Messages.BATTERY_WARN_CHECK, BATTERY_WARN_CHECK_INTERVAL_MS);
                     break;
                 }
             }
@@ -334,6 +388,15 @@ public class PlaybackActivity extends AppCompatActivity
         //init screen rotation manager
         screenRotationManager = new ScreenRotationManager();
         screenRotationManager.findComponents();
+
+        //get battery manager service
+        if (getPrefBool(ConfigKeys.KEY_BATTERY_WARN_ENABLE, R.bool.DEF_BATTERY_WARN_ENABLE))
+        {
+            batteryManager = (BatteryManager) getSystemService(Context.BATTERY_SERVICE);
+
+            //queue first check
+            delayHandler.sendEmptyMessageDelayed(Messages.BATTERY_WARN_CHECK, BATTERY_WARN_CHECK_INTERVAL_MS);
+        }
 
         //get audio manager
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);

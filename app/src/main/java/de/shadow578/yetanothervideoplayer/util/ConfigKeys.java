@@ -118,6 +118,11 @@ public final class ConfigKeys
     public static final String KEY_ANIME4K_FPS_LIMIT = "ANIME4K_FPS_LIMIT";
 
     /**
+     * low battery warning enable (warn if battery less than 15%)
+     */
+    public static final String KEY_BATTERY_WARN_ENABLE = "BATTERY_WARN_EN";
+
+    /**
      * last played url value (for debugging)
      */
     public static final String KEY_DBG_LAST_PLAYED_URL = "DBG_LAST_PLAYED_URL";

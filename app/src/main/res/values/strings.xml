@@ -19,6 +19,7 @@
     <string name="info_volume_change">Volume: %d%%</string><!-- 1st arg: volume% [0-100] -->
     <string name="info_brightness_change">Brightness: %s</string><!-- 1st arg: brightness% ["1%"-"100%" + "@strings\info_brightness_auto"] -->
     <string name="info_brightness_auto">AUTO</string>
+    <string name="info_battery_low">Low Battery</string>
 
     <!-- info dialog: format not supported -->
     <string name="dialog_format_not_supported_title">Format not Supported!</string>
@@ -68,6 +69,9 @@
     <string name="settings_general_persist_brightness_title">Persistent Brightness</string>
     <string name="settings_general_persist_brightness_off">Brightness is not saved between Playback Sessions</string>
     <string name="settings_general_persist_brightness_on">Brightness is saved between Playback Sessions</string>
+    <string name="settings_general_battery_warn_title">Low Battery Warning</string>
+    <string name="settings_general_battery_warn_off">You will not be warned when Battery charge is low</string>
+    <string name="settings_general_battery_warn_on">You will receive a warning when Battery charge is low</string>
 
     <!-- Settings: swipe -->
     <string name="settings_swipe_title">Swipe Controls</string>

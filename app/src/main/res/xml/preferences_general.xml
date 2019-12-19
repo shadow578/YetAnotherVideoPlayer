@@ -31,4 +31,11 @@
         android:summaryOff="@string/settings_general_persist_brightness_off"
         android:summaryOn="@string/settings_general_persist_brightness_on"
         android:title="@string/settings_general_persist_brightness_title" />
+
+    <SwitchPreference
+        android:defaultValue="@bool/DEF_BATTERY_WARN_ENABLE"
+        android:key="BATTERY_WARN_EN"
+        android:summaryOff="@string/settings_general_battery_warn_off"
+        android:summaryOn="@string/settings_general_battery_warn_on"
+        android:title="@string/settings_general_battery_warn_title" />
 </PreferenceScreen>
