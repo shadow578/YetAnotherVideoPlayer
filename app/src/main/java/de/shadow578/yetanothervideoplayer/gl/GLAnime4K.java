@@ -161,8 +161,8 @@ public class GLAnime4K extends GLFilterBase implements VideoListener
             drawUsingProgram(gradientPushProgram, buffer.getTexName(), target);
         }
 
-        //count fps
-        updateAnLogFps();
+        //count + limit fps
+        updateFpsLogic(logFps, fpsLimit);
     }
 
     /**

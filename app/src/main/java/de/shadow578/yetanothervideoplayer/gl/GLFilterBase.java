@@ -49,8 +49,11 @@ public class GLFilterBase extends GlFilter
     private int vertexShader, fragmentShader, program;
     private int vertexBuffer;
 
-    private final float fpsLogIntervalS = 5f;
-    private long timeNow, lastLog, frameCount;
+    protected final long fpsLogIntervalMs = 5000;
+    protected long tLastFrame = 0, tLastLog = 0, fpsFrameCounter = 0;
+
+    protected boolean logFps = false;
+    protected long fpsLimit = 60;
 
     /**
      * Set this filter up for use
@@ -93,8 +96,8 @@ public class GLFilterBase extends GlFilter
         //draw texture to tmpBuffer using program
         drawUsingProgram(program, sourceTexture, targetBuffer);
 
-        //count fps
-        updateAnLogFps();
+        //log + limit fps
+        updateFpsLogic(logFps, fpsLimit);
     }
 
     /**
@@ -120,6 +123,8 @@ public class GLFilterBase extends GlFilter
         //log release
         Logging.logD("Released shader.");
     }
+
+    //region GL Util functions
 
     /**
      * Draw a texture to a frame buffer using a gl program
@@ -214,20 +219,89 @@ public class GLFilterBase extends GlFilter
     }
 
     /**
-     * Runs FPS update logic and logs fps to console every 5 seconds
+     * Update the Filter's FPS logic.
+     *
+     * @param logFps   if true, the average fps rate is periodically logged
+     * @param fpsLimit if > 0, the fps is limited to the desired frame rate (using Thread.sleep)
      */
-    protected void updateAnLogFps()
+    protected void updateFpsLogic(boolean logFps, long fpsLimit)
     {
-        final long fpsLogIntervalNS = (long) (fpsLogIntervalS * 1e+9);
+        //get current time and time delta (delta in seconds)
+        long tNow = System.currentTimeMillis();
 
-        //count frames
-        frameCount++;
-        timeNow = System.nanoTime();
-        if (timeNow - lastLog >= fpsLogIntervalNS)
+        //limit fps
+        if (fpsLimit > 0)
         {
-            Logging.logD("Average FPS: " + (frameCount / fpsLogIntervalS));
-            lastLog = timeNow;
-            frameCount = 0;
+            updateAndLimitFps(tNow, fpsLimit);
+        }
+
+        //log fps if enabled
+        if (logFps)
+        {
+            updateAndLogFps(tNow);
+        }
+
+        //update time of last frame
+        tLastFrame = tNow;
+    }
+
+    /**
+     * Runs FPS Limiting logic and limits fps to the given target (using Thread.sleep)
+     *
+     * @param now       the current time (milliseconds)
+     * @param targetFps the target fps. better be positive
+     */
+    protected void updateAndLimitFps(long now, long targetFps)
+    {
+        //calculate time this frame took in seconds
+        long tDeltaMs = now - tLastFrame;
+
+        //calculate target frame time
+        long tDeltaTargetMs = 1000 / targetFps;
+
+        //check if frame was faster than target
+        if (tDeltaMs < tDeltaTargetMs)
+        {
+            //calculate time to sleep in ms
+            //for some reason it always limited to 2x the targeted fps, so here i am doubling the sleep time...
+            long tSleepMs = (tDeltaTargetMs - tDeltaMs) * 2;
+            //Logging.logE("delta=" + tDeltaMs + "; target=" + tDeltaTargetMs +"; sleep=" + tSleepMs);
+
+            //sanity check: check if sleep time is ACTUALLY positive and kind of in the right range
+            if (tSleepMs > 0 && tSleepMs < 2000)
+            {
+                //sleep to match target frame time
+                try
+                {
+                    Thread.sleep(tSleepMs, 0);
+                }
+                catch (InterruptedException ignored)
+                {
+                    //this is for frame rate limiting, dont care if it fails...
+                    //worst case is a higher frame rate :P
+                    Logging.logE("FPS Limiter Thread.sleep threw InterruptedException! Not stretching frame time!");
+                }
+            }
+        }
+    }
+
+    /**
+     * Runs FPS update logic and logs fps every 5 seconds
+     *
+     * @param now the current time (milliseconds)
+     */
+    protected void updateAndLogFps(long now)
+    {
+        //count frames
+        fpsFrameCounter++;
+
+        //log fps to console every 5 seconds
+        long lastLogDuration = (now - tLastLog);
+        if (lastLogDuration >= fpsLogIntervalMs)
+        {
+            Logging.logD("Average FPS: " + (fpsFrameCounter / (lastLogDuration / 1000f)));
+            tLastLog = now;
+            fpsFrameCounter = 0;
         }
     }
 
@@ -247,4 +321,31 @@ public class GLFilterBase extends GlFilter
         glDeleteBuffers(1, new int[]{vertexBuffer}, 0);
         vertexBuffer = 0;
     }
+    //endregion
+
+    //region fps logic function parameters
+    @SuppressWarnings("unused")
+    public void setLogFps(boolean en)
+    {
+        logFps = en;
+    }
+
+    @SuppressWarnings("unused")
+    public void setFpsLimit(long limit)
+    {
+        fpsLimit = limit;
+    }
+
+    @SuppressWarnings("unused")
+    public boolean getLogFps()
+    {
+        return logFps;
+    }
+
+    @SuppressWarnings("unused")
+    public long getFpsLimit()
+    {
+        return fpsLimit;
+    }
+    // endregion
 }
