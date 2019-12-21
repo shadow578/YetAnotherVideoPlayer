@@ -72,6 +72,8 @@
     <string name="settings_general_battery_warn_title">Low Battery Warning</string>
     <string name="settings_general_battery_warn_off">You will not be warned when Battery charge is low</string>
     <string name="settings_general_battery_warn_on">You will receive a warning when Battery charge is low</string>
+    <string name="settings_general_battery_warn_thresh_title">Battery low Threshold</string>
+    <string name="settings_general_battery_warn_thresh_summary">Threshold below which the battery warning is shown</string>
 
     <!-- Settings: swipe -->
     <string name="settings_swipe_title">Swipe Controls</string>

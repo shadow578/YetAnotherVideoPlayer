@@ -8,6 +8,7 @@
     <bool name="DEF_PERSIST_BRIGHTNESS_EN">true</bool>
     <bool name="DEF_PERSIST_VOLUME_EN">true</bool>
     <bool name="DEF_BATTERY_WARN_ENABLE">true</bool>
+    <integer name="DEF_BATTERY_WARN_THRESHOLD">15</integer>
 
     <!-- swipe settings -->
     <bool name="DEF_SWIPE_GESTURES_EN">true</bool>

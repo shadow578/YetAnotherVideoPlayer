@@ -84,11 +84,6 @@ public class PlaybackActivity extends AppCompatActivity
      * Interval in which the battery level is checked
      */
     private final int BATTERY_WARN_CHECK_INTERVAL_MS = 10000;
-
-    /**
-     * Below how many percent the battery has to be for a warning to be shown.
-     */
-    private final int BATTERY_WARN_PERCENT = 15;
     //endregion
 
     //region ~~ Variables ~~
@@ -327,11 +322,13 @@ public class PlaybackActivity extends AppCompatActivity
                     //don't send a warning when charging
                     if (!batteryManager.isCharging())
                     {
-                        //get battery level in percent
+                        //get battery level and warn threshold in percent
                         int batteryPercent = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
-                        Logging.logD("[BatWarn] Battery is at %d %%", batteryPercent);
+                        int batteryThresh = getPrefInt(ConfigKeys.KEY_BATTERY_WARN_THRESHOLD, R.integer.DEF_BATTERY_WARN_THRESHOLD);
 
-                        if (batteryPercent <= BATTERY_WARN_PERCENT && !batteryWarningShown)
+                        //check level against threshold
+                        Logging.logD("[BatWarn] Battery is at %d %% - warn threshold is %d %%", batteryPercent, batteryThresh);
+                        if (batteryPercent <= batteryThresh && !batteryWarningShown)
                         {
                             //send a warning
                             showInfoText(getText(R.string.info_battery_low).toString());
