@@ -78,12 +78,17 @@ public class PlaybackActivity extends AppCompatActivity
     /**
      * Id of permission request for external storage
      */
-    private final int PERMISSION_REQUEST_READ_EXT_STORAGE = 0;
+    private static final int PERMISSION_REQUEST_READ_EXT_STORAGE = 0;
 
     /**
      * Interval in which the battery level is checked
      */
-    private final int BATTERY_WARN_CHECK_INTERVAL_MS = 10000;
+    private static final int BATTERY_WARN_CHECK_INTERVAL_MS = 10000;
+
+    /**
+     * Intent Extra key that tells the player to immediately jump to the given position in the video
+     */
+    public static final String INTENT_EXTRA_JUMP_TO = "jumpTo";
     //endregion
 
     //region ~~ Variables ~~
@@ -401,6 +406,9 @@ public class PlaybackActivity extends AppCompatActivity
         //create bandwidth meter
         bandwidthMeter = new DefaultBandwidthMeter.Builder(this).build();
 
+        //setup gesture controls
+        setupGestures();
+
         //Get the intent this activity was created with
         Intent callIntent = getIntent();
 
@@ -422,8 +430,9 @@ public class PlaybackActivity extends AppCompatActivity
         }
         setTitle(title);
 
-        //setup gesture controls
-        setupGestures();
+        //get position to start playback at
+        //this value is used to seek as soon as exoplayer is initialized.
+        playbackPosition = callIntent.getLongExtra(INTENT_EXTRA_JUMP_TO, 0);
 
         //check if uri is of local file and request read permission if so
         if (isLocalFileUri(playbackUri))
@@ -515,6 +524,9 @@ public class PlaybackActivity extends AppCompatActivity
         super.onStop();
         Logging.logD("onStop of PlaybackActivity called.");
 
+        //save playback position to prefs
+        savePlaybackPosition();
+
         if (supportMultiWindow())
         {
             //release player here with multi-window support, because
@@ -528,6 +540,9 @@ public class PlaybackActivity extends AppCompatActivity
     {
         super.onPause();
         Logging.logD("onPause of PlaybackActivity called.");
+
+        //save playback position to prefs
+        savePlaybackPosition();
 
         if (!supportMultiWindow())
         {
@@ -799,6 +814,9 @@ public class PlaybackActivity extends AppCompatActivity
 
         //prepare media for playback
         player.prepare(media, true, false);
+
+        //clamp position to range of actual media
+        playbackPosition = Math.max(Math.min(playbackPosition, player.getDuration()), 0);
 
         //resume playback where we left off
         player.setPlayWhenReady(playWhenReady);
@@ -1299,6 +1317,21 @@ public class PlaybackActivity extends AppCompatActivity
     //endregion
 
     //region ~~ Utility ~~
+
+    /**
+     * Save the current playback position to LAST_PLAYED_POSITION
+     */
+    private void savePlaybackPosition()
+    {
+        //check player and prefs are ok
+        if (player == null || appPreferences == null) return;
+
+        //get position
+        long pos = player.getCurrentPosition();
+
+        //save to prefs
+        appPreferences.edit().putLong(ConfigKeys.KEY_LAST_PLAYED_POSITION, pos).apply();
+    }
 
     /**
      * Enable / disable anime4k filter

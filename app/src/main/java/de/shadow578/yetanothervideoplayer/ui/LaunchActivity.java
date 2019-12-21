@@ -19,6 +19,16 @@ import java.util.Locale;
 
 public class LaunchActivity extends AppCompatActivity
 {
+    /**
+     * The Shared prefs of this app
+     */
+    SharedPreferences appPreferences;
+
+    /**
+     * A handler that is used to post (delayed) messages and events
+     */
+    Handler splashHandler = new Handler();
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -26,11 +36,13 @@ public class LaunchActivity extends AppCompatActivity
         setContentView(R.layout.activity_launch);
         Logging.logD("Launch Activity onCreate was called.");
 
+        //get app prefs
+        appPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
         //get splash screen duration
-        int splashDuration = getResources().getInteger(R.integer.min_splash_screen_duration);
+        int minSplashDuration = getResources().getInteger(R.integer.min_splash_screen_duration);
 
         //post event to start playback activity delayed
-        Handler splashHandler = new Handler();
         splashHandler.postDelayed(new Runnable()
         {
             @Override
@@ -48,7 +60,7 @@ public class LaunchActivity extends AppCompatActivity
                     Toast.makeText(getApplicationContext(), "Could not launch Playback Activity!", Toast.LENGTH_LONG).show();
                 }
             }
-        }, splashDuration);
+        }, minSplashDuration);
     }
 
     /**
@@ -77,6 +89,12 @@ public class LaunchActivity extends AppCompatActivity
         launchIntent.setData(playbackUrl);
         launchIntent.putExtra(Intent.EXTRA_TITLE, title);
 
+        //check if the video can be resumed
+        if (canResumePlayback(playbackUrl, title))
+        {
+            launchIntent.putExtra(PlaybackActivity.INTENT_EXTRA_JUMP_TO, getResumePosition());
+        }
+
         //dump launch intent
         dumpIntent(launchIntent, "Launch Intent");
 
@@ -88,6 +106,8 @@ public class LaunchActivity extends AppCompatActivity
         return true;
     }
 
+    // region "resume where i left off"- feature
+
     /**
      * Save the current video as last played in shared prefs.
      *
@@ -96,13 +116,43 @@ public class LaunchActivity extends AppCompatActivity
      */
     private void updateLastPlayed(Uri url, String title)
     {
-        //get shared preferences
-        SharedPreferences appPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-
-        //set value
+        //set values
         appPreferences.edit().putString(ConfigKeys.KEY_LAST_PLAYED_URL, url.toString())
                 .putString(ConfigKeys.KEY_LAST_PLAYED_TITLE, title).apply();
     }
+
+    /**
+     * Check if the player can resume playback with the given url and title
+     * checks that either url or title match the stored previous video and that there is a position stored to resume at.
+     *
+     * @param url   the url of the video that is being loaded now
+     * @param title the title of the video that is being loaded now
+     * @return can we resume the video?
+     */
+    private boolean canResumePlayback(Uri url, String title)
+    {
+        //check if there is a playback position to resume stored
+        if (appPreferences.getLong(ConfigKeys.KEY_LAST_PLAYED_POSITION, -1) <= 0) return false;
+
+        //check url is the same
+        if (url.toString().equalsIgnoreCase(appPreferences.getString(ConfigKeys.KEY_LAST_PLAYED_URL, "")))
+            return true;
+
+        //check if title is the same
+        return title.equalsIgnoreCase(appPreferences.getString(ConfigKeys.KEY_LAST_PLAYED_TITLE, ""));
+    }
+
+    /**
+     * Get the position at which the video should be resumed at
+     *
+     * @return the position to resume at
+     */
+    private long getResumePosition()
+    {
+        return appPreferences.getLong(ConfigKeys.KEY_LAST_PLAYED_POSITION, 0); //TODO: remove a few seconds (10s)
+    }
+
+    // endregion
 
     // region Intent Parsing
 
