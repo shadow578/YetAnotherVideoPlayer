@@ -81,7 +81,7 @@ public class LaunchActivity extends AppCompatActivity
         dumpIntent(launchIntent, "Launch Intent");
 
         //save the playback url as last played
-        updateLastPlayedUrl(playbackUrl);
+        updateLastPlayed(playbackUrl, title);
 
         //launch the playback activity
         startActivity(launchIntent);
@@ -89,16 +89,19 @@ public class LaunchActivity extends AppCompatActivity
     }
 
     /**
-     * Save the current url as last played url in shared prefs.
-     * @param url the url to save
+     * Save the current video as last played in shared prefs.
+     *
+     * @param url   the video url to save
+     * @param title the video title to save
      */
-    private void updateLastPlayedUrl(Uri url)
+    private void updateLastPlayed(Uri url, String title)
     {
         //get shared preferences
         SharedPreferences appPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         //set value
-        appPreferences.edit().putString(ConfigKeys.KEY_DBG_LAST_PLAYED_URL, url.toString()).apply();
+        appPreferences.edit().putString(ConfigKeys.KEY_LAST_PLAYED_URL, url.toString())
+                .putString(ConfigKeys.KEY_LAST_PLAYED_TITLE, title).apply();
     }
 
     // region Intent Parsing

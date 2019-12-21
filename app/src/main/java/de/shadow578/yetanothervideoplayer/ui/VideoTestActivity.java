@@ -87,7 +87,7 @@ public class VideoTestActivity extends AppCompatActivity implements CompoundButt
             {
                 //Last Played, fallback to big bug bunny mp4
                 uri = getLastPlayedUrl("https://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4");
-                title = "DBG replay last";
+                title = getLastPlayedTitle("REPLAY_LAST_TITLE_FALLBACK");
                 break;
             }
             case R.id.vtest_btn_mp3:
@@ -240,6 +240,20 @@ public class VideoTestActivity extends AppCompatActivity implements CompoundButt
         SharedPreferences appPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         //get value
-        return appPreferences.getString(ConfigKeys.KEY_DBG_LAST_PLAYED_URL, fallback);
+        return appPreferences.getString(ConfigKeys.KEY_LAST_PLAYED_URL, fallback);
+    }
+
+    /**
+     * Get the last played video title from shared prefs.
+     *
+     * @param fallback the fallback title to use when shared prefs dont exist or key is not found
+     */
+    private String getLastPlayedTitle(@SuppressWarnings("SameParameterValue") String fallback)
+    {
+        //get shared preferences
+        SharedPreferences appPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
+        //get value
+        return appPreferences.getString(ConfigKeys.KEY_LAST_PLAYED_TITLE, fallback);
     }
 }

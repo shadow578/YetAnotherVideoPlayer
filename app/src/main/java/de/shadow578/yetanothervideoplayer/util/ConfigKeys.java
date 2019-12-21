@@ -128,7 +128,17 @@ public final class ConfigKeys
     public static final String KEY_BATTERY_WARN_THRESHOLD = "BATTERY_WARN_THRESHOLD";
 
     /**
-     * last played url value (for debugging)
+     * last played video title value ("resume where i left off")
      */
-    public static final String KEY_DBG_LAST_PLAYED_URL = "DBG_LAST_PLAYED_URL";
+    public static final String KEY_LAST_PLAYED_TITLE = "LAST_PLAYED_TITLE";
+
+    /**
+     * last played video url value ("resume where i left off")
+     */
+    public static final String KEY_LAST_PLAYED_URL = "LAST_PLAYED_URL";
+
+    /**
+     * last played video progress (=position) value ("resume where i left off")
+     */
+    public static final String KEY_LAST_PLAYED_POSITION = "LAST_PLAYED_POSITION";
 }
