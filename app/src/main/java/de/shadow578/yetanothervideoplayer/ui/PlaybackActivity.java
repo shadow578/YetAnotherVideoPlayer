@@ -9,6 +9,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.preference.PreferenceManager;
 
 import de.shadow578.yetanothervideoplayer.R;
+import de.shadow578.yetanothervideoplayer.YAVPApp;
 import de.shadow578.yetanothervideoplayer.gl.GLAnime4K;
 import de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton;
 import de.shadow578.yetanothervideoplayer.ui.components.PlayerControlViewWrapper;
@@ -20,6 +21,7 @@ import de.shadow578.yetanothervideoplayer.util.UniversalMediaSourceFactory;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.app.Application;
 import android.app.PendingIntent;
 import android.app.PictureInPictureParams;
 import android.app.RemoteAction;
@@ -71,7 +73,7 @@ import com.google.android.exoplayer2.util.Util;
 
 import java.util.ArrayList;
 
-public class PlaybackActivity extends AppCompatActivity
+public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICrashListener
 {
     //region ~~ Constants ~~
 
@@ -409,6 +411,19 @@ public class PlaybackActivity extends AppCompatActivity
         //setup gesture controls
         setupGestures();
 
+        //set this activity as a crash handler so we can save the playback position on crashes
+        Application app = getApplication();
+        if (app instanceof YAVPApp)
+        {
+            Logging.logD("Set self as crash listener...");
+            YAVPApp yavpApp = (YAVPApp) app;
+            yavpApp.setCrashListener(this);
+        }
+        else
+        {
+            Logging.logW("getApplication() is not instance of YAVPApp!");
+        }
+
         //Get the intent this activity was created with
         Intent callIntent = getIntent();
 
@@ -581,6 +596,18 @@ public class PlaybackActivity extends AppCompatActivity
 
         //show user a Toast
         Toast.makeText(this, getString(R.string.toast_press_back_again_to_exit), Toast.LENGTH_SHORT).show();
+    }
+
+    /**
+     * Called on a crash shortly before the app is closed
+     *
+     * @param ex the exception that caused the crash
+     */
+    public void onCrash(Throwable ex)
+    {
+        //save playback position before app closes
+        Logging.logD("Saving Playback position on app crash...");
+        savePlaybackPosition();
     }
 
     //endregion
@@ -1318,16 +1345,24 @@ public class PlaybackActivity extends AppCompatActivity
     /**
      * Save the current playback position to LAST_PLAYED_POSITION
      */
+    @SuppressLint("ApplySharedPref")
     private void savePlaybackPosition()
     {
         //check player and prefs are ok
-        if (player == null || appPreferences == null) return;
+        if (player == null || appPreferences == null)
+        {
+            Logging.logD("player or preferences null, cannot save!");
+            return;
+        }
 
         //get position
         long pos = player.getCurrentPosition();
 
         //save to prefs
-        appPreferences.edit().putLong(ConfigKeys.KEY_LAST_PLAYED_POSITION, pos).apply();
+        //use .commit() here since the main thread may close pretty much as soon as this function exits.
+        //this would leave no time for any async saving...
+        appPreferences.edit().putLong(ConfigKeys.KEY_LAST_PLAYED_POSITION, pos).commit();
+        Logging.logD("Saved LAST_PLAYED_POSITION!");
     }
 
     /**
