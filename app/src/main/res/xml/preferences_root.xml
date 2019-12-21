@@ -17,7 +17,7 @@
 
     <Preference
         android:fragment="de.shadow578.yetanothervideoplayer.ui.AppSettingsActivity$PreferencesAnime4KConfigFragment"
-        android:icon="@drawable/ic_placeholder_48px"
+        android:icon="@drawable/ic_a4k_black"
         android:title="@string/settings_a4k_title" />
 
     <Preference
