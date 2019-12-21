@@ -28,7 +28,7 @@ Yet Another Video Player (YAVP for short) is a Android Video Player based on Exo
 * This is my first Android App & My first project public on Github
 	* *If I did/do anything wrong or could do something better, let me know :)*
 
-* *Not any = not any __unreasonable__. Obviously, YAVP can't stream videos if it can't access the Internet...*
+**Not any = not any __unreasonable__. Obviously, YAVP can't stream videos if it can't access the Internet...*
 
 ## Issues, Feature Requests and Contributing
 

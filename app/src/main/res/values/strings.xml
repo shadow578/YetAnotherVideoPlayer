@@ -141,5 +141,9 @@
     <string name="settings_about_libs_mat_progress_url">https://github.com/pnikosis/materialish-progress</string>
     <string name="settings_about_libs_time_dur_pick_title">svenwiegand/Time-Duration-Picker</string>
     <string name="settings_about_libs_time_dur_pick_url">https://github.com/svenwiegand/time-duration-picker</string>
+    <string name="settings_about_libs_exofilter_title">MasayukiSuda/ExoPlayerFilter</string>
+    <string name="settings_about_libs_exofilter_url">https://github.com/MasayukiSuda/ExoPlayerFilter</string>
+    <string name="settings_about_libs_anime4k_title">bloc97/Anime4K</string>
+    <string name="settings_about_libs_anime4k_url">https://github.com/bloc97/Anime4K/</string>
 
 </resources>
