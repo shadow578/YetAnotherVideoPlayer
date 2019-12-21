@@ -112,7 +112,6 @@ public class AppSettingsActivity extends AppCompatActivity implements
         }
     }
 
-    @SuppressWarnings("WeakerAccess")
     public static class PreferencesSwipeFragment extends PreferenceFragmentCompat
     {
 
@@ -123,7 +122,6 @@ public class AppSettingsActivity extends AppCompatActivity implements
         }
     }
 
-    @SuppressWarnings("WeakerAccess")
     public static class PreferencesSwipeAdvancedFragment extends PreferenceFragmentCompat
     {
 
@@ -134,7 +132,6 @@ public class AppSettingsActivity extends AppCompatActivity implements
         }
     }
 
-    @SuppressWarnings("WeakerAccess")
     public static class PreferencesPlayerConfigFragment extends PreferenceFragmentCompat
     {
 
@@ -145,7 +142,6 @@ public class AppSettingsActivity extends AppCompatActivity implements
         }
     }
 
-    @SuppressWarnings("WeakerAccess")
     public static class PreferencesAnime4KConfigFragment extends PreferenceFragmentCompat
     {
 
@@ -156,7 +152,6 @@ public class AppSettingsActivity extends AppCompatActivity implements
         }
     }
 
-    @SuppressWarnings("WeakerAccess")
     public static class PreferencesAboutFragment extends PreferenceFragmentCompat
     {
 
@@ -164,6 +159,8 @@ public class AppSettingsActivity extends AppCompatActivity implements
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey)
         {
             setPreferencesFromResource(R.xml.preferences_about, rootKey);
+
+            //fill in app version in about screen
             Preference versionPref = findPreference("version_info");
             if (versionPref != null)
                 versionPref.setSummary(String.format(getString(R.string.settings_about_version_f), BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE));

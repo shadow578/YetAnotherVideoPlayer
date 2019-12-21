@@ -331,7 +331,7 @@ public class PlaybackActivity extends AppCompatActivity
                         int batteryPercent = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
                         Logging.logD("[BatWarn] Battery is at %d %%", batteryPercent);
 
-                        if (batteryPercent <= BATTERY_WARN_PERCENT)
+                        if (batteryPercent <= BATTERY_WARN_PERCENT && !batteryWarningShown)
                         {
                             //send a warning
                             showInfoText(getText(R.string.info_battery_low).toString());

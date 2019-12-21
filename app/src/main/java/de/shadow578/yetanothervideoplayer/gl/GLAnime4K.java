@@ -99,6 +99,15 @@ public class GLAnime4K extends GLFilterBase implements VideoListener
         //create vertex buffer
         setupVertexBuffer();
 
+        //log gl info
+        Logging.logD("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        Logging.logD("[A4K] GL Environment Debug Info:");
+        Logging.logD("GL_VENDOR:     " + glGetString(GL_VENDOR));
+        Logging.logD("GL_RENDERER:   " + glGetString(GL_RENDERER));
+        Logging.logD("GL_VERSION:    " + glGetString(GL_VERSION));
+        Logging.logD("GL_SL_VERSION: " + glGetString(GL_SHADING_LANGUAGE_VERSION));
+        Logging.logD("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+
         //log setup step
         Logging.logD("[A4K] setup shader finished.");
     }

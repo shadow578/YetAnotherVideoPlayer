@@ -22,6 +22,5 @@
 
     <PreferenceScreen
         android:summary="@string/settings_a4k_why_limit_fps_summary"
-        android:title="@string/settings_a4k_why_limit_fps_title">
-    </PreferenceScreen>
+        android:title="@string/settings_a4k_why_limit_fps_title"/>
 </PreferenceScreen>
