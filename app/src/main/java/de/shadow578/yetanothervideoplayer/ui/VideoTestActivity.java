@@ -68,6 +68,17 @@ public class VideoTestActivity extends AppCompatActivity implements CompoundButt
     }
 
     /**
+     * Click handler for crash app button in VideoTest activity
+     *
+     * @param view the view that invoked this handler
+     * @throws Exception the test exception
+     */
+    public void videoTest_OnCrashClick(View view) throws Exception
+    {
+        throw new Exception("Manual APP Crash");
+    }
+
+    /**
      * Common click handler for buttons in VideoTest activity
      *
      * @param view the view that invoked this handler

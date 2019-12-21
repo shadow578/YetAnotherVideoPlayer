@@ -92,6 +92,7 @@ public class LaunchActivity extends AppCompatActivity
         //check if the video can be resumed
         if (canResumePlayback(playbackUrl, title))
         {
+            Logging.logD("Putting INTENT_EXTRA_JUMP_TO because playback can be resumed.");
             launchIntent.putExtra(PlaybackActivity.INTENT_EXTRA_JUMP_TO, getResumePosition());
         }
 

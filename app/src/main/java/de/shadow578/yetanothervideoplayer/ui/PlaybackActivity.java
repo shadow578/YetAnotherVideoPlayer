@@ -815,9 +815,6 @@ public class PlaybackActivity extends AppCompatActivity
         //prepare media for playback
         player.prepare(media, true, false);
 
-        //clamp position to range of actual media
-        playbackPosition = Math.max(Math.min(playbackPosition, player.getDuration()), 0);
-
         //resume playback where we left off
         player.setPlayWhenReady(playWhenReady);
         player.seekTo(currentPlayWindow, playbackPosition);

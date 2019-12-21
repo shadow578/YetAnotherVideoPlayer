@@ -175,5 +175,13 @@
             android:onClick="videoTest_OnClick"
             android:text="Open Settings Activity"
             android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/vtest_btn_crash_app"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="videoTest_OnCrashClick"
+            android:text="Crash Application"
+            android:textAllCaps="false" />
     </LinearLayout>
 </ScrollView>

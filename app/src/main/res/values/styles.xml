@@ -19,6 +19,12 @@
         <item name="windowNoTitle">true</item>
     </style>
 
+    <!-- Crash Activity theme -->
+    <style name="AppTheme.CrashActivity">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
     <!-- Base for Buttons -->
     <style name="AppButton">
         <item name="android:background">?selectableItemBackgroundBorderless</item>
