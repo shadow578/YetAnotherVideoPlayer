@@ -1804,21 +1804,24 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             //a error occurred:
             //log error
             Logging.logE("ExoPlayer error occurred: %s", error.toString());
+            Toast.makeText(getApplicationContext(), error.toString(), Toast.LENGTH_LONG).show();
+
+            //TODO: do something with the player error...
 
             //show dialog
-            AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
-            builder.setTitle(R.string.dialog_player_error_title)
-                    .setMessage(error.toString())
-                    .setCancelable(false)
-                    .setPositiveButton(R.string.dialog_player_error_btn_exit, new DialogInterface.OnClickListener()
-                    {
-                        public void onClick(DialogInterface dialog, int id)
-                        {
-                            //close app
-                            finish();
-                        }
-                    });
-            builder.create().show();
+            //AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
+            //builder.setTitle(R.string.dialog_player_error_title)
+            //        .setMessage(error.toString())
+            //        .setCancelable(false)
+            //        .setPositiveButton(R.string.dialog_player_error_btn_exit, new DialogInterface.OnClickListener()
+            //        {
+            //            public void onClick(DialogInterface dialog, int id)
+            //            {
+            //                //close app
+            //                finish();
+            //            }
+            //        });
+            //builder.create().show();
         }
     }
 

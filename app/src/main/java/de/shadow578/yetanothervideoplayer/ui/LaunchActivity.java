@@ -167,8 +167,9 @@ public class LaunchActivity extends AppCompatActivity
     {
         Logging.logD("========================================");
         Logging.logD("Dumping Intent " + desc);
-        Logging.logD(intent.toString() + " of type " + intent.getType());
-        Logging.logD("Data: " + intent.getData() + " (" + intent.getDataString() + ")");
+        Logging.logD("%s of type %s", intent.toString(), intent.getType());
+        Uri data = intent.getData();
+        Logging.logD("Data: %s (%s)", (data == null) ? "null" : data.toString(), intent.getDataString());
 
         //dump extras
         Logging.logD("Extras: ");
@@ -177,7 +178,7 @@ public class LaunchActivity extends AppCompatActivity
         {
             for (String key : extras.keySet())
             {
-                Logging.logD("  " + key + " = " + extras.get(key));
+                Logging.logD("   %s = %s", key, extras.get(key));
             }
         }
         else
