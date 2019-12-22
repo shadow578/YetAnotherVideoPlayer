@@ -48,6 +48,7 @@ Obviously, YAVP cannot function without having any permissions. This are all per
 * __READ_EXTERNAL_STORAGE__ - To play local files
 	* This permission is actually disabled by default and is only requested when needed.
 * __MODIFY_AUDIO_SETTINGS__ - To adjust the volume with swipe gestures
+
 As you can see, YAVP cannot access any of your private information (for example __read contacts__).
 
 #### Will YAVP Stay Ad- Free?
@@ -55,7 +56,8 @@ Probably. Although the Exoplayer library supports inserting Ads into Videos, I d
 
 #### How does YAVP Scale up Anime?
 When enabled in the Quick Settings menu, YAVP will use [__bloc97's Anime4K__](https://github.com/bloc97/Anime4K/) for upscaling and enhancing Anime. 
-This algorithm does, in a nutshell, look where there are Lines in the Video and makes the Lines appear sharper. <br/>
+This algorithm does, in a nutshell, look where there are Lines in the Video and makes the Lines appear sharper.
+
 If you want to learn more on how Anime4K works, I suggest looking at [bloc97's Preprint](https://github.com/bloc97/Anime4K/blob/master/Preprint.md).
 
 #### Why Only Anime4K 0.9?
