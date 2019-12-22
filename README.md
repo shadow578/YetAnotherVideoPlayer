@@ -1,3 +1,13 @@
+This is the (old) master branch of YAVP. It does not incorporate functionality such as:
+* GLSL shaders
+* App Splash screen
+* Crash Handler
+* "Continue where I left"- Functionality
+* + many other small changes.
+
+If you're interested in the development of YAVP, please take a look at the (new) master branch.
+This Branch will no longer be modified, but will stay as a reference for future development.
+
 # Yet Another Video Player
 Yet Another Video Player (YAVP for short) is a Android Video Player based on Exoplayer V2
 
