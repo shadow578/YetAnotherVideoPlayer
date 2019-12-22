@@ -1,8 +1,10 @@
 package de.shadow578.yetanothervideoplayer.ui;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.PreferenceManager;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -10,6 +12,7 @@ import android.widget.CompoundButton;
 import android.widget.Switch;
 
 import de.shadow578.yetanothervideoplayer.R;
+import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
 import de.shadow578.yetanothervideoplayer.util.Logging;
 
 public class VideoTestActivity extends AppCompatActivity implements CompoundButton.OnCheckedChangeListener
@@ -65,6 +68,17 @@ public class VideoTestActivity extends AppCompatActivity implements CompoundButt
     }
 
     /**
+     * Click handler for crash app button in VideoTest activity
+     *
+     * @param view the view that invoked this handler
+     * @throws Exception the test exception
+     */
+    public void videoTest_OnCrashClick(View view) throws Exception
+    {
+        throw new Exception("Manual APP Crash");
+    }
+
+    /**
      * Common click handler for buttons in VideoTest activity
      *
      * @param view the view that invoked this handler
@@ -80,6 +94,13 @@ public class VideoTestActivity extends AppCompatActivity implements CompoundButt
         //region ~~ select url and title by button id ~~
         switch (view.getId())
         {
+            case R.id.vtest_btn_replaylast:
+            {
+                //Last Played, fallback to big bug bunny mp4
+                uri = getLastPlayedUrl("https://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4");
+                title = getLastPlayedTitle("REPLAY_LAST_TITLE_FALLBACK");
+                break;
+            }
             case R.id.vtest_btn_mp3:
             {
                 //ExoPlayer test media: MP3
@@ -170,7 +191,7 @@ public class VideoTestActivity extends AppCompatActivity implements CompoundButt
         if (openDirect)
         {
             //directly open activity
-            playIntent = new Intent(this, PlaybackActivity.class);
+            playIntent = new Intent(this, LaunchActivity.class);
         }
         else
         {
@@ -217,5 +238,33 @@ public class VideoTestActivity extends AppCompatActivity implements CompoundButt
 
         //start the activity
         startActivity(playIntent);
+    }
+
+    /**
+     * Get the last played url from shared prefs.
+     *
+     * @param fallback the fallback url to use when shared prefs dont exist or key is not found
+     */
+    private String getLastPlayedUrl(@SuppressWarnings("SameParameterValue") String fallback)
+    {
+        //get shared preferences
+        SharedPreferences appPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
+        //get value
+        return appPreferences.getString(ConfigKeys.KEY_LAST_PLAYED_URL, fallback);
+    }
+
+    /**
+     * Get the last played video title from shared prefs.
+     *
+     * @param fallback the fallback title to use when shared prefs dont exist or key is not found
+     */
+    private String getLastPlayedTitle(@SuppressWarnings("SameParameterValue") String fallback)
+    {
+        //get shared preferences
+        SharedPreferences appPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
+        //get value
+        return appPreferences.getString(ConfigKeys.KEY_LAST_PLAYED_TITLE, fallback);
     }
 }

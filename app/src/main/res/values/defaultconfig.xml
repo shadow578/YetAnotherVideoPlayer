@@ -7,6 +7,8 @@
     <integer name="DEF_BACK_DOUBLE_PRESS_TIMEOUT">2000</integer>
     <bool name="DEF_PERSIST_BRIGHTNESS_EN">true</bool>
     <bool name="DEF_PERSIST_VOLUME_EN">true</bool>
+    <bool name="DEF_BATTERY_WARN_ENABLE">true</bool>
+    <integer name="DEF_BATTERY_WARN_THRESHOLD">15</integer>
 
     <!-- swipe settings -->
     <bool name="DEF_SWIPE_GESTURES_EN">true</bool>
@@ -29,4 +31,8 @@
     <bool name="DEF_CLOSE_WHEN_FINISHED_PLAYING">false</bool>
     <bool name="DEF_ENTER_PIP_ON_LEAVE">true</bool>
     <integer name="DEF_SEEK_BUTTON_INCREMENT">5000</integer>
+
+    <!-- anime4k settings -->
+    <bool name="DEF_ANIME4K_FPS_LIMIT_EN">false</bool>
+    <integer name="DEF_ANIME4K_FPS_LIMIT">30</integer>
 </resources>

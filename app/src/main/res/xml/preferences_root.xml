@@ -16,6 +16,11 @@
         android:title="@string/settings_player_title" />
 
     <Preference
+        android:fragment="de.shadow578.yetanothervideoplayer.ui.AppSettingsActivity$PreferencesAnime4KConfigFragment"
+        android:icon="@drawable/ic_a4k_black"
+        android:title="@string/settings_a4k_title" />
+
+    <Preference
         android:fragment="de.shadow578.yetanothervideoplayer.ui.AppSettingsActivity$PreferencesAboutFragment"
         android:icon="@drawable/ic_info_outline_48px"
         android:title="@string/settings_about_title" />

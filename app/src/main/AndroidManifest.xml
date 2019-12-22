@@ -4,12 +4,15 @@
 
     <!-- To adjust Media Volume by swiping -->
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+
     <!-- To Stream Video -->
     <uses-permission android:name="android.permission.INTERNET" />
+
     <!-- To Play local files -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
+        android:name=".YAVPApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -18,10 +21,12 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
         <!-- ^^allow traffic over http, since not all streams will be via https -->
+        <!-- Settings Activity -->
         <activity
             android:name=".ui.AppSettingsActivity"
             android:label="@string/settings_root_title" />
 
+        <!-- Video Test Activity for Debugging -->
         <activity
             android:name=".ui.VideoTestActivity"
             android:label="@string/app_name">
@@ -32,28 +37,34 @@
             </intent-filter>
         </activity>
 
+        <!-- Playback Activity (only started internally using LaunchActivity -->
         <activity
             android:name=".ui.PlaybackActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
             android:label="@string/app_name"
             android:resizeableActivity="true"
             android:supportsPictureInPicture="true"
-            android:theme="@style/AppTheme.PlaybackActivity">
+            android:theme="@style/AppTheme.PlaybackActivity" />
+
+        <!-- Launch Activity (Splash Screen -->
+        <activity
+            android:name=".ui.LaunchActivity"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme.SplashActivity">
 
             <!-- share with yavp -->
             <intent-filter android:label="@string/app_open_with">
-                <action android:name="android.intent.action.SEND"/>
+                <action android:name="android.intent.action.SEND" />
 
-                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.DEFAULT" />
 
                 <!-- links -->
-                <data android:mimeType="text/plain"/>
+                <data android:mimeType="text/plain" />
 
                 <!-- audio + video -->
-                <data android:mimeType="video/*"/>
-                <data android:mimeType="audio/*"/>
+                <data android:mimeType="video/*" />
+                <data android:mimeType="audio/*" />
             </intent-filter>
-
 
             <!-- by file extension -->
             <intent-filter>
@@ -69,9 +80,10 @@
                 <data android:host="*" />
 
                 <!-- any -->
-                <!--<data android:pathPattern=".*\\.*" />-->
+                <!-- <data android:pathPattern=".*\\.*" /> -->
 
-                <!-- mp4 / fmp4-->
+
+                <!-- mp4 / fmp4 -->
                 <data android:pathPattern=".*\\.mp4" />
                 <data android:pathPattern=".*\\.m4v" />
                 <data android:pathPattern=".*\\.m4a" />
@@ -117,17 +129,16 @@
                 <data android:pathPattern=".*\\.3gpp" />
 
                 <!-- dash manifests -->
-                <data android:pathPattern=".*\\.mpd"/>
+                <data android:pathPattern=".*\\.mpd" />
 
                 <!-- hls manifests -->
-                <data android:pathPattern=".*\\.m3u8"/>
+                <data android:pathPattern=".*\\.m3u8" />
 
                 <!-- smooth streaming manifests -->
-                <data android:pathPattern=".*\\.ismc"/>
-
+                <data android:pathPattern=".*\\.ismc" />
             </intent-filter>
 
-            <!-- by mimetype-->
+            <!-- by mimetype -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -143,7 +154,8 @@
                 <!-- any -->
                 <data android:mimeType="video/*" />
                 <data android:mimeType="audio/*" />
-                <!--<data android:mimeType="application/*"/>-->
+                <!-- <data android:mimeType="application/*"/> -->
+
 
                 <!-- mp4 -->
                 <data android:mimeType="video/mp4" />
@@ -220,5 +232,12 @@
                 <data android:mimeType="application/3gpp2" />
             </intent-filter>
         </activity>
+
+        <!-- the crash screen -->
+        <activity
+            android:name=".ui.CrashScreenActivity"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme.SplashActivity"/>
     </application>
+
 </manifest>

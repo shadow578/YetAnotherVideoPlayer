@@ -24,17 +24,21 @@ Yet Another Video Player (YAVP for short) is a Android Video Player based on Exo
 
 ## Things you should Know
 
-* **YAVP does not require any app permissions**
+* __YAVP does not require any app permissions*__
 	* Storage Permissions are ony needed for playing local files
 * At least Android 7.0 (Nougat) is required (this may change)
 * YAVP currently does not feature a (real) Launcher Activity
 	* Open YAVP by opening a supported file or URL and selecting YAVP
-* YAVP currently has no Settings Activity.
-	* Values that are meant to become settings are currently just constants
+* While Anime4K is great at making Anime (-Style) Videos look great, it is also great at eating into your battery.
+	* Expect (much) shorter battery life when Anime4K is enabled.
+	* Limiting FPS is a option to prolong your battery life. You can enable it in the settings.
+	* *But YAVP is nice enough to warn you before your phone dies.*
+
 * I'm currently redesigning the UI, and I won't add any screenshots before that is done.
 * This is my first Android App & My first project public on Github
 	* *If I did/do anything wrong or could do something better, let me know :)*
 
+**Not any = not any __unreasonable__. Obviously, YAVP can't stream videos if it can't access the Internet...*
 
 ## Issues, Feature Requests and Contributing
 
@@ -66,12 +70,11 @@ I do not maintain it for the sake of being better than other apps. It is meant a
 That said, here are some reasons to pick YAVP over other apps:
 
 * **Free with no Ads**
-	* *looking at you, MX Player*
+	* *looking at you, MX Player 😞*
 * **YAVP is built using the most recent SDK build tools** for best compatibility with both phones and tablets
 * **It requires no app permissions**, so it can't spy on you
 	* Storage Permissions are needed to play back local Videos, but granting those permissions is not needed if you just want to stream
 * **YAVP is a native Android App written in Java using Android Studio**
-	* so no Xamarin/Visual Studio🎉
 
 
 ## Credits
@@ -80,3 +83,7 @@ That said, here are some reasons to pick YAVP over other apps:
 * [google/Material-Design-Icons](https://github.com/google/material-design-icons)
 * [pnikosis/materialish-progress](https://github.com/pnikosis/materialish-progress)
 * [svenwiegand/time-duration-picker](https://github.com/svenwiegand/time-duration-picker)
+* [MasayukiSuda/ExoPlayerFilter](https://github.com/MasayukiSuda/ExoPlayerFilter)
+
+
+This Application uses a custom implementation of [Anime4K v0.9](https://github.com/bloc97/Anime4K/)

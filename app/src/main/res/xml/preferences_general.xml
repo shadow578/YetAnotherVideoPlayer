@@ -31,4 +31,19 @@
         android:summaryOff="@string/settings_general_persist_brightness_off"
         android:summaryOn="@string/settings_general_persist_brightness_on"
         android:title="@string/settings_general_persist_brightness_title" />
+
+    <SwitchPreference
+        android:defaultValue="@bool/DEF_BATTERY_WARN_ENABLE"
+        android:key="BATTERY_WARN_EN"
+        android:summaryOff="@string/settings_general_battery_warn_off"
+        android:summaryOn="@string/settings_general_battery_warn_on"
+        android:title="@string/settings_general_battery_warn_title" />
+
+    <EditTextPreference
+        android:defaultValue="@integer/DEF_BATTERY_WARN_THRESHOLD"
+        android:dependency="BATTERY_WARN_EN"
+        android:key="BATTERY_WARN_THRESHOLD"
+        android:numeric="integer"
+        android:summary="@string/settings_general_battery_warn_thresh_summary"
+        android:title="@string/settings_general_battery_warn_thresh_title" />
 </PreferenceScreen>

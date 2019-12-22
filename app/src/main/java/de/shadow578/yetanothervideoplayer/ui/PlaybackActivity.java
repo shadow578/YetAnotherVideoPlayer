@@ -9,15 +9,19 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.preference.PreferenceManager;
 
 import de.shadow578.yetanothervideoplayer.R;
+import de.shadow578.yetanothervideoplayer.YAVPApp;
+import de.shadow578.yetanothervideoplayer.gl.GLAnime4K;
 import de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton;
+import de.shadow578.yetanothervideoplayer.ui.components.PlayerControlViewWrapper;
 import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
 import de.shadow578.yetanothervideoplayer.util.Logging;
-import de.shadow578.yetanothervideoplayer.util.SwipeGestureListener;
+import de.shadow578.yetanothervideoplayer.swipe.SwipeGestureListener;
 import de.shadow578.yetanothervideoplayer.util.UniversalMediaSourceFactory;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.app.Application;
 import android.app.PendingIntent;
 import android.app.PictureInPictureParams;
 import android.app.RemoteAction;
@@ -34,6 +38,7 @@ import android.graphics.RectF;
 import android.graphics.drawable.Icon;
 import android.media.AudioManager;
 import android.net.Uri;
+import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -48,6 +53,8 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.daasuu.epf.EPlayerView;
+import com.daasuu.epf.PlayerScaleType;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlaybackException;
@@ -60,31 +67,47 @@ import com.google.android.exoplayer2.metadata.MetadataOutput;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.BandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.util.Util;
 
 import java.util.ArrayList;
-import java.util.Locale;
 
-public class PlaybackActivity extends AppCompatActivity
+public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICrashListener
 {
     //region ~~ Constants ~~
 
     /**
      * Id of permission request for external storage
      */
-    private final int PERMISSION_REQUEST_READ_EXT_STORAGE = 0;
+    private static final int PERMISSION_REQUEST_READ_EXT_STORAGE = 0;
 
+    /**
+     * Interval in which the battery level is checked
+     */
+    private static final int BATTERY_WARN_CHECK_INTERVAL_MS = 10000;
+
+    /**
+     * Intent Extra key that tells the player to immediately jump to the given position in the video
+     */
+    public static final String INTENT_EXTRA_JUMP_TO = "jumpTo";
     //endregion
 
     //region ~~ Variables ~~
+    /**
+     * The topmost view of the playback activity
+     */
+    private View playbackRootView;
 
     /**
      * The View the Player Renders Video to
      */
-    private PlayerView playerView;
+    private EPlayerView playerView;
+
+    /**
+     * The View that contains and controls the player controls
+     */
+    private PlayerControlViewWrapper playerControlView;
 
     /**
      * The TextView in the center of the screen, used to show information
@@ -162,6 +185,34 @@ public class PlaybackActivity extends AppCompatActivity
     private BandwidthMeter bandwidthMeter;
 
     /**
+     * Battery manager system service. used to send a warning to the screen when battery charge is dropping below a threshold value
+     */
+    private BatteryManager batteryManager;
+
+    /**
+     * The Anime4K Quick Settings button
+     */
+    private ControlQuickSettingsButton anime4kQSButton;
+
+    /**
+     * The Anime4K filter instance that may be active currently.
+     * Set to null if filter is inactive
+     */
+    private GLAnime4K anime4KFilter;
+
+    /**
+     * flag to indicate that a battery low warning was shown to the user
+     */
+    private boolean batteryWarningShown = false;
+
+    /**
+     * The current anime4k filter mode.
+     * =0  : disabled
+     * >0  : number of anime4k passes
+     */
+    private int currentAnime4kMode = 0;
+
+    /**
      * The current playback position, used for resuming playback
      */
     private long playbackPosition;
@@ -226,6 +277,11 @@ public class PlaybackActivity extends AppCompatActivity
          * Message id to reset backPressedOnce flag
          */
         private static final int RESET_BACK_PRESSED = 2;
+
+        /**
+         * Message to check the battery level. (only call once - this message calls itself)
+         */
+        private static final int BATTERY_WARN_CHECK = 3;
     }
 
     /**
@@ -265,6 +321,37 @@ public class PlaybackActivity extends AppCompatActivity
                     backPressedOnce = false;
                     break;
                 }
+                case Messages.BATTERY_WARN_CHECK:
+                {
+                    //abort if there is no battery manager
+                    if (batteryManager == null) return;
+
+                    //don't send a warning when charging
+                    if (!batteryManager.isCharging())
+                    {
+                        //get battery level and warn threshold in percent
+                        int batteryPercent = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
+                        int batteryThresh = getPrefInt(ConfigKeys.KEY_BATTERY_WARN_THRESHOLD, R.integer.DEF_BATTERY_WARN_THRESHOLD);
+
+                        //check level against threshold
+                        Logging.logD("[BatWarn] Battery is at %d %% - warn threshold is %d %%", batteryPercent, batteryThresh);
+                        if (batteryPercent <= batteryThresh && !batteryWarningShown)
+                        {
+                            //send a warning
+                            showInfoText(getText(R.string.info_battery_low).toString());
+                            batteryWarningShown = true;
+                        }
+                    }
+                    else
+                    {
+                        //reset warning shown when started charging
+                        batteryWarningShown = false;
+                    }
+
+                    //call self later
+                    delayHandler.sendEmptyMessageDelayed(Messages.BATTERY_WARN_CHECK, BATTERY_WARN_CHECK_INTERVAL_MS);
+                    break;
+                }
             }
         }
     };
@@ -275,6 +362,12 @@ public class PlaybackActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+
+        //make app fullscreen
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+        //set activity layout
         setContentView(R.layout.activity_playback);
         Logging.logD("onCreate of PlaybackActivity called.");
 
@@ -282,20 +375,32 @@ public class PlaybackActivity extends AppCompatActivity
         appPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         //get views
+        playbackRootView = findViewById(R.id.pb_playbackRootView);
         playerView = findViewById(R.id.pb_playerView);
+        playerControlView = findViewById(R.id.pb_playerControlView);
         infoTextView = findViewById(R.id.pb_infoText);
         titleTextView = findViewById(R.id.pb_streamTitle);
         bufferingSpinner = findViewById(R.id.pb_playerBufferingCont);
         quickSettingsDrawer = findViewById(R.id.pb_quick_settings_drawer);
+        anime4kQSButton = findViewById(R.id.qs_btn_a4k_tgl);
 
         //set fast-forward and rewind increments
         int seekIncrement = getPrefInt(ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT);
-        playerView.setFastForwardIncrementMs(seekIncrement);
-        playerView.setRewindIncrementMs(seekIncrement);
+        playerControlView.setFastForwardIncrementMs(seekIncrement);
+        playerControlView.setRewindIncrementMs(seekIncrement);
 
         //init screen rotation manager
         screenRotationManager = new ScreenRotationManager();
         screenRotationManager.findComponents();
+
+        //get battery manager service
+        if (getPrefBool(ConfigKeys.KEY_BATTERY_WARN_ENABLE, R.bool.DEF_BATTERY_WARN_ENABLE))
+        {
+            batteryManager = (BatteryManager) getSystemService(Context.BATTERY_SERVICE);
+
+            //queue first check
+            delayHandler.sendEmptyMessageDelayed(Messages.BATTERY_WARN_CHECK, BATTERY_WARN_CHECK_INTERVAL_MS);
+        }
 
         //get audio manager
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
@@ -303,27 +408,46 @@ public class PlaybackActivity extends AppCompatActivity
         //create bandwidth meter
         bandwidthMeter = new DefaultBandwidthMeter.Builder(this).build();
 
-        //setup gestures
+        //setup gesture controls
         setupGestures();
 
-        //get intent this activity was called with to retrieve playback uri
+        //set this activity as a crash handler so we can save the playback position on crashes
+        Application app = getApplication();
+        if (app instanceof YAVPApp)
+        {
+            Logging.logD("Set self as crash listener...");
+            YAVPApp yavpApp = (YAVPApp) app;
+            yavpApp.setCrashListener(this);
+        }
+        else
+        {
+            Logging.logW("getApplication() is not instance of YAVPApp!");
+        }
+
+        //Get the intent this activity was created with
         Intent callIntent = getIntent();
 
-        //get + check uri
-        playbackUri = getUriFromIntent(callIntent);
+        //get uri (in intents data field)
+        playbackUri = callIntent.getData();
         if (playbackUri == null)
         {
-            //playback uri is null (invalid), abort and show error
-            Toast.makeText(this, getString(R.string.toast_invalid_playback_uri), Toast.LENGTH_SHORT).show();
+            //invalid url
+            Toast.makeText(this, "Invalid Playback URL! Exiting...", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
-        //intent + intent data (=playback uri) seems ok
-        Logging.logD("Received play intent with uri \"%s\".", playbackUri.toString());
+        //get title (in intents EXTRA_TITLE field)
+        String title = callIntent.getStringExtra(Intent.EXTRA_TITLE);
+        if (title == null || title.isEmpty())
+        {
+            title = "N/A";
+        }
+        setTitle(title);
 
-        //set initial title to filename parsed from uri
-        setTitle(parseTitle(playbackUri, callIntent));
+        //get position to start playback at
+        //this value is used to seek as soon as exoplayer is initialized.
+        playbackPosition = callIntent.getLongExtra(INTENT_EXTRA_JUMP_TO, 0);
 
         //check if uri is of local file and request read permission if so
         if (isLocalFileUri(playbackUri))
@@ -387,7 +511,6 @@ public class PlaybackActivity extends AppCompatActivity
         super.onStart();
         Logging.logD("onStart of PlaybackActivity called.");
 
-        hideSysUI();
         if (supportMultiWindow())
         {
             //initialize player onStart with multi-window support, because
@@ -402,7 +525,6 @@ public class PlaybackActivity extends AppCompatActivity
         super.onResume();
         Logging.logD("onResume of PlaybackActivity called.");
 
-        hideSysUI();
         if (!supportMultiWindow() || player == null)
         {
             //initialize player onResume without multi-window support (or not yet initialized), because
@@ -416,6 +538,9 @@ public class PlaybackActivity extends AppCompatActivity
     {
         super.onStop();
         Logging.logD("onStop of PlaybackActivity called.");
+
+        //save playback position to prefs
+        savePlaybackPosition();
 
         if (supportMultiWindow())
         {
@@ -431,6 +556,9 @@ public class PlaybackActivity extends AppCompatActivity
         super.onPause();
         Logging.logD("onPause of PlaybackActivity called.");
 
+        //save playback position to prefs
+        savePlaybackPosition();
+
         if (!supportMultiWindow())
         {
             //release player here because before multi-window support was added,
@@ -445,7 +573,7 @@ public class PlaybackActivity extends AppCompatActivity
         super.onUserLeaveHint();
 
         //enter pip mode if enabled
-        if (getPrefBool(ConfigKeys.KEY_ENTER_PIP_ON_LEAVE, R.bool.DEF_ENTER_PIP_ON_LEAVE) && isPlayerPlaying())
+        if (getPrefBool(ConfigKeys.KEY_ENTER_PIP_ON_LEAVE, R.bool.DEF_ENTER_PIP_ON_LEAVE) && isPlaying())
             tryGoPip();
     }
 
@@ -468,6 +596,18 @@ public class PlaybackActivity extends AppCompatActivity
 
         //show user a Toast
         Toast.makeText(this, getString(R.string.toast_press_back_again_to_exit), Toast.LENGTH_SHORT).show();
+    }
+
+    /**
+     * Called on a crash shortly before the app is closed
+     *
+     * @param ex the exception that caused the crash
+     */
+    public void onCrash(Throwable ex)
+    {
+        //save playback position before app closes
+        Logging.logD("Saving Playback position on app crash...");
+        savePlaybackPosition();
     }
 
     //endregion
@@ -495,7 +635,7 @@ public class PlaybackActivity extends AppCompatActivity
         // playerView.setOnTouchListener(new SwipeGestureListener(TOUCH_DECAY_TIME, SWIPE_THRESHOLD_N, FLING_THRESHOLD_N,
         // new RectF(0, 20, 0, 75))
         int swipeFlingThreshold = getPrefInt(ConfigKeys.KEY_SWIPE_FLING_THRESHOLD, R.integer.DEF_SWIPE_FLING_THRESHOLD);
-        playerView.setOnTouchListener(new SwipeGestureListener(getPrefInt(ConfigKeys.KEY_TOUCH_DECAY_TIME, R.integer.DEF_TOUCH_DECAY_TIME), swipeFlingThreshold, swipeFlingThreshold,
+        playbackRootView.setOnTouchListener(new SwipeGestureListener(getPrefInt(ConfigKeys.KEY_TOUCH_DECAY_TIME, R.integer.DEF_TOUCH_DECAY_TIME), swipeFlingThreshold, swipeFlingThreshold,
                 new RectF(getPrefInt(ConfigKeys.KEY_SWIPE_DEAD_ZONE_RECT_LEFT, R.integer.DEF_SWIPE_DEAD_ZONE_LEFT),
                         getPrefInt(ConfigKeys.KEY_SWIPE_DEAD_ZONE_RECT_TOP, R.integer.DEF_SWIPE_DEAD_ZONE_TOP),
                         getPrefInt(ConfigKeys.KEY_SWIPE_DEAD_ZONE_RECT_RIGHT, R.integer.DEF_SWIPE_DEAD_ZONE_RIGHT),
@@ -558,8 +698,8 @@ public class PlaybackActivity extends AppCompatActivity
             @Override
             public void onNoSwipeClick(View view, PointF clickPos, SizeF screenSize)
             {
-                //hide system ui with click
-                hideSysUI();
+                //forward click to player controls
+                playerControlView.performClick();
                 super.onNoSwipeClick(view, clickPos, screenSize);
             }
         });
@@ -592,7 +732,7 @@ public class PlaybackActivity extends AppCompatActivity
         {
             brightnessStr = getString(R.string.info_brightness_auto);
         }
-        showInfoText(infoTextDurationMs, getString(R.string.info_brightness_change), brightnessStr);
+        showInfoText(getString(R.string.info_brightness_change), brightnessStr);
     }
 
     /**
@@ -627,7 +767,7 @@ public class PlaybackActivity extends AppCompatActivity
         int volumePercent = (int) Math.floor(((float) currentVolume - (float) minVolume) / ((float) maxVolume - (float) minVolume) * 100);
 
         //show info text
-        showInfoText(infoTextDurationMs, getString(R.string.info_volume_change), volumePercent);
+        showInfoText(getString(R.string.info_volume_change), volumePercent);
     }
 
     //endregion
@@ -635,6 +775,7 @@ public class PlaybackActivity extends AppCompatActivity
     //region ~~ Exoplayer setup and lifecycle ~~
 
     /**
+     * m
      * Initialize the media for playback
      *
      * @param playbackUri the Uri of the file / stream to play back
@@ -680,7 +821,23 @@ public class PlaybackActivity extends AppCompatActivity
         player.addMetadataOutput(metadataListener);
 
         //set the view to render to
-        playerView.setPlayer(player);
+        playerView.setSimpleExoPlayer(player);
+
+        //fit video to width of screen
+        playerView.setPlayerScaleType(PlayerScaleType.RESIZE_FIT_WIDTH);
+
+        //TODO: testing here
+
+        //initialize anime4k shader with raw resource ids
+        //GLAnime4K a4k = new GLAnime4K(this, R.raw.common, R.raw.colorget, R.raw.colorpush, R.raw.gradget, R.raw.gradpush);
+        //playerView.setGlFilter(a4k);
+        //player.addVideoListener(a4k);
+
+
+        //~END
+
+        //make controls visible
+        setUseController(true);
 
         //prepare media for playback
         player.prepare(media, true, false);
@@ -901,8 +1058,36 @@ public class PlaybackActivity extends AppCompatActivity
                 this.startActivity(new Intent(this, AppSettingsActivity.class));
                 break;
             }
+            case R.id.qs_btn_a4k_tgl:
+            {
+                //cycle between anime4k modes:
+                //increment current mode, reset when above 2 (can be 0, 1, 2)
+                currentAnime4kMode++;
+                if (currentAnime4kMode > 2) currentAnime4kMode = 0;
 
+                //set filter according to mode
+                if (currentAnime4kMode <= 0)
+                {
+                    //disable filter
+                    setAnime4kEnabled(false);
+                }
+                else
+                {
+                    //enable filter, set number of passes
+                    setAnime4kEnabled(true);
+                    if (anime4KFilter != null)
+                    {
+                        Logging.logD("Set Anime4K to " + currentAnime4kMode + " passes.");
+                        anime4KFilter.setPasses(currentAnime4kMode);
+                    }
+                }
+
+                //update qs button
+                updateAnime4kQSButton(currentAnime4kMode);
+                break;
+            }
             //endregion
+
             case R.id.pb_quick_settings:
             {
                 //open quick settings
@@ -957,7 +1142,7 @@ public class PlaybackActivity extends AppCompatActivity
         super.onPictureInPictureModeChanged(isInPictureInPictureMode);
 
         //hide controls when entering pip, re-enable when exiting pip
-        playerView.setUseController(!isInPictureInPictureMode);
+        setUseController(!isInPictureInPictureMode);
 
         //change the buffering spinner in pip mode
         updateBufferingSpinnerVisibility(isInPictureInPictureMode);
@@ -1001,7 +1186,7 @@ public class PlaybackActivity extends AppCompatActivity
         {
             //can enter pip mode, hide ui elements:
             //hide player controls
-            playerView.setUseController(false);
+            setUseController(false);
 
             //hide quick settings drawer
             hideQuickSettingsDrawer();
@@ -1158,65 +1343,106 @@ public class PlaybackActivity extends AppCompatActivity
     //region ~~ Utility ~~
 
     /**
-     * Retrieve the Uri to play from the intent
-     *
-     * @param intent the intent
-     * @return the retried uri, or null if no uri was found
+     * Save the current playback position to LAST_PLAYED_POSITION
      */
-    private Uri getUriFromIntent(Intent intent)
+    @SuppressLint("ApplySharedPref")
+    private void savePlaybackPosition()
     {
-        //log intent info
-        Logging.logD("call Intent: %s", intent.toString());
-        Bundle extra = intent.getExtras();
-        if (extra != null)
+        //check player and prefs are ok
+        if (player == null || appPreferences == null)
         {
-            Logging.logD("call Intent Extras: ");
-            for (String key : extra.keySet())
-            {
-                Object val = extra.get(key);
-                Logging.logD("\"%s\" : \"%s\"", key, (val == null ? "NULL" : val.toString()));
-            }
+            Logging.logD("player or preferences null, cannot save!");
+            return;
         }
 
-        //get playback uri from intent
-        String action = intent.getAction();
-        if (action == null || action.equalsIgnoreCase(Intent.ACTION_VIEW))
-        {
-            //action: open with OR directly open
-            return intent.getData();
-        }
-        else if (action.equalsIgnoreCase(Intent.ACTION_SEND))
-        {
-            //action: send to
-            String type = intent.getType();
-            if (type == null) return null;
+        //get position
+        long pos = player.getCurrentPosition();
 
-            if (type.equalsIgnoreCase("text/plain"))
-            {
-                //share a url from something like chrome, uri is in extra TEXT
-                if (intent.hasExtra(Intent.EXTRA_TEXT))
-                {
-                    return Uri.parse(intent.getStringExtra(Intent.EXTRA_TEXT));
-                }
-            }
-            else if (type.startsWith("video/")
-                    || type.startsWith("audio/"))
-            {
-                //probably shared from gallery, uri is in extra STREAM
-                if (intent.hasExtra(Intent.EXTRA_STREAM))
-                {
-                    return (Uri) intent.getExtras().get(Intent.EXTRA_STREAM);
-                }
-            }
+        //save to prefs
+        //use .commit() here since the main thread may close pretty much as soon as this function exits.
+        //this would leave no time for any async saving...
+        appPreferences.edit().putLong(ConfigKeys.KEY_LAST_PLAYED_POSITION, pos).commit();
+        Logging.logD("Saved LAST_PLAYED_POSITION!");
+    }
 
-            //failed to parse
-            return null;
+    /**
+     * Enable / disable anime4k filter
+     *
+     * @param enable enable anime4k?
+     */
+    private void setAnime4kEnabled(boolean enable)
+    {
+        Logging.logD("Setting Anime4K Filter to enabled=" + enable);
+        if (enable)
+        {
+            if (anime4KFilter == null)
+            {
+                //filter currently not enabled, enable it
+                anime4KFilter = new GLAnime4K(this, R.raw.common, R.raw.colorget, R.raw.colorpush, R.raw.gradget, R.raw.gradpush);
+
+                //set a4k as active filter
+                playerView.setGlFilter(anime4KFilter);
+
+                //set a4k as video listener
+                player.addVideoListener(anime4KFilter);
+
+                //set fps limiting values
+                int fpsLimit = -1;
+                if (getPrefBool(ConfigKeys.KEY_ANIME4K_FPS_LIMIT_ENABLE, R.bool.DEF_ANIME4K_FPS_LIMIT_EN))
+                {
+                    //enable the fps limit
+                    fpsLimit = getPrefInt(ConfigKeys.KEY_ANIME4K_FPS_LIMIT, R.integer.DEF_ANIME4K_FPS_LIMIT);
+                }
+                anime4KFilter.setFpsLimit(fpsLimit);
+                Logging.logD("Enabled Anime4K with fps limit %d", fpsLimit);
+            }
         }
         else
         {
-            //unknown
-            Logging.logW("Received Intent with unknown action: %s", intent.getAction());
-            return null;
+            if (anime4KFilter != null)
+            {
+                //filter currently enabled, disable it
+                //remove video listener
+                player.removeVideoListener(anime4KFilter);
+
+                //remove filter (this calls release on the filter)
+                playerView.setGlFilter(null);
+
+                //set variable to null
+                anime4KFilter = null;
+                Logging.logD("Disabled Anime4K");
+            }
+        }
+    }
+
+    /**
+     * Update the Anime4K Quick Settings button to match the given mode (0=disable, 1=1x, 2=2x)
+     *
+     * @param mode the mode to match
+     */
+    private void updateAnime4kQSButton(int mode)
+    {
+        switch (mode)
+        {
+            default:
+            case 0:
+            {
+                anime4kQSButton.setTextStr(getText(R.string.qs_anime4k_off).toString());
+                anime4kQSButton.setIconTint(getColor(R.color.qs_item_icon_default));
+                break;
+            }
+            case 1:
+            {
+                anime4kQSButton.setTextStr(getText(R.string.qs_anime4k_x1).toString());
+                anime4kQSButton.setIconTint(getColor(R.color.qs_item_icon_active));
+                break;
+            }
+            case 2:
+            {
+                anime4kQSButton.setTextStr(getText(R.string.qs_anime4k_x2).toString());
+                anime4kQSButton.setIconTint(getColor(R.color.qs_item_icon_active));
+                break;
+            }
         }
     }
 
@@ -1317,7 +1543,7 @@ public class PlaybackActivity extends AppCompatActivity
      *
      * @return is it?
      */
-    private boolean isPlayerPlaying()
+    private boolean isPlaying()
     {
         return player != null && player.getPlaybackState() == Player.STATE_READY && player.getPlayWhenReady();
     }
@@ -1360,75 +1586,31 @@ public class PlaybackActivity extends AppCompatActivity
     }
 
     /**
-     * Parse the name of the streamed file from the playback uri
+     * Set the visibility of the player controller
      *
-     * @param uri          the playback uri (fallback to filename)
-     * @param invokeIntent the intent that invoked this activity (parse Title Extra)
-     * @return the parsed file name, or null if parsing failed
+     * @param useController should the controller be used?
      */
-    private String parseTitle(@NonNull Uri uri, @NonNull Intent invokeIntent)
+    private void setUseController(boolean useController)
     {
-        //prep title
-        String title = null;
+        //skip if player control view is null
+        if (playerControlView == null) return;
 
-        //get intent extras
-        Bundle extraData = invokeIntent.getExtras();
-        if (extraData != null)
+        if (useController)
         {
-            //try to get title from extras
-            if (extraData.containsKey(Intent.EXTRA_TITLE))
+            if (playerControlView.getPlayer() != player)
             {
-                //has default title extra, use that
-                title = extraData.getString(Intent.EXTRA_TITLE);
-                Logging.logD("Parsing title from default EXTRA_TITLE...");
-            }
-            else
-            {
-                //check each key if it contains "title" and has a String value that is not null or empty
-                for (String key : extraData.keySet())
-                {
-                    if (key.toLowerCase(Locale.US).contains("title"))
-                    {
-                        //key contains "title" in some sort, get value
-                        Object val = extraData.get(key);
-
-                        //check if value is not null and a string
-                        if (val instanceof String)
-                        {
-                            //convert value to string
-                            String valStr = (String) val;
-
-                            //check if string value is not empty
-                            if (!valStr.isEmpty())
-                            {
-                                //could be our title, set it
-                                title = valStr;
-                                Logging.logD("Parsing title from non- default title extra (\"%s\" : \"%s\")", key, valStr);
-                            }
-                        }
-                    }
-                }
+                //has no or wrong player, assign it
+                playerControlView.setPlayer(player);
             }
 
-
-            if (title != null) Logging.logD("parsed final title from extra: %s", title);
+            //show controls
+            playerControlView.show();
         }
-
-        //check if got title from extras
-        if (title == null || title.isEmpty())
+        else
         {
-            //no title set yet, try to get the title using the last path segment of the uri
-            title = uri.getLastPathSegment();
-            if (title != null && !title.isEmpty() && title.indexOf('.') != -1)
-            {
-                //last path segment worked, remove file extension
-                title = title.substring(0, title.lastIndexOf('.'));
-                Logging.logD("parse title from uri: %s", title);
-            }
+            //hide controls
+            playerControlView.hide();
         }
-
-        //return title
-        return title;
     }
 
     /**
@@ -1445,11 +1627,10 @@ public class PlaybackActivity extends AppCompatActivity
     /**
      * Show info text in the middle of the screen, using the InfoText View
      *
-     * @param duration how long to show the info text box, in milliseconds
-     * @param text     the text to show
-     * @param format   formatting options (using US locale)
+     * @param text   the text to show
+     * @param format formatting options (using US locale)
      */
-    private void showInfoText(@SuppressWarnings("SameParameterValue") long duration, String text, Object... format)
+    private void showInfoText(String text, Object... format)
     {
         //remove all previous messages related to fading out the info text
         delayHandler.removeMessages(Messages.START_FADE_OUT_INFO_TEXT);
@@ -1462,8 +1643,11 @@ public class PlaybackActivity extends AppCompatActivity
         infoTextView.setAnimation(null);
         infoTextView.setVisibility(View.VISIBLE);
 
+        //get how long the text should be visible
+
+
         //hide text after delay
-        delayHandler.sendEmptyMessageDelayed(Messages.START_FADE_OUT_INFO_TEXT, duration);
+        delayHandler.sendEmptyMessageDelayed(Messages.START_FADE_OUT_INFO_TEXT, infoTextDurationMs);
     }
 
     /**
@@ -1509,19 +1693,6 @@ public class PlaybackActivity extends AppCompatActivity
             //has permission
             return true;
         }
-    }
-
-    /**
-     * Hide System- UI elements
-     */
-    private void hideSysUI()
-    {
-        playerView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
-                | View.SYSTEM_UI_FLAG_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
     }
 
     /**

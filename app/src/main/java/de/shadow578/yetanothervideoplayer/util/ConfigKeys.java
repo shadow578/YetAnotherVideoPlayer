@@ -106,4 +106,39 @@ public final class ConfigKeys
      * persistent volume value (audio manager volume index)
      */
     public static final String KEY_PERSIST_VOLUME = "PERSIST_VOLUME";
+
+    /**
+     * anime4k fps limiter enable (true/false)
+     */
+    public static final String KEY_ANIME4K_FPS_LIMIT_ENABLE = "ANIME4K_FPS_LIMIT_EN";
+
+    /**
+     * fps limit value for anime4k filter
+     */
+    public static final String KEY_ANIME4K_FPS_LIMIT = "ANIME4K_FPS_LIMIT";
+
+    /**
+     * low battery warning enable (warn if battery less than threshold)
+     */
+    public static final String KEY_BATTERY_WARN_ENABLE = "BATTERY_WARN_EN";
+
+    /**
+     * threshold at which a battery warning is shown
+     */
+    public static final String KEY_BATTERY_WARN_THRESHOLD = "BATTERY_WARN_THRESHOLD";
+
+    /**
+     * last played video title value ("resume where i left off")
+     */
+    public static final String KEY_LAST_PLAYED_TITLE = "LAST_PLAYED_TITLE";
+
+    /**
+     * last played video url value ("resume where i left off")
+     */
+    public static final String KEY_LAST_PLAYED_URL = "LAST_PLAYED_URL";
+
+    /**
+     * last played video progress (=position) value ("resume where i left off")
+     */
+    public static final String KEY_LAST_PLAYED_POSITION = "LAST_PLAYED_POSITION";
 }
