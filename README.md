@@ -1,3 +1,6 @@
+This Branch is functionally the same as the (now) master branch. I experimented a bit in this branch, and it is (as is) not functional.
+Development in this Branch will NOT be continued. If you're interested in how I implemented GLSL shaders in this Videoplayer, take a look at the (now) master branch.
+
 # Yet Another Video Player
 Yet Another Video Player (YAVP for short) is a Android Video Player based on Exoplayer V2
 
