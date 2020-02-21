@@ -290,7 +290,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     private final Handler delayHandler = new Handler(Looper.getMainLooper())
     {
         @Override
-        public void handleMessage(@NonNull Message msg)
+        public void handleMessage(Message msg)
         {
             switch (msg.what)
             {
@@ -474,7 +474,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
 
     @SuppressWarnings("SwitchStatementWithTooFewBranches")
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, int[] grantResults)
     {
         Logging.logD("Request Permission Result received for request id %d", requestCode);
 
@@ -825,16 +825,6 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
 
         //fit video to width of screen
         playerView.setPlayerScaleType(PlayerScaleType.RESIZE_FIT_WIDTH);
-
-        //TODO: testing here
-
-        //initialize anime4k shader with raw resource ids
-        //GLAnime4K a4k = new GLAnime4K(this, R.raw.common, R.raw.colorget, R.raw.colorpush, R.raw.gradget, R.raw.gradpush);
-        //playerView.setGlFilter(a4k);
-        //player.addVideoListener(a4k);
-
-
-        //~END
 
         //make controls visible
         setUseController(true);
@@ -1806,22 +1796,13 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             Logging.logE("ExoPlayer error occurred: %s", error.toString());
             Toast.makeText(getApplicationContext(), error.toString(), Toast.LENGTH_LONG).show();
 
-            //TODO: do something with the player error...
-
-            //show dialog
-            //AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
-            //builder.setTitle(R.string.dialog_player_error_title)
-            //        .setMessage(error.toString())
-            //        .setCancelable(false)
-            //        .setPositiveButton(R.string.dialog_player_error_btn_exit, new DialogInterface.OnClickListener()
-            //        {
-            //            public void onClick(DialogInterface dialog, int id)
-            //            {
-            //                //close app
-            //                finish();
-            //            }
-            //        });
-            //builder.create().show();
+            //try to call exception handler for the app (to open exception handler)
+            Application app = getApplication();
+            if (app instanceof YAVPApp)
+            {
+                YAVPApp yavp = (YAVPApp) app;
+                yavp.uncaughtException(Thread.currentThread(), error);
+            }
         }
     }
 
