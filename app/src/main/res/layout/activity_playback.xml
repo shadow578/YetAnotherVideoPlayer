@@ -15,7 +15,7 @@
         <include layout="@layout/layout_playback_main" />
     </RelativeLayout>
 
-    <!-- left drawer = quick settings-->
+    <!-- right drawer = quick settings-->
     <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
@@ -23,7 +23,19 @@
 
         <include layout="@layout/layout_playback_quick_settings"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_centerInParent="true"/>
+    </RelativeLayout>
+
+    <!-- left drawer = shader settings-->
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start">
+
+        <include layout="@layout/layout_playback_shader_settings"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
             android:layout_centerInParent="true"/>
     </RelativeLayout>
 </androidx.drawerlayout.widget.DrawerLayout>

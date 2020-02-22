@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:layout_marginTop="20dp"
+    android:layout_marginBottom="20dp"
+    android:background="@color/qs_background">
+
+    <!-- scroll view is required to allow scrolling of settings on smaller screens (that cant fit all settings at once) -->
+    <ScrollView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        tools:ignore="UselessParent">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="5dp"
+            android:layout_marginBottom="10dp"
+            android:minWidth="250dp"
+            android:orientation="vertical">
+
+            <!-- Anime4K shader button -->
+            <de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton
+                android:id="@+id/qs_btn_a4k_tgl"
+                style="@style/QuickSettingsButton"
+                app:icon="@drawable/ic_a4k_black"
+                app:text="@string/qs_anime4k_off" />
+
+        </LinearLayout>
+    </ScrollView>
+</RelativeLayout>
