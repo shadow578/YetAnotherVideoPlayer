@@ -10,13 +10,15 @@
         android:id="@+id/pb_playerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_centerInParent="true"/>
+        android:layout_centerInParent="true"
+        android:elevation="0dp"/>
 
     <!-- Player Controls -->
     <de.shadow578.yetanothervideoplayer.ui.components.PlayerControlViewWrapper
         android:id="@+id/pb_playerControlView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:elevation="500dp"
         app:controller_layout_id="@layout/layout_exo_controls"
         app:use_artwork="true"/>
 
@@ -32,6 +34,7 @@
         android:textColor="@color/info_text_text"
         android:textSize="20sp"
         android:visibility="invisible"
+        android:elevation="999dp"
         tools:ignore="HardcodedText" />
 
     <!-- Buffering Progress Wheels for normal + pip mode -->
@@ -40,7 +43,8 @@
         android:layout_width="150dp"
         android:layout_height="150dp"
         android:layout_centerInParent="true"
-        android:visibility="visible">
+        android:visibility="visible"
+        android:elevation="1000dp">
 
         <!-- Buffering Progress Wheel, normal mode-->
         <com.pnikosis.materialishprogress.ProgressWheel
