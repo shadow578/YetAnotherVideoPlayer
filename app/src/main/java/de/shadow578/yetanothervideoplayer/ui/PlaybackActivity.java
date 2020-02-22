@@ -1264,13 +1264,13 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
 
         //add buttons:
         //reverse button
-        actions.add(createPipAction(PIPConstants.REQUEST_REWIND, R.drawable.ic_fast_rewind_48px, R.string.pip_title_f_rewind, R.string.exo_controls_rewind_description));
+        actions.add(createPipAction(PIPConstants.REQUEST_REWIND, R.drawable.ic_fast_rewind_black_48dp, R.string.pip_title_f_rewind, R.string.exo_controls_rewind_description));
 
         //region ~~Play/Pause/Replay Button ~~
         if (player.getPlaybackState() == Player.STATE_ENDED)
         {
             //ended, show replay button
-            actions.add(createPipAction(PIPConstants.REQUEST_REPLAY, R.drawable.ic_replay_48px, R.string.pip_title_replay, R.string.exo_controls_play_description));
+            actions.add(createPipAction(PIPConstants.REQUEST_REPLAY, R.drawable.ic_replay_black_48dp, R.string.pip_title_replay, R.string.exo_controls_play_description));
         }
         else
         {
@@ -1278,18 +1278,18 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             if (player.getPlayWhenReady())
             {
                 //currently playing, show pause button
-                actions.add(createPipAction(PIPConstants.REQUEST_PLAY_PAUSE, R.drawable.ic_pause_48px, R.string.pip_title_pause, R.string.exo_controls_pause_description));
+                actions.add(createPipAction(PIPConstants.REQUEST_PLAY_PAUSE, R.drawable.ic_pause_black_48dp, R.string.pip_title_pause, R.string.exo_controls_pause_description));
             }
             else
             {
                 //currently paused, show play button
-                actions.add(createPipAction(PIPConstants.REQUEST_PLAY_PAUSE, R.drawable.ic_play_arrow_48px, R.string.pip_title_play, R.string.exo_controls_play_description));
+                actions.add(createPipAction(PIPConstants.REQUEST_PLAY_PAUSE, R.drawable.ic_play_arrow_black_48dp, R.string.pip_title_play, R.string.exo_controls_play_description));
             }
         }
         //endregion
 
         //fast- forward button
-        actions.add(createPipAction(PIPConstants.REQUEST_FAST_FORWARD, R.drawable.ic_fast_forward_48px, R.string.pip_title_f_forward, R.string.exo_controls_fastforward_description));
+        actions.add(createPipAction(PIPConstants.REQUEST_FAST_FORWARD, R.drawable.ic_fast_forward_black_48dp, R.string.pip_title_f_forward, R.string.exo_controls_fastforward_description));
 
         //built the pip params
         PictureInPictureParams params = new PictureInPictureParams.Builder().setActions(actions).build();
@@ -1725,7 +1725,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             if (replayButtonVisible)
             {
                 //reset graphic to the play button if needed
-                playButton.setImageResource(R.drawable.ic_play_arrow_48px);
+                playButton.setImageResource(R.drawable.ic_play_arrow_black_48dp);
                 replayButtonVisible = false;
             }
 
@@ -1775,7 +1775,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                     else
                     {
                         //change play button graphic to replay button
-                        playButton.setImageResource(R.drawable.ic_replay_48px);
+                        playButton.setImageResource(R.drawable.ic_replay_black_48dp);
                         replayButtonVisible = true;
                     }
                     break;

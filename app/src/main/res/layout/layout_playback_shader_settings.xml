@@ -28,7 +28,7 @@
             <de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton
                 android:id="@+id/qs_btn_a4k_tgl"
                 style="@style/QuickSettingsButton"
-                app:icon="@drawable/ic_a4k_black"
+                app:icon="@drawable/ic_a4k_black_48dp"
                 app:text="@string/qs_anime4k_off" />
 
         </LinearLayout>

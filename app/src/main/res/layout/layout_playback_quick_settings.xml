@@ -29,21 +29,21 @@
                 android:id="@+id/qs_btn_quality"
                 style="@style/QuickSettingsButton"
                 android:visibility="gone"
-                app:icon="@drawable/ic_high_quality_48px"
+                app:icon="@drawable/ic_high_quality_black_48dp"
                 app:text="@string/qs_quality" />
 
             <!-- Jump to -->
             <de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton
                 android:id="@+id/qs_btn_jump_to"
                 style="@style/QuickSettingsButton"
-                app:icon="@drawable/ic_jump_to"
+                app:icon="@drawable/ic_jump_to_black_48dp"
                 app:text="@string/qs_jump_to" />
 
             <!-- picture in picture -->
             <de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton
                 android:id="@+id/qs_btn_pip"
                 style="@style/QuickSettingsButton"
-                app:icon="@drawable/ic_picture_in_picture_48px"
+                app:icon="@drawable/ic_picture_in_picture_black_48dp"
                 app:text="@string/qs_picture_in_picture" />
 
             <!-- Cast -->
@@ -51,14 +51,14 @@
                 android:id="@+id/qs_btn_cast"
                 style="@style/QuickSettingsButton"
                 android:visibility="gone"
-                app:icon="@drawable/ic_cast_48px"
+                app:icon="@drawable/ic_cast_black_48dp"
                 app:text="@string/qs_cast" />
 
             <!-- repeat toggle -->
             <de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton
                 android:id="@+id/qs_btn_repeat_tgl"
                 style="@style/QuickSettingsButton"
-                app:icon="@drawable/ic_repeat_48px"
+                app:icon="@drawable/ic_repeat_black_48dp"
                 app:text="@string/qs_repeat" />
 
             <!-- captions -->
@@ -66,14 +66,14 @@
                 android:id="@+id/qs_btn_captions"
                 style="@style/QuickSettingsButton"
                 android:visibility="gone"
-                app:icon="@drawable/ic_closed_caption_48px"
+                app:icon="@drawable/ic_closed_caption_black_48dp"
                 app:text="@string/qs_closed_captions" />
 
             <!-- settings -->
             <de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton
                 android:id="@+id/qs_btn_app_settings"
                 style="@style/QuickSettingsButton"
-                app:icon="@drawable/ic_settings_48px"
+                app:icon="@drawable/ic_settings_black_48dp"
                 app:text="@string/qs_app_settings" />
         </LinearLayout>
     </ScrollView>
