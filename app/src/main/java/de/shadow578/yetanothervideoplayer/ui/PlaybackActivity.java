@@ -635,7 +635,9 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         // playerView.setOnTouchListener(new SwipeGestureListener(TOUCH_DECAY_TIME, SWIPE_THRESHOLD_N, FLING_THRESHOLD_N,
         // new RectF(0, 20, 0, 75))
         int swipeFlingThreshold = getPrefInt(ConfigKeys.KEY_SWIPE_FLING_THRESHOLD, R.integer.DEF_SWIPE_FLING_THRESHOLD);
-        playbackRootView.setOnTouchListener(new SwipeGestureListener(getPrefInt(ConfigKeys.KEY_TOUCH_DECAY_TIME, R.integer.DEF_TOUCH_DECAY_TIME), swipeFlingThreshold, swipeFlingThreshold,
+        int touchDecayTime = getPrefInt(ConfigKeys.KEY_TOUCH_DECAY_TIME, R.integer.DEF_TOUCH_DECAY_TIME);
+
+        playbackRootView.setOnTouchListener(new SwipeGestureListener(touchDecayTime, swipeFlingThreshold, swipeFlingThreshold,
                 new RectF(getPrefInt(ConfigKeys.KEY_SWIPE_DEAD_ZONE_RECT_LEFT, R.integer.DEF_SWIPE_DEAD_ZONE_LEFT),
                         getPrefInt(ConfigKeys.KEY_SWIPE_DEAD_ZONE_RECT_TOP, R.integer.DEF_SWIPE_DEAD_ZONE_TOP),
                         getPrefInt(ConfigKeys.KEY_SWIPE_DEAD_ZONE_RECT_RIGHT, R.integer.DEF_SWIPE_DEAD_ZONE_RIGHT),
@@ -688,6 +690,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             @Override
             public void onHorizontalFling(float deltaX, PointF flingStart, PointF flingEnd, SizeF screenSize)
             {
+                Logging.logD("HFling: " + deltaX + " dp");
             }
 
             @Override
