@@ -36,6 +36,10 @@ import android.content.pm.PackageManager;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.drawable.Icon;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.BatteryManager;
@@ -43,6 +47,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Log;
 import android.util.SizeF;
 import android.view.View;
 import android.view.WindowManager;
@@ -199,6 +204,11 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
      * Set to null if filter is inactive
      */
     private GLAnime4K anime4KFilter;
+
+    /**
+     * Manager object for automatic pausing based on sensor values
+     */
+    private AutomaticPauseManager autoPauseManager;
 
     /**
      * flag to indicate that a battery low warning was shown to the user
@@ -411,6 +421,14 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         //setup gesture controls
         setupGestures();
 
+        //setup auto- pause manager
+        autoPauseManager = new AutomaticPauseManager(this);
+        if (!autoPauseManager.initialize())
+        {
+            Logging.logW("Initialize of autoPauseManager failed!");
+            autoPauseManager = null;
+        }
+
         //set this activity as a crash handler so we can save the playback position on crashes
         Application app = getApplication();
         if (app instanceof YAVPApp)
@@ -517,6 +535,9 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             //app can be visible but NOT active in split window mode
             initPlayer(playbackMedia);
         }
+
+        //update autoPauseManager
+        if (autoPauseManager != null) autoPauseManager.activate();
     }
 
     @Override
@@ -531,6 +552,9 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             //app cannot be visible without being active...
             initPlayer(playbackMedia);
         }
+
+        //update autoPauseManager
+        if (autoPauseManager != null) autoPauseManager.activate();
     }
 
     @Override
@@ -548,6 +572,9 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             //with multi-window support, the app may be visible when onPause is called.
             freePlayer();
         }
+
+        //update autoPauseManager
+        if (autoPauseManager != null) autoPauseManager.deactivate();
     }
 
     @Override
@@ -565,6 +592,9 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             //onStop was not guaranteed to be called
             freePlayer();
         }
+
+        //update autoPauseManager
+        if (autoPauseManager != null) autoPauseManager.deactivate();
     }
 
     @Override
@@ -1614,7 +1644,13 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
      */
     private void setBuffering(boolean isBuffering)
     {
-        bufferingSpinner.setVisibility(isBuffering ? View.VISIBLE : View.INVISIBLE);
+        bufferingSpinner.setVisibility(isBuffering ? View.VISIBLE : View.GONE);
+
+        //this hopefully fixes the video gl surface rendering over the spinner
+        if (isBuffering)
+        {
+            bufferingSpinner.bringToFront();
+        }
     }
 
     /**
@@ -1918,6 +1954,165 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                     break;
                 }
             }
+        }
+    }
+
+    /**
+     * Handles automatic pausing and screen blanking based on sensor states
+     */
+    private class AutomaticPauseManager implements SensorEventListener
+    {
+        /**
+         * The context of this manager
+         */
+        Context context;
+
+        /**
+         * The sensor manager object the manager uses
+         */
+        SensorManager sensorManager;
+
+        /**
+         * The proximity sensor that is in use (default one)
+         */
+        Sensor proximitySensor;
+
+        /**
+         * The light sensor that is used in addition to the proximity sensor (since samsung phones are stupid)
+         */
+        Sensor lightSensor;
+
+        /**
+         * is the managers currently registered as sensor callback?
+         */
+        boolean isSensorCallbackActive = false;
+
+        /**
+         * The last reported proximity, normalized value (0-1)
+         * -1 if no value was reported (yet)
+         */
+        float lastProximity = -1f;
+
+        /**
+         * The last reported light value, normalized value (0-1)
+         * -1 if no value was reported (yet)
+         */
+        float lastLight = -1f;
+
+        /**
+         * Initialize the Manager
+         *
+         * @param ctx the context to work in
+         */
+        AutomaticPauseManager(Context ctx)
+        {
+            //set context for later
+            context = ctx;
+        }
+
+        /**
+         * Initialize the manager for work
+         * Call this in onCreate()
+         * You still need to call activate() and deactivate() !
+         *
+         * @return was initialisation ok?
+         */
+        boolean initialize()
+        {
+            //check the context is valid
+            if (context == null) return false;
+
+            //get sensor manager
+            sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+
+            //check we have a sensor manager
+            if (sensorManager == null) return false;
+
+            //get the proximity sensor
+            proximitySensor = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
+
+            //get the light sensor
+            lightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+
+            //check we have at least one sensor now
+            return proximitySensor != null || lightSensor != null;
+        }
+
+        /**
+         * Activate the Manager
+         * Call this in onResume() AND onStart()
+         */
+        void activate()
+        {
+            //only if not active
+            if (isSensorCallbackActive) return;
+            isSensorCallbackActive = true;
+
+            //enable sensor callbacks
+            Logging.logD("AutoPauseManager activate()");
+            if (proximitySensor != null)
+                sensorManager.registerListener(this, proximitySensor, SensorManager.SENSOR_DELAY_NORMAL);
+            if (lightSensor != null)
+                sensorManager.registerListener(this, lightSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+
+        /**
+         * Deactivate the Manager
+         * Call this in onPause() AND onStop()
+         */
+        void deactivate()
+        {
+            //only if is active
+            if (!isSensorCallbackActive) return;
+            isSensorCallbackActive = false;
+
+            //disable all callbacks
+            Logging.logD("AutoPauseManager deactivate()");
+            sensorManager.unregisterListener(this);
+        }
+
+
+        @Override
+        public void onSensorChanged(SensorEvent e)
+        {
+            //check values array is populated (sanity check)
+            if (e.values.length <= 0) return;
+
+            //check what sensor changed
+            //ONLY allow value of 0 from the second reading on to avoid constant pausing if a sensor only reads zero (defective sensor)
+            if (e.sensor.equals(proximitySensor) && (lastProximity != -1 || e.values[0] > 0))
+            {
+                //proximity update!
+                lastProximity = e.values[0] / e.sensor.getMaximumRange();
+            }
+            else if (e.sensor.equals(lightSensor) && (lastLight != -1 || e.values[0] > 0))
+            {
+                //light update!
+                lastLight = e.values[0];// / e.sensor.getMaximumRange();
+            }
+
+            //check if sensor values indicate face- down situation (based on available sensors)
+            boolean isProximityNear = proximitySensor != null && lastProximity != -1 && lastProximity <= 0.01f;
+            boolean isLightNear = lightSensor != null && lastLight != -1 && lastLight <= 0.1;
+
+            //TODO: make this less shitty
+            Logging.logE("NEAR_Proximity= %b;\t NEAR_Light= %b", isProximityNear, isLightNear);
+            if (isProximityNear || isLightNear)
+            {
+                Toast.makeText(context, String.format("DEV:PROX_AP; prox= %b; ligh= %b", isProximityNear, isLightNear), Toast.LENGTH_LONG).show();
+                triggerAutoPause();
+            }
+
+        }
+
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int i)
+        {
+        }
+
+        void triggerAutoPause()
+        {
+            player.setPlayWhenReady(false);
         }
     }
 }
