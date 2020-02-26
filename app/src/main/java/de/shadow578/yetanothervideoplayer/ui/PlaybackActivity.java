@@ -47,7 +47,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.util.Log;
 import android.util.SizeF;
 import android.view.View;
 import android.view.WindowManager;
@@ -1978,26 +1977,15 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         Sensor proximitySensor;
 
         /**
-         * The light sensor that is used in addition to the proximity sensor (since samsung phones are stupid)
-         */
-        Sensor lightSensor;
-
-        /**
          * is the managers currently registered as sensor callback?
          */
         boolean isSensorCallbackActive = false;
 
         /**
-         * The last reported proximity, normalized value (0-1)
+         * The last reported proximity (or light value)
          * -1 if no value was reported (yet)
          */
         float lastProximity = -1f;
-
-        /**
-         * The last reported light value, normalized value (0-1)
-         * -1 if no value was reported (yet)
-         */
-        float lastLight = -1f;
 
         /**
          * Initialize the Manager
@@ -2031,11 +2019,14 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             //get the proximity sensor
             proximitySensor = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
 
-            //get the light sensor
-            lightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+            //if we did not get a proximity sensor, try to get a light sensor
+            if (proximitySensor == null)
+            {
+                proximitySensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+            }
 
-            //check we have at least one sensor now
-            return proximitySensor != null || lightSensor != null;
+            //check we have a sensor now
+            return proximitySensor != null;
         }
 
         /**
@@ -2048,12 +2039,10 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             if (isSensorCallbackActive) return;
             isSensorCallbackActive = true;
 
-            //enable sensor callbacks
+            //enable sensor callback
             Logging.logD("AutoPauseManager activate()");
             if (proximitySensor != null)
                 sensorManager.registerListener(this, proximitySensor, SensorManager.SENSOR_DELAY_NORMAL);
-            if (lightSensor != null)
-                sensorManager.registerListener(this, lightSensor, SensorManager.SENSOR_DELAY_NORMAL);
         }
 
         /**
@@ -2082,25 +2071,22 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             //ONLY allow value of 0 from the second reading on to avoid constant pausing if a sensor only reads zero (defective sensor)
             if (e.sensor.equals(proximitySensor) && (lastProximity != -1 || e.values[0] > 0))
             {
-                //proximity update!
-                lastProximity = e.values[0] / e.sensor.getMaximumRange();
-            }
-            else if (e.sensor.equals(lightSensor) && (lastLight != -1 || e.values[0] > 0))
-            {
-                //light update!
-                lastLight = e.values[0];// / e.sensor.getMaximumRange();
+                //update proximity value
+                lastProximity = e.values[0];
             }
 
-            //check if sensor values indicate face- down situation (based on available sensors)
-            boolean isProximityNear = proximitySensor != null && lastProximity != -1 && lastProximity <= 0.01f;
-            boolean isLightNear = lightSensor != null && lastLight != -1 && lastLight <= 0.1;
+            //check if proximity sensor reports NEAR value (less than 1)
+            boolean isProximityNear = proximitySensor != null && lastProximity != -1 && lastProximity <= 1;
 
             //TODO: make this less shitty
-            Logging.logE("NEAR_Proximity= %b;\t NEAR_Light= %b", isProximityNear, isLightNear);
-            if (isProximityNear || isLightNear)
+            // - enable/disable using persistent qs
+            // - 2 modes (Simple = only proximity sensor, eg. put phone on table + Extreme = proximity + eye tracking lol, eg. blank screen when looking away) + off
+            // - eye tracking /w lib https://github.com/kevalpatel2106/Prevent-Screen-Off
+            Logging.logE("PRX_VAL= %.2f; OF_MAX= %.2f; IS_NEAR= %b", lastProximity, e.sensor.getMaximumRange(), isProximityNear);
+            if (isProximityNear)
             {
-                Toast.makeText(context, String.format("DEV:PROX_AP; prox= %b; ligh= %b", isProximityNear, isLightNear), Toast.LENGTH_LONG).show();
-                triggerAutoPause();
+                //Toast.makeText(context, String.format("DEV:PROX_AP; prox= %b; ligh= %b", isProximityNear, false), Toast.LENGTH_LONG).show();
+                //triggerAutoPause();
             }
 
         }

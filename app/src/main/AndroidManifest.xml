@@ -11,6 +11,10 @@
     <!-- To Play local files -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
+    <!-- for auto- pause presence detection -->
+    <uses-feature android:name="android.hardware.sensor.proximity" />
+    <uses-feature android:name="android.hardware.sensor.light" />
+
     <application
         android:name=".YAVPApp"
         android:allowBackup="true"
@@ -237,7 +241,7 @@
         <activity
             android:name=".ui.CrashScreenActivity"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.SplashActivity"/>
+            android:theme="@style/AppTheme.SplashActivity" />
     </application>
 
 </manifest>
