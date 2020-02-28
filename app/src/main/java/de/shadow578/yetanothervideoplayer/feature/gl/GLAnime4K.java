@@ -1,4 +1,4 @@
-package de.shadow578.yetanothervideoplayer.gl;
+package de.shadow578.yetanothervideoplayer.feature.gl;
 
 import android.content.Context;
 

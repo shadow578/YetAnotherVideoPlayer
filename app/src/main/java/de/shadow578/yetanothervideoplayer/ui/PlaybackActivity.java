@@ -10,12 +10,12 @@ import androidx.preference.PreferenceManager;
 
 import de.shadow578.yetanothervideoplayer.R;
 import de.shadow578.yetanothervideoplayer.YAVPApp;
-import de.shadow578.yetanothervideoplayer.gl.GLAnime4K;
+import de.shadow578.yetanothervideoplayer.feature.gl.GLAnime4K;
 import de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton;
 import de.shadow578.yetanothervideoplayer.ui.components.PlayerControlViewWrapper;
 import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
 import de.shadow578.yetanothervideoplayer.util.Logging;
-import de.shadow578.yetanothervideoplayer.swipe.SwipeGestureListener;
+import de.shadow578.yetanothervideoplayer.feature.swipe.SwipeGestureListener;
 import de.shadow578.yetanothervideoplayer.util.UniversalMediaSourceFactory;
 
 import android.Manifest;
@@ -1953,152 +1953,6 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                     break;
                 }
             }
-        }
-    }
-
-    /**
-     * Handles automatic pausing and screen blanking based on sensor states
-     */
-    private class AutomaticPauseManager implements SensorEventListener
-    {
-        /**
-         * The context of this manager
-         */
-        Context context;
-
-        /**
-         * The sensor manager object the manager uses
-         */
-        SensorManager sensorManager;
-
-        /**
-         * The proximity sensor that is in use (default one)
-         */
-        Sensor proximitySensor;
-
-        /**
-         * is the managers currently registered as sensor callback?
-         */
-        boolean isSensorCallbackActive = false;
-
-        /**
-         * The last reported proximity (or light value)
-         * -1 if no value was reported (yet)
-         */
-        float lastProximity = -1f;
-
-        /**
-         * Initialize the Manager
-         *
-         * @param ctx the context to work in
-         */
-        AutomaticPauseManager(Context ctx)
-        {
-            //set context for later
-            context = ctx;
-        }
-
-        /**
-         * Initialize the manager for work
-         * Call this in onCreate()
-         * You still need to call activate() and deactivate() !
-         *
-         * @return was initialisation ok?
-         */
-        boolean initialize()
-        {
-            //check the context is valid
-            if (context == null) return false;
-
-            //get sensor manager
-            sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
-
-            //check we have a sensor manager
-            if (sensorManager == null) return false;
-
-            //get the proximity sensor
-            proximitySensor = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
-
-            //if we did not get a proximity sensor, try to get a light sensor
-            if (proximitySensor == null)
-            {
-                proximitySensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
-            }
-
-            //check we have a sensor now
-            return proximitySensor != null;
-        }
-
-        /**
-         * Activate the Manager
-         * Call this in onResume() AND onStart()
-         */
-        void activate()
-        {
-            //only if not active
-            if (isSensorCallbackActive) return;
-            isSensorCallbackActive = true;
-
-            //enable sensor callback
-            Logging.logD("AutoPauseManager activate()");
-            if (proximitySensor != null)
-                sensorManager.registerListener(this, proximitySensor, SensorManager.SENSOR_DELAY_NORMAL);
-        }
-
-        /**
-         * Deactivate the Manager
-         * Call this in onPause() AND onStop()
-         */
-        void deactivate()
-        {
-            //only if is active
-            if (!isSensorCallbackActive) return;
-            isSensorCallbackActive = false;
-
-            //disable all callbacks
-            Logging.logD("AutoPauseManager deactivate()");
-            sensorManager.unregisterListener(this);
-        }
-
-
-        @Override
-        public void onSensorChanged(SensorEvent e)
-        {
-            //check values array is populated (sanity check)
-            if (e.values.length <= 0) return;
-
-            //check what sensor changed
-            //ONLY allow value of 0 from the second reading on to avoid constant pausing if a sensor only reads zero (defective sensor)
-            if (e.sensor.equals(proximitySensor) && (lastProximity != -1 || e.values[0] > 0))
-            {
-                //update proximity value
-                lastProximity = e.values[0];
-            }
-
-            //check if proximity sensor reports NEAR value (less than 1)
-            boolean isProximityNear = proximitySensor != null && lastProximity != -1 && lastProximity <= 1;
-
-            //TODO: make this less shitty
-            // - enable/disable using persistent qs
-            // - 2 modes (Simple = only proximity sensor, eg. put phone on table + Extreme = proximity + eye tracking lol, eg. blank screen when looking away) + off
-            // - eye tracking /w lib https://github.com/kevalpatel2106/Prevent-Screen-Off
-            Logging.logE("PRX_VAL= %.2f; OF_MAX= %.2f; IS_NEAR= %b", lastProximity, e.sensor.getMaximumRange(), isProximityNear);
-            if (isProximityNear)
-            {
-                //Toast.makeText(context, String.format("DEV:PROX_AP; prox= %b; ligh= %b", isProximityNear, false), Toast.LENGTH_LONG).show();
-                //triggerAutoPause();
-            }
-
-        }
-
-        @Override
-        public void onAccuracyChanged(Sensor sensor, int i)
-        {
-        }
-
-        void triggerAutoPause()
-        {
-            player.setPlayWhenReady(false);
         }
     }
 }
