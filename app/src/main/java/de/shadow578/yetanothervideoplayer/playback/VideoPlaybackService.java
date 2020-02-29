@@ -61,6 +61,8 @@ public class VideoPlaybackService extends Service
     @Override
     public IBinder onBind(Intent intent)
     {
+        Logging.logD("VideoPlaybackService.onBind()");
+
         //initialize the player
         initializePlayer();
 
@@ -74,6 +76,8 @@ public class VideoPlaybackService extends Service
     @Override
     public void onDestroy()
     {
+        Logging.logD("VideoPlaybackService.onDestroy()");
+
         //release all
         releasePlayerAndMedia();
 

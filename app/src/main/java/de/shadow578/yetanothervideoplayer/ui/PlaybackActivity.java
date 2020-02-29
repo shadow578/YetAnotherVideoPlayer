@@ -11,25 +11,26 @@ import androidx.preference.PreferenceManager;
 import de.shadow578.yetanothervideoplayer.R;
 import de.shadow578.yetanothervideoplayer.YAVPApp;
 import de.shadow578.yetanothervideoplayer.feature.gl.GLAnime4K;
+import de.shadow578.yetanothervideoplayer.playback.VideoPlaybackService;
+import de.shadow578.yetanothervideoplayer.playback.VideoPlaybackServiceListener;
 import de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton;
 import de.shadow578.yetanothervideoplayer.ui.components.PlayerControlViewWrapper;
 import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
 import de.shadow578.yetanothervideoplayer.util.Logging;
 import de.shadow578.yetanothervideoplayer.feature.swipe.SwipeGestureListener;
-import de.shadow578.yetanothervideoplayer.util.UniversalMediaSourceFactory;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
 import android.app.Application;
 import android.app.PendingIntent;
 import android.app.PictureInPictureParams;
 import android.app.RemoteAction;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
@@ -41,35 +42,27 @@ import android.net.Uri;
 import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.util.SizeF;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.DecelerateInterpolator;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.daasuu.epf.EPlayerView;
 import com.daasuu.epf.PlayerScaleType;
-import com.google.android.exoplayer2.DefaultLoadControl;
-import com.google.android.exoplayer2.DefaultRenderersFactory;
-import com.google.android.exoplayer2.ExoPlaybackException;
-import com.google.android.exoplayer2.ExoPlayerFactory;
-import com.google.android.exoplayer2.LoadControl;
-import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.metadata.Metadata;
-import com.google.android.exoplayer2.metadata.MetadataOutput;
-import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.upstream.BandwidthMeter;
-import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.util.Util;
+import com.pnikosis.materialishprogress.ProgressWheel;
 
 import java.util.ArrayList;
 
@@ -94,20 +87,36 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     //endregion
 
     //region ~~ Variables ~~
+    //region static views
     /**
      * The topmost view of the playback activity
      */
     private View playbackRootView;
 
     /**
-     * The View the Player Renders Video to
+     * The drawer layout that contains the quick settings and shader effect drawers
      */
-    private EPlayerView playerView;
+    private DrawerLayout quickAccessDrawer;
 
     /**
-     * The View that contains and controls the player controls
+     * the placeholder layout that the player view will be added to as a child
      */
-    private PlayerControlViewWrapper playerControlView;
+    private FrameLayout playerViewPlaceholder;
+
+    /**
+     * The normal buffering indicator (not pip)
+     */
+    private ProgressWheel bufferingIndicatorNormal;
+
+    /**
+     * the buffering indicator for pip mode
+     */
+    private ProgressWheel bufferingIndicatorPip;
+
+    /**
+     * The play button in the center of the screen
+     */
+    private ImageButton playButton;
 
     /**
      * The TextView in the center of the screen, used to show information
@@ -120,44 +129,41 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     private TextView titleTextView;
 
     /**
-     * The ProgressBar in the center of the screen, used to show that the player is currently buffering
+     * The Anime4K Quick Settings button
      */
-    private View bufferingSpinner;
+    private ControlQuickSettingsButton anime4kQSButton;
+
+    //endregion
 
     /**
-     * The drawer that contains the quick settings
+     * The Preferences of the app
      */
-    private DrawerLayout quickSettingsDrawer;
+    private SharedPreferences appPreferences;
 
     /**
-     * The Uri of the media to play back
+     * video playback service that is home to the player
+     */
+    private VideoPlaybackService playbackService;
+
+    /**
+     * The View the Player Renders Video to
+     */
+    private EPlayerView playerView;
+
+    /**
+     * The View that contains and controls the player controls
+     */
+    private PlayerControlViewWrapper playerControlView;
+
+    /**
+     * The uri of the media requested to be played
      */
     private Uri playbackUri;
 
     /**
-     * The MediaSource to play back
+     * Battery manager system service. used to send a warning to the screen when battery charge is dropping below a threshold value
      */
-    private MediaSource playbackMedia;
-
-    /**
-     * The exoplayer instance
-     */
-    private SimpleExoPlayer player;
-
-    /**
-     * The Factory used to create MediaSources from Uris
-     */
-    private UniversalMediaSourceFactory mediaSourceFactory;
-
-    /**
-     * The listener that listens for exoplayer events and updates the ui & logic accordingly
-     */
-    private ExoEventListener componentListener;
-
-    /**
-     * The Listener that listens for exoplayer metadata events and updates the ui & logic accordingly
-     */
-    private ExoMetadataListener metadataListener;
+    private BatteryManager batteryManager;
 
     /**
      * Manages the screen rotation using the buttons
@@ -175,90 +181,42 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     private BroadcastReceiver pipBroadcastReceiver;
 
     /**
-     * The Preferences of the app
-     */
-    private SharedPreferences appPreferences;
-
-    /**
-     * Bandwidth meter used to measure the bandwidth and select stream quality accordingly
-     */
-    private BandwidthMeter bandwidthMeter;
-
-    /**
-     * Battery manager system service. used to send a warning to the screen when battery charge is dropping below a threshold value
-     */
-    private BatteryManager batteryManager;
-
-    /**
-     * The Anime4K Quick Settings button
-     */
-    private ControlQuickSettingsButton anime4kQSButton;
-
-    /**
      * The Anime4K filter instance that may be active currently.
      * Set to null if filter is inactive
      */
     private GLAnime4K anime4KFilter;
 
     /**
-     * Manager object for automatic pausing based on sensor values
+     * the position playback should start at
      */
-    //private AutomaticPauseManager autoPauseManager;
-
-    /**
-     * flag to indicate that a battery low warning was shown to the user
-     */
-    private boolean batteryWarningShown = false;
-
-    /**
-     * The current anime4k filter mode.
-     * =0  : disabled
-     * >0  : number of anime4k passes
-     */
-    private int currentAnime4kMode = 0;
-
-    /**
-     * The current playback position, used for resuming playback
-     */
-    private long playbackPosition;
-
-    /**
-     * The index of the currently played window, used for resuming playback
-     */
-    private int currentPlayWindow;
-
-    /**
-     * Should the player start playing once ready when resuming playback?
-     */
-    private boolean playWhenReady;
-
-    /**
-     * Used when a local file was passed as playback uri and the app currently does not have permissions
-     */
-    private boolean localFilePermissionPending;
-
-    /**
-     * Was the Back button pressed once already?
-     * Used for "Press Back again to exit" function
-     */
-    private boolean backPressedOnce;
-
-    /**
-     * Is the replay button currently visible?
-     * Used to track if the play button's graphic is currently changed to the replay button graphic
-     */
-    private boolean replayButtonVisible;
-
-    /**
-     * How long the Volume/Brightness info text is visible
-     */
-    private int infoTextDurationMs;
+    private long playbackStartPosition = 0;
 
     /**
      * The original volume index before the playback activity was opened
      */
     private int originalVolumeIndex;
 
+    /**
+     * is the app currently in pip mode?
+     */
+    private boolean isPictureInPicture = false;
+
+    /**
+     * has the current media ended?
+     * (= is the replay button visible?)
+     */
+    private boolean isPlaybackEnded = false;
+
+    /**
+     * flag to indicate that a battery low warning was shown to the user
+     */
+    private boolean wasBatteryWarningShown = false;
+
+    /**
+     * Was the Back button pressed once already?
+     * Used for "Press Back again to exit" function
+     */
+    private boolean wasBackPressedOnce;
     //endregion
 
     //region ~~ Message Handler (delayHandler) ~~
@@ -279,7 +237,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         private static final int SET_INFO_TEXT_INVISIBLE = 1;
 
         /**
-         * Message id to reset backPressedOnce flag
+         * Message id to reset wasBackPressedOnce flag
          */
         private static final int RESET_BACK_PRESSED = 2;
 
@@ -323,7 +281,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                 }
                 case Messages.RESET_BACK_PRESSED:
                 {
-                    backPressedOnce = false;
+                    wasBackPressedOnce = false;
                     break;
                 }
                 case Messages.BATTERY_WARN_CHECK:
@@ -340,17 +298,17 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
 
                         //check level against threshold
                         Logging.logD("[BatWarn] Battery is at %d %% - warn threshold is %d %%", batteryPercent, batteryThresh);
-                        if (batteryPercent <= batteryThresh && !batteryWarningShown)
+                        if (batteryPercent <= batteryThresh && !wasBatteryWarningShown)
                         {
                             //send a warning
                             showInfoText(getText(R.string.info_battery_low).toString());
-                            batteryWarningShown = true;
+                            wasBatteryWarningShown = true;
                         }
                     }
                     else
                     {
                         //reset warning shown when started charging
-                        batteryWarningShown = false;
+                        wasBatteryWarningShown = false;
                     }
 
                     //call self later
@@ -366,28 +324,31 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
+        Logging.logD("onCreate of PlaybackActivity called.");
         super.onCreate(savedInstanceState);
 
         //make app fullscreen
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-        //set activity layout
+        //set layout
         setContentView(R.layout.activity_playback);
-        Logging.logD("onCreate of PlaybackActivity called.");
 
         //get preferences
         appPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         //get views
         playbackRootView = findViewById(R.id.pb_playbackRootView);
-        playerView = findViewById(R.id.pb_playerView);
+        //playerView = findViewById(R.id.pb_playerView);
+        playerViewPlaceholder = findViewById(R.id.pb_playerViewPlaceholder);
         playerControlView = findViewById(R.id.pb_playerControlView);
         infoTextView = findViewById(R.id.pb_infoText);
         titleTextView = findViewById(R.id.pb_streamTitle);
-        bufferingSpinner = findViewById(R.id.pb_playerBufferingCont);
-        quickSettingsDrawer = findViewById(R.id.pb_quick_settings_drawer);
+        quickAccessDrawer = findViewById(R.id.pb_quick_settings_drawer);
         anime4kQSButton = findViewById(R.id.qs_btn_a4k_tgl);
+        bufferingIndicatorNormal = findViewById(R.id.pb_playerBufferingWheel_normal);
+        bufferingIndicatorPip = findViewById(R.id.pb_playerBufferingWheel_pipmode);
+        playButton = findViewById(R.id.exo_play);
 
         //set fast-forward and rewind increments
         int seekIncrement = getPrefInt(ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT);
@@ -409,9 +370,6 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
 
         //get audio manager
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-
-        //create bandwidth meter
-        bandwidthMeter = new DefaultBandwidthMeter.Builder(this).build();
 
         //setup gesture controls
         setupGestures();
@@ -460,29 +418,11 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
 
         //get position to start playback at
         //this value is used to seek as soon as exoplayer is initialized.
-        playbackPosition = callIntent.getLongExtra(INTENT_EXTRA_JUMP_TO, 0);
+        playbackStartPosition = callIntent.getLongExtra(INTENT_EXTRA_JUMP_TO, 0);
 
-        //check if uri is of local file and request read permission if so
-        if (isLocalFileUri(playbackUri))
-        {
-            Logging.logD("Uri \"%s\" seems to be a local file, requesting read permission...", playbackUri.toString());
-
-            //ask for permissions
-            localFilePermissionPending = !checkPermission(Manifest.permission.READ_EXTERNAL_STORAGE, PERMISSION_REQUEST_READ_EXT_STORAGE);
-        }
-
-        //enable / disable autoplay
-        playWhenReady = getPrefBool(ConfigKeys.KEY_AUTO_PLAY, R.bool.DEF_AUTO_PLAY);
-
-        //get info text duration once
-        infoTextDurationMs = getPrefInt(ConfigKeys.KEY_INFO_TEXT_DURATION, R.integer.DEF_INFO_TEXT_DURATION);
-
-        //prepare media
-        if (!localFilePermissionPending)
-        {
-            //not waiting for permissions
-            initMedia(playbackUri);
-        }
+        //create and bind video playback service
+        VideoServiceConnection playbackServiceConnection = new VideoServiceConnection();
+        bindService(new Intent(this, VideoPlaybackService.class), playbackServiceConnection, Context.BIND_AUTO_CREATE);
     }
 
     @SuppressWarnings("SwitchStatementWithTooFewBranches")
@@ -501,10 +441,8 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             {
                 if (granted)
                 {
-                    //have permissions now, init player + start playing
-                    localFilePermissionPending = false;
-                    initMedia(playbackUri);
-                    initPlayer(playbackMedia);
+                    //have permissions now, start playing by reload
+                    playbackService.reloadMedia();
                 }
                 else
                 {
@@ -524,12 +462,11 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         super.onStart();
         Logging.logD("onStart of PlaybackActivity called.");
 
-        if (supportMultiWindow())
-        {
-            //initialize player onStart with multi-window support, because
-            //app can be visible but NOT active in split window mode
-            initPlayer(playbackMedia);
-        }
+        //get pref for play when ready
+        boolean playWhenReady = getPrefBool(ConfigKeys.KEY_AUTO_PLAY, R.bool.DEF_AUTO_PLAY);
+
+        //load the media
+        playbackService.loadMedia(playbackUri, playWhenReady, playbackStartPosition);
 
         //update autoPauseManager
         //if (autoPauseManager != null) autoPauseManager.activate();
@@ -541,35 +478,11 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         super.onResume();
         Logging.logD("onResume of PlaybackActivity called.");
 
-        if (!supportMultiWindow() || player == null)
-        {
-            //initialize player onResume without multi-window support (or not yet initialized), because
-            //app cannot be visible without being active...
-            initPlayer(playbackMedia);
-        }
+        //restore volume and brightness
+        restorePersistentValues(true);
 
         //update autoPauseManager
         //if (autoPauseManager != null) autoPauseManager.activate();
-    }
-
-    @Override
-    protected void onStop()
-    {
-        super.onStop();
-        Logging.logD("onStop of PlaybackActivity called.");
-
-        //save playback position to prefs
-        savePlaybackPosition();
-
-        if (supportMultiWindow())
-        {
-            //release player here with multi-window support, because
-            //with multi-window support, the app may be visible when onPause is called.
-            freePlayer();
-        }
-
-        //update autoPauseManager
-        //if (autoPauseManager != null) autoPauseManager.deactivate();
     }
 
     @Override
@@ -578,14 +491,39 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         super.onPause();
         Logging.logD("onPause of PlaybackActivity called.");
 
-        //save playback position to prefs
-        savePlaybackPosition();
+        //save volume and brightness
+        savePersistentValues(true);
 
-        if (!supportMultiWindow())
+        //stop player if multi- window is not supported to make sure that player is really stopped
+        //seems like before multi- window was added, onStop() wasnt always called...
+        if (!getSupportsMultiWindow())
         {
-            //release player here because before multi-window support was added,
-            //onStop was not guaranteed to be called
-            freePlayer();
+            //save playback position to prefs
+            savePlaybackPosition();
+
+            //always stop playback service when app exits
+            Logging.logD("Stopping Playback service...");
+            stopService(new Intent(this, VideoPlaybackService.class));
+        }
+
+        //update autoPauseManager
+        //if (autoPauseManager != null) autoPauseManager.deactivate();
+    }
+
+    @Override
+    protected void onStop()
+    {
+        super.onStop();
+        Logging.logD("onStop of PlaybackActivity called.");
+
+        if (getSupportsMultiWindow())
+        {
+            //save playback position to prefs
+            savePlaybackPosition();
+
+            //always stop playback service when app exits
+            Logging.logD("Stopping Playback service...");
+            stopService(new Intent(this, VideoPlaybackService.class));
         }
 
         //update autoPauseManager
@@ -598,23 +536,22 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         super.onUserLeaveHint();
 
         //enter pip mode if enabled
-        if (getPrefBool(ConfigKeys.KEY_ENTER_PIP_ON_LEAVE, R.bool.DEF_ENTER_PIP_ON_LEAVE) && isPlaying())
+        if (getPrefBool(ConfigKeys.KEY_ENTER_PIP_ON_LEAVE, R.bool.DEF_ENTER_PIP_ON_LEAVE) && playbackService.getIsPlaying())
             tryGoPip();
     }
 
     @Override
     public void onBackPressed()
     {
-        if (backPressedOnce || !getPrefBool(ConfigKeys.KEY_BACK_DOUBLE_PRESS_EN, R.bool.DEF_BACK_DOUBLE_PRESS_EN))
+        if (wasBackPressedOnce || !getPrefBool(ConfigKeys.KEY_BACK_DOUBLE_PRESS_EN, R.bool.DEF_BACK_DOUBLE_PRESS_EN))
         {
             //back pressed once already, do normal thing...
             super.onBackPressed();
             return;
         }
 
-        //pressed back the first time:
-        //set flag
-        backPressedOnce = true;
+        //pressed back the first time, set flag
+        wasBackPressedOnce = true;
 
         //send reset message delayed
         delayHandler.sendEmptyMessageDelayed(Messages.RESET_BACK_PRESSED, getPrefInt(ConfigKeys.KEY_BACK_DOUBLE_PRESS_TIMEOUT, R.integer.DEF_BACK_DOUBLE_PRESS_TIMEOUT));
@@ -625,6 +562,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
 
     /**
      * Called on a crash shortly before the app is closed
+     * This is part of the apps lifecycle ;)
      *
      * @param ex the exception that caused the crash
      */
@@ -800,187 +738,6 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
 
     //endregion
 
-    //region ~~ Exoplayer setup and lifecycle ~~
-
-    /**
-     * m
-     * Initialize the media for playback
-     *
-     * @param playbackUri the Uri of the file / stream to play back
-     */
-    private void initMedia(Uri playbackUri)
-    {
-        //don't do anything if permissions are pending currently
-        if (localFilePermissionPending) return;
-
-        //create media source factory
-        if (mediaSourceFactory == null)
-        {
-            mediaSourceFactory = new UniversalMediaSourceFactory(this, Util.getUserAgent(this, getString(R.string.app_name)));
-        }
-
-        //load media from uri
-        playbackMedia = createMediaSource(playbackUri);
-    }
-
-    /**
-     * Initializes the ExoPlayer to render to the playerView
-     *
-     * @param media the MediaSource to play back
-     */
-    private void initPlayer(MediaSource media)
-    {
-        //check if media is valid
-        if (media == null) return;
-
-        //create new simple exoplayer instance
-        DefaultTrackSelector trackSelector = new DefaultTrackSelector(new AdaptiveTrackSelection.Factory());
-
-        DefaultRenderersFactory rendersFactory = new DefaultRenderersFactory(this);
-        LoadControl loadController = new DefaultLoadControl();
-        player = ExoPlayerFactory.newSimpleInstance(this, rendersFactory, trackSelector, loadController, null, bandwidthMeter);
-
-        //register Event Listener on player
-        componentListener = new ExoEventListener();
-        player.addListener(componentListener);
-
-        //register metadata listener on player
-        metadataListener = new ExoMetadataListener();
-        player.addMetadataOutput(metadataListener);
-
-        //set the view to render to
-        playerView.setSimpleExoPlayer(player);
-
-        //fit video to width of screen
-        playerView.setPlayerScaleType(PlayerScaleType.RESIZE_FIT_WIDTH);
-
-        //make controls visible
-        setUseController(true);
-
-        //prepare media for playback
-        player.prepare(media, true, false);
-
-        //resume playback where we left off
-        player.setPlayWhenReady(playWhenReady);
-        player.seekTo(currentPlayWindow, playbackPosition);
-
-        //save original volume level
-        originalVolumeIndex = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-
-        //restore persistent volume and brightness levels
-        restorePersistentVolume();
-        restorePersistentBrightness();
-    }
-
-    /**
-     * Free resources allocated by the player
-     * -Don't free cache etc, as playback may be continued later
-     * -Do save (+ restore) volume & brightness levels
-     */
-    private void freePlayer()
-    {
-        Logging.logD("Freeing player...");
-        if (player != null)
-        {
-            //save player state
-            playbackPosition = player.getCurrentPosition();
-            currentPlayWindow = player.getCurrentWindowIndex();
-            playWhenReady = player.getPlayWhenReady();
-
-            //unregister listeners
-            player.removeListener(componentListener);
-            player.removeMetadataOutput(metadataListener);
-
-            //release + null player
-            player.release();
-            player = null;
-        }
-
-        //dispose media resources
-        freeMedia();
-
-        //do volume restore
-        if (originalVolumeIndex != -1)
-        {
-            //save current volume and brightness levels for persistence
-            savePersistentVolume();
-            savePersistentBrightness();
-
-            //restore original volume level
-            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, originalVolumeIndex, 0);
-            originalVolumeIndex = -1;
-        }
-    }
-
-    /**
-     * Free all resources allocated for playback (player, cache, ...)
-     */
-    private void freeMedia()
-    {
-        Logging.logD("Disposing playback resources...");
-
-        //release media source factory
-        if (mediaSourceFactory != null)
-        {
-            mediaSourceFactory.release();
-            mediaSourceFactory = null;
-        }
-    }
-
-    /**
-     * Create a media source from the uri, and inform the user if the media type is NOT supported
-     *
-     * @param uri the uri of the media
-     * @return the media source, or null if not supported
-     */
-    private MediaSource createMediaSource(Uri uri)
-    {
-        //create media source using universal factory
-        MediaSource source = mediaSourceFactory.createMediaSource(uri);
-
-        //show error message to user if not supported (=null)
-        if (source == null)
-        {
-            //get file extension of the file
-            String fileExt = uri.getLastPathSegment();
-            if (fileExt == null) fileExt = "dummy.ERROR";
-            fileExt = fileExt.substring(fileExt.lastIndexOf('.'));
-
-            //format dialog message
-            String dialogMsg = String.format(getString(R.string.dialog_format_not_supported_message), fileExt);
-
-            //show dialog
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(R.string.dialog_format_not_supported_title)
-                    .setMessage(dialogMsg)
-                    .setCancelable(false)
-                    .setNeutralButton(R.string.dialog_format_not_supported_btn_issue, new DialogInterface.OnClickListener()
-                    {
-                        public void onClick(DialogInterface dialog, int id)
-                        {
-                            //open issues page + close app
-                            Intent issueWebIntent = new Intent(Intent.ACTION_VIEW);
-                            issueWebIntent.setData(Uri.parse(getString(R.string.yavp_new_issue_url)));
-                            startActivity(issueWebIntent);
-                            finish();
-                        }
-                    })
-                    .setPositiveButton(R.string.dialog_format_not_supported_btn_exit, new DialogInterface.OnClickListener()
-                    {
-                        public void onClick(DialogInterface dialog, int id)
-                        {
-                            //close app
-                            finish();
-                        }
-                    });
-            builder.create().show();
-        }
-
-        return source;
-    }
-
-    //endregion
-
     //region ~~ Button Handling ~~
 
     /**
@@ -1021,13 +778,12 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             }
             case R.id.qs_btn_jump_to:
             {
-                //jump to position in video:
-                //show dialog
+                //jump to position in video, show dialog
                 JumpToFragment jumpTo = new JumpToFragment();
-                jumpTo.show(getSupportFragmentManager(), player);
+                jumpTo.show(getSupportFragmentManager(), playbackService.getPlayerInstance());
 
-                //hide quick settings
-                hideQuickSettingsDrawer();
+                //hide quick settings and effect drawers
+                quickAccessDrawer.closeDrawers();
                 break;
             }
             case R.id.qs_btn_pip:
@@ -1042,22 +798,11 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                 ControlQuickSettingsButton btnRepeatMode = findViewById(R.id.qs_btn_repeat_tgl);
                 if (btnRepeatMode == null) break;
 
-                if (player.getRepeatMode() == Player.REPEAT_MODE_OFF)
-                {
-                    //enable repeat_one
-                    player.setRepeatMode(Player.REPEAT_MODE_ONE);
+                //toggle looping state
+                playbackService.setLooping(!playbackService.getLooping());
 
-                    //set button color to active color
-                    btnRepeatMode.setIconTint(getColor(R.color.qs_item_icon_active));
-                }
-                else
-                {
-                    //disable repeat mode
-                    player.setRepeatMode(Player.REPEAT_MODE_OFF);
-
-                    //set button color to disabled color
-                    btnRepeatMode.setIconTint(getColor(R.color.qs_item_icon_default));
-                }
+                //update ui
+                btnRepeatMode.setIconTint(playbackService.getLooping() ? getColor(R.color.qs_item_icon_active) : getColor(R.color.qs_item_icon_default));
                 break;
             }
             case R.id.qs_btn_cast:
@@ -1073,35 +818,16 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             case R.id.qs_btn_app_settings:
             {
                 //open global app settings
-                this.startActivity(new Intent(this, AppSettingsActivity.class));
+                startActivity(new Intent(this, AppSettingsActivity.class));
                 break;
             }
             case R.id.qs_btn_a4k_tgl:
             {
-                //cycle between anime4k modes:
-                //increment current mode, reset when above 2 (can be 0, 1, 2)
-                currentAnime4kMode++;
-                if (currentAnime4kMode > 2) currentAnime4kMode = 0;
+                //toggle anime4k on/off
+                setAnime4kEnabled(!getIsAnime4kEnabled());
 
-                //set filter according to mode
-                if (currentAnime4kMode <= 0)
-                {
-                    //disable filter
-                    setAnime4kEnabled(false);
-                }
-                else
-                {
-                    //enable filter, set number of passes
-                    setAnime4kEnabled(true);
-                    if (anime4KFilter != null)
-                    {
-                        Logging.logD("Set Anime4K to " + currentAnime4kMode + " passes.");
-                        anime4KFilter.setPasses(currentAnime4kMode);
-                    }
-                }
-
-                //update qs button
-                updateAnime4kQSButton(currentAnime4kMode);
+                //update button
+                anime4kQSButton.setIconTint(playbackService.getLooping() ? getColor(R.color.qs_item_icon_active) : getColor(R.color.qs_item_icon_default));
                 break;
             }
             //endregion
@@ -1109,7 +835,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             case R.id.pb_quick_settings:
             {
                 //open quick settings
-                quickSettingsDrawer.openDrawer(GravityCompat.END);
+                quickAccessDrawer.openDrawer(GravityCompat.END);
                 break;
             }
         }
@@ -1162,9 +888,6 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         //hide controls when entering pip, re-enable when exiting pip
         setUseController(!isInPictureInPictureMode);
 
-        //change the buffering spinner in pip mode
-        updateBufferingSpinnerVisibility(isInPictureInPictureMode);
-
         if (isInPictureInPictureMode)
         {
             //changed to pip mode:
@@ -1172,8 +895,8 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             initPipBroadcastReceiverOnce();
             registerReceiver(pipBroadcastReceiver, new IntentFilter(PIPConstants.ACTION_MEDIA_CONTROL));
 
-            //save + reset brightness
-            savePersistentBrightness();
+            //save volume and brightness
+            savePersistentValues(false);
 
             //set screen brightness to 0 (=auto) (kinda hacky, but should work just fine)
             adjustScreenBrightness(-1000, true);
@@ -1185,9 +908,12 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             //remove broadcast receiver
             unregisterReceiver(pipBroadcastReceiver);
 
-            //restore brightness
-            restorePersistentBrightness();
+            //restore brightness and volume
+            restorePersistentValues(false);
         }
+
+        //set flag for outside use
+        isPictureInPicture = isInPictureInPictureMode;
     }
 
     /**
@@ -1199,15 +925,15 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         if (Util.SDK_INT < 26) return;
 
         //update pip and enter pip if update succeeded
-        PictureInPictureParams params = updatePip();
+        PictureInPictureParams params = updatePipControls();
         if (params != null)
         {
             //can enter pip mode, hide ui elements:
             //hide player controls
             setUseController(false);
 
-            //hide quick settings drawer
-            hideQuickSettingsDrawer();
+            //hide quick settings and effect drawers
+            quickAccessDrawer.closeDrawers();
 
             //hide info text immediately
             delayHandler.sendEmptyMessage(Messages.SET_INFO_TEXT_INVISIBLE);
@@ -1243,26 +969,26 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                     case PIPConstants.REQUEST_PLAY_PAUSE:
                     {
                         //play/pause request, toggle playWhenReady
-                        player.setPlayWhenReady(!player.getPlayWhenReady());
+                        playbackService.setPlayWhenReady(!playbackService.getPlayWhenReady());
                         break;
                     }
                     case PIPConstants.REQUEST_REPLAY:
                     {
                         //replay request, set playWhenReady and seek to 0
-                        player.seekTo(0);
-                        player.setPlayWhenReady(true);
+                        playbackService.seekTo(0);
+                        playbackService.setPlayWhenReady(true);
                         break;
                     }
                     case PIPConstants.REQUEST_FAST_FORWARD:
                     {
                         //fast- forward request, fast- forward video
-                        player.seekTo(player.getCurrentPosition() + getPrefInt(ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT));
+                        playbackService.seekRelative(getPrefInt(ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT));
                         break;
                     }
                     case PIPConstants.REQUEST_REWIND:
                     {
                         //rewind request, rewind video
-                        player.seekTo(player.getCurrentPosition() - getPrefInt(ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT));
+                        playbackService.seekRelative(-getPrefInt(ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT));
                         break;
                     }
                     default:
@@ -1282,7 +1008,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
      *
      * @return the set pictureInPictureParams object, or null if not supported
      */
-    private PictureInPictureParams updatePip()
+    private PictureInPictureParams updatePipControls()
     {
         //lock out devices below API26 (don't support PIP)
         if (Util.SDK_INT < 26) return null;
@@ -1295,7 +1021,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         actions.add(createPipAction(PIPConstants.REQUEST_REWIND, R.drawable.ic_fast_rewind_black_48dp, R.string.pip_title_f_rewind, R.string.exo_controls_rewind_description));
 
         //region ~~Play/Pause/Replay Button ~~
-        if (player.getPlaybackState() == Player.STATE_ENDED)
+        if (isPlaybackEnded)
         {
             //ended, show replay button
             actions.add(createPipAction(PIPConstants.REQUEST_REPLAY, R.drawable.ic_replay_black_48dp, R.string.pip_title_replay, R.string.exo_controls_play_description));
@@ -1303,7 +1029,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         else
         {
             //playing or paused
-            if (player.getPlayWhenReady())
+            if (playbackService.getPlayWhenReady())
             {
                 //currently playing, show pause button
                 actions.add(createPipAction(PIPConstants.REQUEST_PLAY_PAUSE, R.drawable.ic_pause_black_48dp, R.string.pip_title_pause, R.string.exo_controls_pause_description));
@@ -1361,36 +1087,13 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     //region ~~ Utility ~~
 
     /**
-     * Save the current playback position to LAST_PLAYED_POSITION
-     */
-    @SuppressLint("ApplySharedPref")
-    private void savePlaybackPosition()
-    {
-        //check player and prefs are ok
-        if (player == null || appPreferences == null)
-        {
-            Logging.logD("player or preferences null, cannot save!");
-            return;
-        }
-
-        //get position
-        long pos = player.getCurrentPosition();
-
-        //save to prefs
-        //use .commit() here since the main thread may close pretty much as soon as this function exits.
-        //this would leave no time for any async saving...
-        appPreferences.edit().putLong(ConfigKeys.KEY_LAST_PLAYED_POSITION, pos).commit();
-        Logging.logD("Saved LAST_PLAYED_POSITION!");
-    }
-
-    /**
      * Enable / disable anime4k filter
      *
      * @param enable enable anime4k?
      */
     private void setAnime4kEnabled(boolean enable)
     {
-        Logging.logD("Setting Anime4K Filter to enabled=" + enable);
+        Logging.logD("Setting Anime4K Filter to enabled= %b", enable);
         if (enable)
         {
             if (anime4KFilter == null)
@@ -1398,12 +1101,21 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                 //filter currently not enabled, enable it
                 anime4KFilter = new GLAnime4K(this, R.raw.common, R.raw.colorget, R.raw.colorpush, R.raw.gradget, R.raw.gradpush);
 
+                //set anime4k to one pass only
+                anime4KFilter.setPasses(1);
+
                 //set a4k as active filter
                 playerView.setGlFilter(anime4KFilter);
 
                 //set a4k as video listener
-                player.addVideoListener(anime4KFilter);
-
+                if (playbackService.getIsPlayerValid())
+                {
+                    SimpleExoPlayer playerInstance = playbackService.getPlayerInstance();
+                    if (playerInstance != null)
+                    {
+                        playerInstance.addVideoListener(anime4KFilter);
+                    }
+                }
                 //set fps limiting values
                 int fpsLimit = -1;
                 if (getPrefBool(ConfigKeys.KEY_ANIME4K_FPS_LIMIT_ENABLE, R.bool.DEF_ANIME4K_FPS_LIMIT_EN))
@@ -1412,16 +1124,23 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                     fpsLimit = getPrefInt(ConfigKeys.KEY_ANIME4K_FPS_LIMIT, R.integer.DEF_ANIME4K_FPS_LIMIT);
                 }
                 anime4KFilter.setFpsLimit(fpsLimit);
-                Logging.logD("Enabled Anime4K with fps limit %d", fpsLimit);
+                Logging.logD("Enabled Anime4K with fps limit= %d", fpsLimit);
             }
         }
         else
         {
+            //if filter is currently enabled, disable it
             if (anime4KFilter != null)
             {
-                //filter currently enabled, disable it
                 //remove video listener
-                player.removeVideoListener(anime4KFilter);
+                if (playbackService.getIsPlayerValid())
+                {
+                    SimpleExoPlayer playerInstance = playbackService.getPlayerInstance();
+                    if (playerInstance != null)
+                    {
+                        playerInstance.removeVideoListener(anime4KFilter);
+                    }
+                }
 
                 //remove filter (this calls release on the filter)
                 playerView.setGlFilter(null);
@@ -1434,80 +1153,79 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     }
 
     /**
-     * Update the Anime4K Quick Settings button to match the given mode (0=disable, 1=1x, 2=2x)
-     *
-     * @param mode the mode to match
+     * @return is the anime4k filter currently enabled?
      */
-    private void updateAnime4kQSButton(int mode)
+    private boolean getIsAnime4kEnabled()
     {
-        switch (mode)
+        return anime4KFilter != null;
+    }
+
+    /**
+     * Save the current playback position to LAST_PLAYED_POSITION
+     */
+    @SuppressLint("ApplySharedPref")
+    private void savePlaybackPosition()
+    {
+        //check player and prefs are ok
+        //if (player == null || appPreferences == null)
+        //{
+        //    Logging.logD("player or preferences null, cannot save!");
+        //    return;
+        //}
+//
+        ////get position
+        //long pos = player.getCurrentPosition();
+//
+        ////save to prefs
+        ////use .commit() here since the main thread may close pretty much as soon as this function exits.
+        ////this would leave no time for any async saving...
+        //appPreferences.edit().putLong(ConfigKeys.KEY_LAST_PLAYED_POSITION, pos).commit();
+        Logging.logD("Saved LAST_PLAYED_POSITION!");
+    }
+
+    /**
+     * saves the current volume and brightness to app preferences
+     *
+     * @param restoreOriginalVolume should the original volume be restored?
+     */
+    private void savePersistentValues(boolean restoreOriginalVolume)
+    {
+        //save volume
+        if (getPrefBool(ConfigKeys.KEY_PERSIST_VOLUME_EN, R.bool.DEF_PERSIST_VOLUME_EN))
+            appPreferences.edit().putInt(ConfigKeys.KEY_PERSIST_VOLUME, audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)).apply();
+
+        //save brightness
+        if (getPrefBool(ConfigKeys.KEY_PERSIST_BRIGHTNESS_EN, R.bool.DEF_PERSIST_BRIGHTNESS_EN))
+            appPreferences.edit().putInt(ConfigKeys.KEY_PERSIST_BRIGHTNESS, (int) Math.floor(getWindow().getAttributes().screenBrightness * 100)).apply();
+
+        //restore original volume after saving
+        if (restoreOriginalVolume)
         {
-            default:
-            case 0:
-            {
-                anime4kQSButton.setTextStr(getText(R.string.qs_anime4k_off).toString());
-                anime4kQSButton.setIconTint(getColor(R.color.qs_item_icon_default));
-                break;
-            }
-            case 1:
-            {
-                anime4kQSButton.setTextStr(getText(R.string.qs_anime4k_x1).toString());
-                anime4kQSButton.setIconTint(getColor(R.color.qs_item_icon_active));
-                break;
-            }
-            case 2:
-            {
-                anime4kQSButton.setTextStr(getText(R.string.qs_anime4k_x2).toString());
-                anime4kQSButton.setIconTint(getColor(R.color.qs_item_icon_active));
-                break;
-            }
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, originalVolumeIndex, 0);
         }
     }
 
     /**
-     * Closes the quick settings drawer
+     * Restores persistent volume and brightness from app preferences
+     *
+     * @param saveOriginalVolume should the original volume be saved?
      */
-    private void hideQuickSettingsDrawer()
+    private void restorePersistentValues(boolean saveOriginalVolume)
     {
-        //quickSettingsDrawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
-        quickSettingsDrawer.closeDrawer(GravityCompat.END);
-    }
+        //save original volume before restore
+        if (saveOriginalVolume)
+        {
+            originalVolumeIndex = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+        }
 
-    /**
-     * Save the current volume as persistent volume
-     */
-    private void savePersistentVolume()
-    {
-        if (getPrefBool(ConfigKeys.KEY_PERSIST_VOLUME_EN, R.bool.DEF_PERSIST_VOLUME_EN))
-            appPreferences.edit().putInt(ConfigKeys.KEY_PERSIST_VOLUME, audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)).apply();
-    }
-
-    /**
-     * Save the current brightness as persistent brightness
-     */
-    private void savePersistentBrightness()
-    {
-        if (getPrefBool(ConfigKeys.KEY_PERSIST_BRIGHTNESS_EN, R.bool.DEF_PERSIST_BRIGHTNESS_EN))
-            appPreferences.edit().putInt(ConfigKeys.KEY_PERSIST_BRIGHTNESS, (int) Math.floor(getWindow().getAttributes().screenBrightness * 100)).apply();
-    }
-
-    /**
-     * restore the saved persistent volume level
-     */
-    private void restorePersistentVolume()
-    {
+        //restore volume
         if (getPrefBool(ConfigKeys.KEY_PERSIST_VOLUME_EN, R.bool.DEF_PERSIST_VOLUME_EN))
         {
             int persistVolume = appPreferences.getInt(ConfigKeys.KEY_PERSIST_VOLUME, originalVolumeIndex);
             audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, persistVolume, 0);
         }
-    }
 
-    /**
-     * Restore the saved persistent brightness level
-     */
-    private void restorePersistentBrightness()
-    {
+        //restore brightness
         if (getPrefBool(ConfigKeys.KEY_PERSIST_BRIGHTNESS_EN, R.bool.DEF_PERSIST_BRIGHTNESS_EN))
         {
             //get window attributes
@@ -1523,6 +1241,155 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             //set changed window attributes
             getWindow().setAttributes(windowAttributes);
         }
+    }
+
+    /**
+     * Show info text in the middle of the screen, using the InfoText View
+     *
+     * @param text   the text to show
+     * @param format formatting options (using US locale)
+     */
+    private void showInfoText(String text, Object... format)
+    {
+        //remove all previous messages related to fading out the info text
+        delayHandler.removeMessages(Messages.START_FADE_OUT_INFO_TEXT);
+        delayHandler.removeMessages(Messages.SET_INFO_TEXT_INVISIBLE);
+
+        //set text
+        infoTextView.setText(String.format(text, format));
+
+        //reset animation and make text visible
+        infoTextView.setAnimation(null);
+        infoTextView.setVisibility(View.VISIBLE);
+
+        //hide text after delay
+        int infoTextDuration = getPrefInt(ConfigKeys.KEY_INFO_TEXT_DURATION, R.integer.DEF_INFO_TEXT_DURATION);
+        delayHandler.sendEmptyMessageDelayed(Messages.START_FADE_OUT_INFO_TEXT, infoTextDuration);
+    }
+
+    /**
+     * Check if the app was granted the permission.
+     * If not granted, the permission will be requested and false will be returned.
+     *
+     * @param permission the permission to check
+     * @param requestId  the request id. Used to check in callback
+     * @return was the permission granted?
+     */
+    private boolean checkAndRequestPermission(@SuppressWarnings("SameParameterValue") String permission, @SuppressWarnings("SameParameterValue") int requestId)
+    {
+        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED)
+        {
+            //does not have permission, ask for it
+            ActivityCompat.requestPermissions(this, new String[]{permission}, requestId);
+            return false;
+        }
+        else
+        {
+            //has permission
+            return true;
+        }
+    }
+
+    /**
+     * Set the title shown on the titleTextView
+     *
+     * @param title the title to show. if set to a empty string, the title label is hidden
+     */
+    private void setTitle(String title)
+    {
+        if (title == null || title.isEmpty())
+        {
+            //no title, hide title label
+            titleTextView.setText("N/A");
+            titleTextView.setVisibility(View.INVISIBLE);
+        }
+        else
+        {
+            //show title label
+            titleTextView.setText(title);
+            titleTextView.setVisibility(View.VISIBLE);
+        }
+    }
+
+    /**
+     * Set the visibility of the player controller
+     *
+     * @param useController should the controller be used?
+     */
+    private void setUseController(boolean useController)
+    {
+        //skip if not everything is ok
+        if (playerControlView == null || playbackService == null || !playbackService.getIsPlayerValid())
+            return;
+
+        if (useController)
+        {
+            if (playerControlView.getPlayer() != playbackService.getPlayerInstance())
+            {
+                //player not set, fix that
+                playerControlView.setPlayer(playbackService.getPlayerInstance());
+            }
+
+            //show controls
+            playerControlView.show();
+        }
+        else
+        {
+            //hide controls
+            playerControlView.hide();
+        }
+    }
+
+    /**
+     * set the visibility of the buffering indicator
+     *
+     * @param isBuffering is currently buffering? (=visible)
+     * @param isPip       is the app in pip mode?
+     */
+    private void setBufferingIndicatorVisible(boolean isBuffering, boolean isPip)
+    {
+        if (isBuffering)
+        {
+            //make right indicator visible
+            if (bufferingIndicatorNormal != null)
+                bufferingIndicatorNormal.setVisibility(isPip ? View.GONE : View.VISIBLE);
+            if (bufferingIndicatorPip != null)
+                bufferingIndicatorPip.setVisibility(isPip ? View.VISIBLE : View.GONE);
+        }
+        else
+        {
+            //make both invisible
+            if (bufferingIndicatorNormal != null) bufferingIndicatorNormal.setVisibility(View.GONE);
+            if (bufferingIndicatorPip != null) bufferingIndicatorPip.setVisibility(View.GONE);
+        }
+    }
+
+    /**
+     * Forces the screen to stay on if keepOn is true, otherwise clears the KEEP_SCREEN_ON flag
+     *
+     * @param keepOn should the screen stay on?
+     */
+    private void setScreenForcedOn(boolean keepOn)
+    {
+        if (keepOn)
+        {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
+        else
+        {
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
+    }
+
+    /**
+     * Starting with API 24, android supports multiple windows
+     *
+     * @return does this device support multi- window?
+     */
+    @SuppressLint("ObsoleteSdkInt")
+    private boolean getSupportsMultiWindow()
+    {
+        return Util.SDK_INT > 23;
     }
 
     /**
@@ -1555,304 +1422,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         //changes the type of the preference to string...
         return Integer.valueOf(appPreferences.getString(key, "" + def));
     }
-
-    /**
-     * Check if the player is currently playing
-     *
-     * @return is it?
-     */
-    private boolean isPlaying()
-    {
-        return player != null && player.getPlaybackState() == Player.STATE_READY && player.getPlayWhenReady();
-    }
-
-    /**
-     * Update the visibility of the buffering spinners.
-     *
-     * @param pip if set, the pip spinner is made visible, otherwise, the normal spinner is visible
-     */
-    private void updateBufferingSpinnerVisibility(boolean pip)
-    {
-        //get spinners
-        View spinnerNormal = findViewById(R.id.pb_playerBufferingWheel_normal);
-        View spinnerPip = findViewById(R.id.pb_playerBufferingWheel_pipmode);
-
-        //enable/disable
-        if (spinnerNormal != null) spinnerNormal.setVisibility(pip ? View.INVISIBLE : View.VISIBLE);
-        if (spinnerPip != null) spinnerPip.setVisibility(pip ? View.VISIBLE : View.INVISIBLE);
-    }
-
-    /**
-     * Set the title shown on the titleTextView
-     *
-     * @param title the title to show. if set to a empty string, the title label is hidden
-     */
-    private void setTitle(String title)
-    {
-        if (title == null || title.isEmpty())
-        {
-            //no title, hide title label
-            titleTextView.setText("N/A");
-            titleTextView.setVisibility(View.INVISIBLE);
-        }
-        else
-        {
-            //show title label
-            titleTextView.setText(title);
-            titleTextView.setVisibility(View.VISIBLE);
-        }
-    }
-
-    /**
-     * Set the visibility of the player controller
-     *
-     * @param useController should the controller be used?
-     */
-    private void setUseController(boolean useController)
-    {
-        //skip if player control view is null
-        if (playerControlView == null) return;
-
-        if (useController)
-        {
-            if (playerControlView.getPlayer() != player)
-            {
-                //has no or wrong player, assign it
-                playerControlView.setPlayer(player);
-            }
-
-            //show controls
-            playerControlView.show();
-        }
-        else
-        {
-            //hide controls
-            playerControlView.hide();
-        }
-    }
-
-    /**
-     * Set if the player is currently buffering
-     * (buffering progress bar visibility)
-     *
-     * @param isBuffering true if buffering, false if not
-     */
-    private void setBuffering(boolean isBuffering)
-    {
-        bufferingSpinner.setVisibility(isBuffering ? View.VISIBLE : View.GONE);
-
-        //this hopefully fixes the video gl surface rendering over the spinner
-        if (isBuffering)
-        {
-            bufferingSpinner.bringToFront();
-        }
-    }
-
-    /**
-     * Show info text in the middle of the screen, using the InfoText View
-     *
-     * @param text   the text to show
-     * @param format formatting options (using US locale)
-     */
-    private void showInfoText(String text, Object... format)
-    {
-        //remove all previous messages related to fading out the info text
-        delayHandler.removeMessages(Messages.START_FADE_OUT_INFO_TEXT);
-        delayHandler.removeMessages(Messages.SET_INFO_TEXT_INVISIBLE);
-
-        //set text
-        infoTextView.setText(String.format(text, format));
-
-        //reset animation and make text visible
-        infoTextView.setAnimation(null);
-        infoTextView.setVisibility(View.VISIBLE);
-
-        //get how long the text should be visible
-
-
-        //hide text after delay
-        delayHandler.sendEmptyMessageDelayed(Messages.START_FADE_OUT_INFO_TEXT, infoTextDurationMs);
-    }
-
-    /**
-     * Starting with API 24, android supports multiple windows
-     *
-     * @return does this device support multi- window?
-     */
-    @SuppressLint("ObsoleteSdkInt")
-    private boolean supportMultiWindow()
-    {
-        return Util.SDK_INT > 23;
-    }
-
-    /**
-     * Check if the uri is a local file
-     *
-     * @param uri the uri to check
-     * @return is the uri a local file?
-     */
-    private boolean isLocalFileUri(Uri uri)
-    {
-        return uri.getScheme() != null && (uri.getScheme().equals("content") || uri.getScheme().equals("file"));
-    }
-
-    /**
-     * Check if the app was granted the permission.
-     * If not granted, the permission will be requested and false will be returned.
-     *
-     * @param permission the permission to check
-     * @param requestId  the request id. Used to check in callback
-     * @return was the permission granted?
-     */
-    private boolean checkPermission(@SuppressWarnings("SameParameterValue") String permission, @SuppressWarnings("SameParameterValue") int requestId)
-    {
-        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED)
-        {
-            //does not have permission, ask for it
-            ActivityCompat.requestPermissions(this, new String[]{permission}, requestId);
-            return false;
-        }
-        else
-        {
-            //has permission
-            return true;
-        }
-    }
-
-    /**
-     * Forces the screen to stay on if keepOn is true, otherwise clears the KEEP_SCREEN_ON flag
-     *
-     * @param keepOn should the screen stay on?
-     */
-    private void forceScreenOn(boolean keepOn)
-    {
-        if (keepOn)
-        {
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        }
-        else
-        {
-            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        }
-    }
-
     //endregion
-
-    /**
-     * Updates the UI (and logic states) in response to ExoPlayer Events
-     */
-    private class ExoEventListener implements Player.EventListener
-    {
-        @Override
-        public void onLoadingChanged(boolean isLoading)
-        {
-        }
-
-        @Override
-        public void onPlayerStateChanged(boolean playWhenReady, int playbackState)
-        {
-            //update buffering progress bar
-            setBuffering(playbackState == Player.STATE_BUFFERING);
-
-            //get the play button
-            ImageButton playButton = findViewById(R.id.exo_play);
-            if (replayButtonVisible)
-            {
-                //reset graphic to the play button if needed
-                playButton.setImageResource(R.drawable.ic_play_arrow_black_48dp);
-                replayButtonVisible = false;
-            }
-
-            //update PIP controls if in pip mode
-            if (isInPictureInPictureMode())
-                updatePip();
-
-            switch (playbackState)
-            {
-                case Player.STATE_IDLE:
-                {
-                    //player stopped or failed, release screen lock
-                    forceScreenOn(false);
-                    break;
-                }
-                case Player.STATE_BUFFERING:
-                {
-                    //media currently buffering
-                    break;
-                }
-                case Player.STATE_READY:
-                {
-                    if (playWhenReady)
-                    {
-                        //currently playing back, engage screen lock
-                        forceScreenOn(true);
-                    }
-                    else
-                    {
-                        //ready for playback (paused or not started yet), release screen lock
-                        forceScreenOn(false);
-                    }
-                    break;
-                }
-                case Player.STATE_ENDED:
-                {
-                    //media playback ended:
-
-                    //release screen lock
-                    forceScreenOn(false);
-
-                    if (getPrefBool(ConfigKeys.KEY_CLOSE_WHEN_FINISHED_PLAYING, R.bool.DEF_CLOSE_WHEN_FINISHED_PLAYING))
-                    {
-                        //close app
-                        finish();
-                    }
-                    else
-                    {
-                        //change play button graphic to replay button
-                        playButton.setImageResource(R.drawable.ic_replay_black_48dp);
-                        replayButtonVisible = true;
-                    }
-                    break;
-                }
-                default:
-                {
-                    Logging.logW("Received invalid Playback State in onPlayerStateChanged: %d", playbackState);
-                    break;
-                }
-            }
-        }
-
-        @Override
-        public void onPlayerError(ExoPlaybackException error)
-        {
-            //a error occurred:
-            //log error
-            Logging.logE("ExoPlayer error occurred: %s", error.toString());
-            Toast.makeText(getApplicationContext(), error.toString(), Toast.LENGTH_LONG).show();
-
-            //try to call exception handler for the app (to open exception handler)
-            Application app = getApplication();
-            if (app instanceof YAVPApp)
-            {
-                YAVPApp yavp = (YAVPApp) app;
-                yavp.uncaughtException(Thread.currentThread(), error);
-            }
-        }
-    }
-
-    /**
-     * Updates the UI (and logic states) in response to ExoPlayer MetaData Events
-     */
-    private class ExoMetadataListener implements MetadataOutput
-    {
-        @Override
-        public void onMetadata(Metadata metadata)
-        {
-            //received metadata?? how to decode?? actually getting any??
-            Logging.logD("receive metadata: %s", metadata.toString());
-            Toast.makeText(getApplicationContext(), "Receive- Metadata!", Toast.LENGTH_SHORT).show();
-        }
-    }
 
     /**
      * Contains functionality to set the screen orientation with three buttons
@@ -1949,6 +1519,194 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                     break;
                 }
             }
+        }
+    }
+
+    /**
+     * The connection to the video playback service
+     */
+    private class VideoServiceConnection implements ServiceConnection
+    {
+        /**
+         * called when we connected to the service
+         *
+         * @param componentName ?
+         * @param binder        the service binder we can use to access the service
+         */
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder binder)
+        {
+            Logging.logD("Service connected!");
+
+            //check binder is right type
+            if (binder instanceof VideoPlaybackService.VideoServiceBinder)
+            {
+                //set service instance
+                VideoPlaybackService.VideoServiceBinder serviceBinder = (VideoPlaybackService.VideoServiceBinder) binder;
+                playbackService = serviceBinder.getServiceInstance();
+
+                //set callback
+                playbackService.setListener(new VideoServiceCallbackListener());
+            }
+        }
+
+        /**
+         * Called when we disconnected from the service
+         *
+         * @param componentName ?
+         */
+        @Override
+        public void onServiceDisconnected(ComponentName componentName)
+        {
+            Logging.logD("Service Disconnected!");
+        }
+    }
+
+    /**
+     * listens for callbacks of the video service
+     */
+    private class VideoServiceCallbackListener implements VideoPlaybackServiceListener
+    {
+        /**
+         * the player of the service has been initialized and can now be used to, for example, set the render surface.
+         * this is called in onBind() of the service as well as in the end of loadMedia() function
+         */
+        @Override
+        public void onPlayerInitialized()
+        {
+            //create new opengl player view
+            playerView = new EPlayerView(playerViewPlaceholder.getContext());
+
+            //adjust layout
+            playerView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            //RelativeLayout.LayoutParams playerViewLayout = (RelativeLayout.LayoutParams) playerView.getLayoutParams();
+            //playerViewLayout.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
+            //playerView.setLayoutParams(playerViewLayout);
+
+            //set player of view
+            playerView.setSimpleExoPlayer(playbackService.getPlayerInstance());
+
+            //we want the video to be scaled to fit the width
+            playerView.setPlayerScaleType(PlayerScaleType.RESIZE_FIT_WIDTH);
+
+            //add player view to placeholder
+            playerViewPlaceholder.addView(playerView);
+
+            //make controls visible
+            setUseController(true);
+        }
+
+        /**
+         * the media that was attempted to be loaded is on external storage, and the app needs Storage permissions to load the media
+         * if this event is called, the media loading has been aborted and the video service is NOT ready for playback!
+         * use this event to request the permissions, and call reloadMedia() once you have the needed permissions
+         */
+        @Override
+        public void onMissingStoragePermissions()
+        {
+            //storage permissions are missing, request them
+            if (checkAndRequestPermission(Manifest.permission.READ_EXTERNAL_STORAGE, PERMISSION_REQUEST_READ_EXT_STORAGE))
+            {
+                //we have the permission?? reload the media
+                playbackService.reloadMedia();
+            }
+        }
+
+        /**
+         * A error occurred in the video playback service!
+         *
+         * @param error the error that occurred (most likely a ExoPlayerException)
+         */
+        @Override
+        public void onError(Exception error)
+        {
+            //log error
+            Logging.logE("VideoServiceCallbackListener:onError(): %s", error.toString());
+
+            //try to call exception handler for the app (to open exception handler)
+            Application app = getApplication();
+            if (app instanceof YAVPApp)
+            {
+                YAVPApp yavp = (YAVPApp) app;
+                yavp.uncaughtException(Thread.currentThread(), error);
+            }
+        }
+
+        /**
+         * The current media was loaded and is ready for playback
+         *
+         * @param playWhenReady is the player set to play as soon as media is ready?
+         */
+        @Override
+        public void onPlaybackReady(boolean playWhenReady)
+        {
+            //put screen lock while playing
+            setScreenForcedOn(playWhenReady);
+
+            //reset play button graphic if still replay button
+            if (isPlaybackEnded)
+            {
+                isPlaybackEnded = false;
+                playButton.setImageResource(R.drawable.ic_play_arrow_black_48dp);
+            }
+        }
+
+        /**
+         * The current media finished playback
+         */
+        @Override
+        public void onPlaybackEnded()
+        {
+            //lift screen lock
+            setScreenForcedOn(false);
+
+            //close app if pref is set
+            if (getPrefBool(ConfigKeys.KEY_CLOSE_WHEN_FINISHED_PLAYING, R.bool.DEF_CLOSE_WHEN_FINISHED_PLAYING))
+            {
+                //close app
+                finish();
+            }
+            else
+            {
+                //change play button graphic to replay button
+                playButton.setImageResource(R.drawable.ic_replay_black_48dp);
+                isPlaybackEnded = true;
+            }
+        }
+
+        /**
+         * the player state changed.
+         * !! you dont really need to use this, this is more to keep possibilities open... !!
+         *
+         * @param playerState the new playback state of the player
+         */
+        @Override
+        public void onPlayerStateChange(int playerState)
+        {
+            //update pip controls on every state change
+            updatePipControls();
+        }
+
+        /**
+         * The buffering state of the player changed
+         *
+         * @param isBuffering is the player currently buffering?
+         */
+        @Override
+        public void onBufferingChanged(boolean isBuffering)
+        {
+            setBufferingIndicatorVisible(isBuffering, isPictureInPicture);
+        }
+
+        /**
+         * The player received new metadata
+         *
+         * @param metadata the metadata received
+         */
+        @Override
+        public void onNewMetadata(Metadata metadata)
+        {
+
         }
     }
 }

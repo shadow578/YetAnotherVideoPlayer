@@ -28,7 +28,7 @@ public class PlayerDebugActivity extends AppCompatActivity implements CompoundBu
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_playback_debug);
+        setContentView(R.layout.activity_player_debug);
 
         //get views
         swOpenDirect = findViewById(R.id.vtest_tgl_open_direct);
