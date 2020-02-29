@@ -36,10 +36,6 @@ import android.content.pm.PackageManager;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.drawable.Icon;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.BatteryManager;
@@ -207,7 +203,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     /**
      * Manager object for automatic pausing based on sensor values
      */
-    private AutomaticPauseManager autoPauseManager;
+    //private AutomaticPauseManager autoPauseManager;
 
     /**
      * flag to indicate that a battery low warning was shown to the user
@@ -421,12 +417,12 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         setupGestures();
 
         //setup auto- pause manager
-        autoPauseManager = new AutomaticPauseManager(this);
-        if (!autoPauseManager.initialize())
-        {
-            Logging.logW("Initialize of autoPauseManager failed!");
-            autoPauseManager = null;
-        }
+        //autoPauseManager = new AutomaticPauseManager(this);
+        //if (!autoPauseManager.initialize())
+        //{
+        //    Logging.logW("Initialize of autoPauseManager failed!");
+        //    autoPauseManager = null;
+        //}
 
         //set this activity as a crash handler so we can save the playback position on crashes
         Application app = getApplication();
@@ -536,7 +532,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         }
 
         //update autoPauseManager
-        if (autoPauseManager != null) autoPauseManager.activate();
+        //if (autoPauseManager != null) autoPauseManager.activate();
     }
 
     @Override
@@ -553,7 +549,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         }
 
         //update autoPauseManager
-        if (autoPauseManager != null) autoPauseManager.activate();
+        //if (autoPauseManager != null) autoPauseManager.activate();
     }
 
     @Override
@@ -573,7 +569,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         }
 
         //update autoPauseManager
-        if (autoPauseManager != null) autoPauseManager.deactivate();
+        //if (autoPauseManager != null) autoPauseManager.deactivate();
     }
 
     @Override
@@ -593,7 +589,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         }
 
         //update autoPauseManager
-        if (autoPauseManager != null) autoPauseManager.deactivate();
+        //if (autoPauseManager != null) autoPauseManager.deactivate();
     }
 
     @Override
