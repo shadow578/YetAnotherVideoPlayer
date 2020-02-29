@@ -1,4 +1,4 @@
-package de.shadow578.yetanothervideoplayer.ui;
+package de.shadow578.yetanothervideoplayer.ui.test;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
@@ -12,10 +12,12 @@ import android.widget.CompoundButton;
 import android.widget.Switch;
 
 import de.shadow578.yetanothervideoplayer.R;
+import de.shadow578.yetanothervideoplayer.ui.AppSettingsActivity;
+import de.shadow578.yetanothervideoplayer.ui.LaunchActivity;
 import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
 import de.shadow578.yetanothervideoplayer.util.Logging;
 
-public class VideoTestActivity extends AppCompatActivity implements CompoundButton.OnCheckedChangeListener
+public class PlayerDebugActivity extends AppCompatActivity implements CompoundButton.OnCheckedChangeListener
 {
     private Switch swOpenDirect;
     private Switch swOpenShare;
@@ -26,7 +28,7 @@ public class VideoTestActivity extends AppCompatActivity implements CompoundButt
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_video_test);
+        setContentView(R.layout.activity_playback_debug);
 
         //get views
         swOpenDirect = findViewById(R.id.vtest_tgl_open_direct);
