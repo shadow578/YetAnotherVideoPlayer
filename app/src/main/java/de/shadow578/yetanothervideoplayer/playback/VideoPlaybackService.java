@@ -131,6 +131,7 @@ public class VideoPlaybackService extends Service
      *
      * @param mediaUri the uri of the media to load
      */
+    @SuppressWarnings("unused")
     public void loadMedia(@NonNull Uri mediaUri)
     {
         loadMedia(mediaUri, false, 0);
@@ -143,6 +144,7 @@ public class VideoPlaybackService extends Service
      * @param mediaUri      the uri of the media to load
      * @param playWhenReady should playback start as soon as media is ready?
      */
+    @SuppressWarnings("unused")
     public void loadMedia(@NonNull Uri mediaUri, boolean playWhenReady)
     {
         loadMedia(mediaUri, playWhenReady, 0);
@@ -207,6 +209,7 @@ public class VideoPlaybackService extends Service
     /**
      * @return the uri the currently loaded media is loaded from
      */
+    @SuppressWarnings("unused")
     public Uri getCurrentMediaUri()
     {
         return currentMediaUri;
