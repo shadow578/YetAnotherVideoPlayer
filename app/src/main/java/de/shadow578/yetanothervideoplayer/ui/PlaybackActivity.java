@@ -522,6 +522,9 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         //disconnect from the service
         disconnectPlaybackService();
 
+        //cancel everything on the handler
+        delayHandler.removeCallbacksAndMessages(null);
+
         //update autoPauseManager
         //if (autoPauseManager != null) autoPauseManager.deactivate();
     }
@@ -551,18 +554,20 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             return;
         }
 
-        //save playback position and play when ready flag before unbinding service
-        //so that we can resume where we left off when brought back from background
+        //prepare playback service for disconnect
         if (playbackService != null)
         {
+            //save playback position and play when ready flag before unbinding service
+            //so that we can resume where we left off when brought back from background
             playbackStartPosition = playbackService.getPlaybackPosition();
             playbackPlayWhenReady = playbackService.getPlayWhenReady();
+
+            //remove self as listener
+            playbackService.setListener(null);
         }
 
         //unbind the service
         unbindService(playbackServiceConnection);
-
-        stopService(new Intent(this, VideoPlaybackService.class));
     }
 
     @Override
