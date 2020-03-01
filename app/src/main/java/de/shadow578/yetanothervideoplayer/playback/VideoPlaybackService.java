@@ -382,6 +382,7 @@ public class VideoPlaybackService extends Service
         //release player
         if (player != null)
         {
+            player.stop();
             player.release();
             player = null;
             isPlayerInitialized = false;

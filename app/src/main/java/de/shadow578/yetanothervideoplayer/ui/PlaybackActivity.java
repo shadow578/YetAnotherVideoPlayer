@@ -141,6 +141,11 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     private SharedPreferences appPreferences;
 
     /**
+     * The connection to the video playback service
+     */
+    private VideoServiceConnection playbackServiceConnection;
+
+    /**
      * video playback service that is home to the player
      */
     private VideoPlaybackService playbackService;
@@ -421,7 +426,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         playbackStartPosition = callIntent.getLongExtra(INTENT_EXTRA_JUMP_TO, 0);
 
         //create and bind video playback service
-        VideoServiceConnection playbackServiceConnection = new VideoServiceConnection();
+        playbackServiceConnection = new VideoServiceConnection();
         bindService(new Intent(this, VideoPlaybackService.class), playbackServiceConnection, Context.BIND_AUTO_CREATE);
     }
 
@@ -503,6 +508,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
 
             //always stop playback service when app exits
             Logging.logD("Stopping Playback service...");
+            unbindService(playbackServiceConnection);
             stopService(new Intent(this, VideoPlaybackService.class));
         }
 
@@ -523,6 +529,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
 
             //always stop playback service when app exits
             Logging.logD("Stopping Playback service...");
+            unbindService(playbackServiceConnection);
             stopService(new Intent(this, VideoPlaybackService.class));
         }
 
@@ -1687,7 +1694,8 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         public void onPlayerStateChange(int playerState)
         {
             //update pip controls on every state change
-            updatePipControls();
+            if (isPictureInPicture)
+                updatePipControls();
         }
 
         /**
