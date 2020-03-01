@@ -1585,9 +1585,6 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
 
             //adjust layout
             playerView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-            //RelativeLayout.LayoutParams playerViewLayout = (RelativeLayout.LayoutParams) playerView.getLayoutParams();
-            //playerViewLayout.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
-            //playerView.setLayoutParams(playerViewLayout);
 
             //set player of view
             playerView.setSimpleExoPlayer(playbackService.getPlayerInstance());
