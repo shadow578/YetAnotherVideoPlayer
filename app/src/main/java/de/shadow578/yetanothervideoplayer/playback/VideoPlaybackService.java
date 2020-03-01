@@ -65,7 +65,7 @@ public class VideoPlaybackService extends Service
         Logging.logD("VideoPlaybackService.onBind()");
 
         //create the media factory
-        mediaFactory = new UniversalMediaSourceFactory(this, Util.getUserAgent(this,  getPackageName()));
+        mediaFactory = new UniversalMediaSourceFactory(this, Util.getUserAgent(this, getPackageName()));
 
         //initialize the player
         initializePlayer();
@@ -403,15 +403,19 @@ public class VideoPlaybackService extends Service
     private class PlayerEventListener implements Player.EventListener
     {
         /**
+         * The last playback state reported by onPlayerStateChanged()
+         */
+        private int lastPlaybackState = -1;
+
+        /**
          * The players loading state changed
+         * !! Loading State is the whole time the exoplayer is buffering media, EVEN if the media is already playing !!
          *
          * @param isLoading is the player loading?
          */
         @Override
         public void onLoadingChanged(boolean isLoading)
         {
-            if (isEventListenerValid())
-                eventListener.onBufferingChanged(isLoading);
         }
 
         /**
@@ -423,6 +427,22 @@ public class VideoPlaybackService extends Service
         @Override
         public void onPlayerStateChanged(boolean playWhenReady, int playbackState)
         {
+            //check if player finished buffering (WAS buffering, IS no longer)
+            if (lastPlaybackState == Player.STATE_BUFFERING && playbackState != Player.STATE_BUFFERING)
+            {
+                //finished buffering, call event
+                if (isEventListenerValid())
+                    eventListener.onBufferingChanged(false);
+            }
+
+            //check if player started buffering (WAS not buffering, IS now)
+            if (lastPlaybackState != Player.STATE_BUFFERING && playbackState == Player.STATE_BUFFERING)
+            {
+                //started buffering, call event
+                if (isEventListenerValid())
+                    eventListener.onBufferingChanged(true);
+            }
+
             //act according to state
             switch (playbackState)
             {
@@ -458,6 +478,9 @@ public class VideoPlaybackService extends Service
             //forward state change raw to event listener
             if (isEventListenerValid())
                 eventListener.onPlayerStateChange(playbackState);
+
+            //set lastState var
+            lastPlaybackState = playbackState;
         }
 
         /**
