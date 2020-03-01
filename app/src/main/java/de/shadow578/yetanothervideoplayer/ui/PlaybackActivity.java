@@ -463,10 +463,10 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         Logging.logD("onStart of PlaybackActivity called.");
 
         //get pref for play when ready
-        boolean playWhenReady = getPrefBool(ConfigKeys.KEY_AUTO_PLAY, R.bool.DEF_AUTO_PLAY);
+        //boolean playWhenReady = getPrefBool(ConfigKeys.KEY_AUTO_PLAY, R.bool.DEF_AUTO_PLAY);
 
         //load the media
-        playbackService.loadMedia(playbackUri, playWhenReady, playbackStartPosition);
+        //playbackService.loadMedia(playbackUri, playWhenReady, playbackStartPosition);
 
         //update autoPauseManager
         //if (autoPauseManager != null) autoPauseManager.activate();
@@ -1547,6 +1547,12 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
 
                 //set callback
                 playbackService.setListener(new VideoServiceCallbackListener());
+
+                //get pref for play when ready
+                boolean playWhenReady = getPrefBool(ConfigKeys.KEY_AUTO_PLAY, R.bool.DEF_AUTO_PLAY);
+
+                //load the media
+                playbackService.loadMedia(playbackUri, playWhenReady, playbackStartPosition);
             }
         }
 

@@ -26,6 +26,7 @@ import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.upstream.BandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
+import com.google.android.exoplayer2.util.Util;
 
 import de.shadow578.yetanothervideoplayer.util.Logging;
 import de.shadow578.yetanothervideoplayer.util.UniversalMediaSourceFactory;
@@ -62,6 +63,9 @@ public class VideoPlaybackService extends Service
     public IBinder onBind(Intent intent)
     {
         Logging.logD("VideoPlaybackService.onBind()");
+
+        //create the media factory
+        mediaFactory = new UniversalMediaSourceFactory(this, Util.getUserAgent(this,  getPackageName()));
 
         //initialize the player
         initializePlayer();
