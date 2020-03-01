@@ -882,7 +882,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     }
 //endregion
 
-//region ~~ PIP Mode ~~
+    //region ~~ PIP Mode ~~
 
     /**
      * Constants for PIP mode
@@ -930,26 +930,21 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
 
         if (isInPictureInPictureMode)
         {
-            //changed to pip mode:
-            //register broadcast receiver
+            //changed to pip mode, register broadcast receiver
             initPipBroadcastReceiverOnce();
             registerReceiver(pipBroadcastReceiver, new IntentFilter(PIPConstants.ACTION_MEDIA_CONTROL));
 
-            //save volume and brightness
-            savePersistentValues(false);
-
+            //TODO: test on real device
             //set screen brightness to 0 (=auto) (kinda hacky, but should work just fine)
-            adjustScreenBrightness(-1000, true);
+            //adjustScreenBrightness(-1000, true);
+
+            //hide info text
             delayHandler.sendEmptyMessage(Messages.SET_INFO_TEXT_INVISIBLE);
         }
         else
         {
-            //changed to normal mode (no PIP):
-            //remove broadcast receiver
+            //changed to normal mode, remove pip broadcast receiver
             unregisterReceiver(pipBroadcastReceiver);
-
-            //restore brightness and volume
-            restorePersistentValues(false);
         }
 
         //set flag for outside use
@@ -1228,7 +1223,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
      *
      * @param restoreOriginalVolume should the original volume be restored?
      */
-    private void savePersistentValues(boolean restoreOriginalVolume)
+    private void savePersistentValues(@SuppressWarnings("SameParameterValue") boolean restoreOriginalVolume)
     {
         //save volume
         if (getPrefBool(ConfigKeys.KEY_PERSIST_VOLUME_EN, R.bool.DEF_PERSIST_VOLUME_EN))
@@ -1250,7 +1245,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
      *
      * @param saveOriginalVolume should the original volume be saved?
      */
-    private void restorePersistentValues(boolean saveOriginalVolume)
+    private void restorePersistentValues(@SuppressWarnings("SameParameterValue") boolean saveOriginalVolume)
     {
         //save original volume before restore
         if (saveOriginalVolume)
@@ -1430,9 +1425,12 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
      */
     private boolean getPrefBool(String key, int defId)
     {
-        Logging.logD("Getting Boolean Preference \"%s\"...", key);
         boolean def = getResources().getBoolean(defId);
-        return appPreferences.getBoolean(key, def);
+        boolean value = appPreferences.getBoolean(key, def);
+
+        //log the value
+        Logging.logD("getPrefBool(): key= %s; val= %b", key, value);
+        return value;
     }
 
     /**
@@ -1444,14 +1442,17 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
      */
     private int getPrefInt(String key, int defId)
     {
-        Logging.logD("Getting Integer Preference \"%s\"...", key);
         int def = getResources().getInteger(defId);
 
         //read value as string: workaround needed because i'm using a EditText to change these values in the settings activity, which
         //changes the type of the preference to string...
-        return Integer.valueOf(appPreferences.getString(key, "" + def));
+        int value = Integer.valueOf(appPreferences.getString(key, "" + def));
+
+        //log the value
+        Logging.logD("getPrefInt(): key= %s; val= %d", key, value);
+        return value;
     }
-//endregion
+    //endregion
 
     /**
      * Contains functionality to set the screen orientation with three buttons
