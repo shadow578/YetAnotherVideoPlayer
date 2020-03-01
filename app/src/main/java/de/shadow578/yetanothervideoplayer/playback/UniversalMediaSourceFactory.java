@@ -1,4 +1,4 @@
-package de.shadow578.yetanothervideoplayer.util;
+package de.shadow578.yetanothervideoplayer.playback;
 
 import android.content.Context;
 import android.net.Uri;
@@ -17,16 +17,24 @@ import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.upstream.cache.Cache;
 import com.google.android.exoplayer2.upstream.cache.CacheDataSource;
 import com.google.android.exoplayer2.upstream.cache.CacheDataSourceFactory;
-import com.google.android.exoplayer2.upstream.cache.NoOpCacheEvictor;
+import com.google.android.exoplayer2.upstream.cache.LeastRecentlyUsedCacheEvictor;
 import com.google.android.exoplayer2.upstream.cache.SimpleCache;
 import com.google.android.exoplayer2.util.Util;
 
 import java.io.File;
 
-public class UniversalMediaSourceFactory
+import de.shadow578.yetanothervideoplayer.util.Logging;
+
+class UniversalMediaSourceFactory
 {
     /**
-     * Datasource factory of this app
+     * The maximum cache size of the player cache
+     */
+    @SuppressWarnings("FieldCanBeLocal")
+    private final long MAX_CACHE_SIZE = 100 * 1024 * 1024;//bytes
+
+    /**
+     * Data source factory of this app
      */
     private final DataSource.Factory dataSourceFactory;
 
@@ -51,20 +59,14 @@ public class UniversalMediaSourceFactory
      * @param context   the context to create the factory in
      * @param userAgent the useragent to use when streaming media
      */
-    public UniversalMediaSourceFactory(Context context, String userAgent)
+    UniversalMediaSourceFactory(Context context, String userAgent)
     {
         //initialize cached files database provider
-        if (databaseProvider == null)
-        {
-            databaseProvider = new ExoDatabaseProvider(context);
-        }
+        databaseProvider = new ExoDatabaseProvider(context);
 
         //initialize download cache
-        if (downloadCache == null)
-        {
-            cacheDir = new File(context.getCacheDir(), "yavp_exo_cache");
-            downloadCache = new SimpleCache(cacheDir, new NoOpCacheEvictor(), databaseProvider);
-        }
+        cacheDir = new File(context.getCacheDir(), "media");
+        downloadCache = new SimpleCache(cacheDir, new LeastRecentlyUsedCacheEvictor(MAX_CACHE_SIZE), databaseProvider);
 
         //create http data source factory that allows http -> https redirects
         DefaultHttpDataSourceFactory httpDataSourceFactory = new DefaultHttpDataSourceFactory(userAgent, null,
@@ -72,7 +74,7 @@ public class UniversalMediaSourceFactory
 
         //initialize data source factory
         DefaultDataSourceFactory ddsf = new DefaultDataSourceFactory(context, httpDataSourceFactory);
-        dataSourceFactory = new CacheDataSourceFactory(downloadCache, ddsf, CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR);
+        dataSourceFactory = new CacheDataSourceFactory(downloadCache, ddsf, CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR | CacheDataSource.FLAG_BLOCK_ON_CACHE);
     }
 
     /**
@@ -81,7 +83,7 @@ public class UniversalMediaSourceFactory
      * @param uri the uri to create the media source from
      * @return the media source created, or null if the media type is NOT supported
      */
-    public MediaSource createMediaSource(Uri uri)
+    MediaSource createMediaSource(Uri uri)
     {
         //return new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(uri);
 
@@ -124,7 +126,7 @@ public class UniversalMediaSourceFactory
     /**
      * Release resources allocated by the UniversalMediaSourceFactory
      */
-    public void release()
+    void release()
     {
         //log release + cached bytes
         Logging.logD("Releasing UniversalMediaSourceFactory and clearing %d bytes of cache...", downloadCache.getCacheSpace());

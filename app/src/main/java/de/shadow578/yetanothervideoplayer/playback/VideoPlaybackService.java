@@ -29,7 +29,6 @@ import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.util.Util;
 
 import de.shadow578.yetanothervideoplayer.util.Logging;
-import de.shadow578.yetanothervideoplayer.util.UniversalMediaSourceFactory;
 
 /**
  * Service that plays a video file or stream using ExoPlayer
