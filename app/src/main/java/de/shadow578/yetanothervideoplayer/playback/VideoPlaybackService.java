@@ -126,6 +126,11 @@ public class VideoPlaybackService extends Service
      */
     private long lastLoadStartPosition = 0;
 
+    /**
+     * do we still have to seek the media because of the loadMedia() call?
+     */
+    private boolean isLoadMediaSeekPending = false;
+
     //region Service Interface
 
     /**
@@ -163,10 +168,12 @@ public class VideoPlaybackService extends Service
      */
     public void loadMedia(@NonNull Uri mediaUri, boolean playWhenReady, long startPosition)
     {
+        Logging.logD("Loading media from uri= %s; pwr= %b; pos= %d", mediaUri.toString(), playWhenReady, startPosition);
+
         //set the uri of the current media
         currentMediaUri = mediaUri;
 
-        //set last parameter values for usage in reloadMedia()
+        //set last parameter values for usage in reloadMedia() and scheduled seeking
         lastLoadPlayWhenReady = playWhenReady;
         lastLoadStartPosition = startPosition;
 
@@ -185,10 +192,13 @@ public class VideoPlaybackService extends Service
         if (!isPlayerValid()) return;
 
         //load media from the uri
-        player.prepare(mediaFactory.createMediaSource(mediaUri));
+        player.prepare(mediaFactory.createMediaSource(mediaUri), true, true);
 
         //seek to start position
-        seekTo(startPosition);
+        //seekTo(startPosition);
+
+        //schedule seek
+        isLoadMediaSeekPending = true;
 
         //set play when ready
         setPlayWhenReady(playWhenReady);
@@ -321,6 +331,9 @@ public class VideoPlaybackService extends Service
 
         //seek the player
         player.seekTo(pos);
+
+        //reset seekPending flag every time we seek
+        isLoadMediaSeekPending = false;
     }
 
     /**
@@ -443,6 +456,14 @@ public class VideoPlaybackService extends Service
                     eventListener.onBufferingChanged(true);
             }
 
+            //perform seek if load media seek is still pending and player is ready or buffering
+            if (isLoadMediaSeekPending && (playbackState == Player.STATE_READY || playbackState == Player.STATE_BUFFERING))
+            {
+                //seek media to start position
+                seekTo(lastLoadStartPosition);
+                isLoadMediaSeekPending = false;
+            }
+
             //act according to state
             switch (playbackState)
             {
@@ -528,7 +549,13 @@ public class VideoPlaybackService extends Service
      */
     private boolean isPlayerValid()
     {
-        return player != null && isPlayerInitialized;
+        boolean isValid = player != null && isPlayerInitialized;
+        if (!isValid)
+        {
+            Logging.logW("Call to isPlayerValid() but player is NOT valid!");
+        }
+
+        return isValid;
     }
 
     /**

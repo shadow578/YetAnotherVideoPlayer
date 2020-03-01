@@ -197,6 +197,11 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     private long playbackStartPosition = 0;
 
     /**
+     * Should the playback start as soon as media is ready?
+     */
+    private boolean playbackPlayWhenReady = false;
+
+    /**
      * The original volume index before the playback activity was opened
      */
     private int originalVolumeIndex;
@@ -422,12 +427,10 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         setTitle(title);
 
         //get position to start playback at
-        //this value is used to seek as soon as exoplayer is initialized.
         playbackStartPosition = callIntent.getLongExtra(INTENT_EXTRA_JUMP_TO, 0);
 
-        //create and bind video playback service
-        playbackServiceConnection = new VideoServiceConnection();
-        bindService(new Intent(this, VideoPlaybackService.class), playbackServiceConnection, Context.BIND_AUTO_CREATE);
+        //get auto play when launching
+        playbackPlayWhenReady = getPrefBool(ConfigKeys.KEY_AUTO_PLAY, R.bool.DEF_AUTO_PLAY);
     }
 
     @SuppressWarnings("SwitchStatementWithTooFewBranches")
@@ -467,6 +470,10 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         super.onStart();
         Logging.logD("onStart of PlaybackActivity called.");
 
+        //create and bind video playback service
+        playbackServiceConnection = new VideoServiceConnection();
+        bindService(new Intent(this, VideoPlaybackService.class), playbackServiceConnection, Context.BIND_AUTO_CREATE);
+
         //get pref for play when ready
         //boolean playWhenReady = getPrefBool(ConfigKeys.KEY_AUTO_PLAY, R.bool.DEF_AUTO_PLAY);
 
@@ -499,19 +506,6 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         //save volume and brightness
         savePersistentValues(true);
 
-        //stop player if multi- window is not supported to make sure that player is really stopped
-        //seems like before multi- window was added, onStop() wasnt always called...
-        if (!getSupportsMultiWindow())
-        {
-            //save playback position to prefs
-            savePlaybackPosition();
-
-            //always stop playback service when app exits
-            Logging.logD("Stopping Playback service...");
-            unbindService(playbackServiceConnection);
-            stopService(new Intent(this, VideoPlaybackService.class));
-        }
-
         //update autoPauseManager
         //if (autoPauseManager != null) autoPauseManager.deactivate();
     }
@@ -522,19 +516,53 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         super.onStop();
         Logging.logD("onStop of PlaybackActivity called.");
 
-        if (getSupportsMultiWindow())
-        {
-            //save playback position to prefs
-            savePlaybackPosition();
+        //save playback position to prefs to be able to resume later
+        savePlaybackPosition();
 
-            //always stop playback service when app exits
-            Logging.logD("Stopping Playback service...");
-            unbindService(playbackServiceConnection);
-            stopService(new Intent(this, VideoPlaybackService.class));
-        }
+        //disconnect from the service
+        disconnectPlaybackService();
 
         //update autoPauseManager
         //if (autoPauseManager != null) autoPauseManager.deactivate();
+    }
+
+    @Override
+    protected void onDestroy()
+    {
+        super.onDestroy();
+
+        //stop the playback service when the app is stopped
+        stopService(new Intent(this, VideoPlaybackService.class));
+    }
+
+    /**
+     * disconnects the playback service safely
+     * !! does not stop the service (no stopService() !!
+     */
+    private void disconnectPlaybackService()
+    {
+        Logging.logD("Disconnecting from Playback service...");
+
+        //check if service is bound first
+        if (playbackServiceConnection == null || !playbackServiceConnection.isConnected)
+        {
+            //not connected!
+            Logging.logW("Playback service is already disconnected?! skipping disconnect.");
+            return;
+        }
+
+        //save playback position and play when ready flag before unbinding service
+        //so that we can resume where we left off when brought back from background
+        if (playbackService != null)
+        {
+            playbackStartPosition = playbackService.getPlaybackPosition();
+            playbackPlayWhenReady = playbackService.getPlayWhenReady();
+        }
+
+        //unbind the service
+        unbindService(playbackServiceConnection);
+
+        stopService(new Intent(this, VideoPlaybackService.class));
     }
 
     @Override
@@ -847,9 +875,9 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             }
         }
     }
-    //endregion
+//endregion
 
-    //region ~~ PIP Mode ~~
+//region ~~ PIP Mode ~~
 
     /**
      * Constants for PIP mode
@@ -1389,17 +1417,6 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     }
 
     /**
-     * Starting with API 24, android supports multiple windows
-     *
-     * @return does this device support multi- window?
-     */
-    @SuppressLint("ObsoleteSdkInt")
-    private boolean getSupportsMultiWindow()
-    {
-        return Util.SDK_INT > 23;
-    }
-
-    /**
      * Get a boolean from shared preferences
      *
      * @param key   the key of the value
@@ -1429,7 +1446,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         //changes the type of the preference to string...
         return Integer.valueOf(appPreferences.getString(key, "" + def));
     }
-    //endregion
+//endregion
 
     /**
      * Contains functionality to set the screen orientation with three buttons
@@ -1535,6 +1552,11 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     private class VideoServiceConnection implements ServiceConnection
     {
         /**
+         * Is the video playback service currently bound?
+         */
+        boolean isConnected = false;
+
+        /**
          * called when we connected to the service
          *
          * @param componentName ?
@@ -1552,14 +1574,14 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                 VideoPlaybackService.VideoServiceBinder serviceBinder = (VideoPlaybackService.VideoServiceBinder) binder;
                 playbackService = serviceBinder.getServiceInstance();
 
+                //set flag
+                isConnected = true;
+
                 //set callback
                 playbackService.setListener(new VideoServiceCallbackListener());
 
-                //get pref for play when ready
-                boolean playWhenReady = getPrefBool(ConfigKeys.KEY_AUTO_PLAY, R.bool.DEF_AUTO_PLAY);
-
                 //load the media
-                playbackService.loadMedia(playbackUri, playWhenReady, playbackStartPosition);
+                playbackService.loadMedia(playbackUri, playbackPlayWhenReady, playbackStartPosition);
             }
         }
 
@@ -1572,6 +1594,9 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         public void onServiceDisconnected(ComponentName componentName)
         {
             Logging.logD("Service Disconnected!");
+
+            //set flag
+            isConnected = false;
         }
     }
 
