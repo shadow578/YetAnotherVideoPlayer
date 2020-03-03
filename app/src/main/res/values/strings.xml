@@ -40,9 +40,9 @@
     <string name="qs_closed_captions">Subtitles</string>
     <string name="qs_app_settings">Global Settings</string>
 
-    <string name="qs_anime4k_off">Anime4K (off)</string>
-    <string name="qs_anime4k_x1">Anime4K (x1)</string>
-    <string name="qs_anime4k_x2">Anime4K (x2)</string>
+    <string name="qs_anime4k">Anime4K</string>
+    <!--<string name="qs_anime4k_x1">Anime4K (x1)</string>-->
+    <!--<string name="qs_anime4k_x2">Anime4K (x2)</string>-->
 
     <!-- Toast Strings -->
     <string name="toast_no_storage_permissions_granted">No Storage Permissions granted! Permissions are required to play local files.</string>

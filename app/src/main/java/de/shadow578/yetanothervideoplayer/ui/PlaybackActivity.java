@@ -867,7 +867,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                 setAnime4kEnabled(!getIsAnime4kEnabled());
 
                 //update button
-                anime4kQSButton.setIconTint(playbackService.getLooping() ? getColor(R.color.qs_item_icon_active) : getColor(R.color.qs_item_icon_default));
+                anime4kQSButton.setIconTint(getIsAnime4kEnabled() ? getColor(R.color.qs_item_icon_active) : getColor(R.color.qs_item_icon_default));
                 break;
             }
             //endregion
@@ -880,7 +880,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             }
         }
     }
-//endregion
+    //endregion
 
     //region ~~ PIP Mode ~~
 

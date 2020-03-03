@@ -29,7 +29,7 @@
                 android:id="@+id/qs_btn_a4k_tgl"
                 style="@style/QuickSettingsButton"
                 app:icon="@drawable/ic_a4k_black_48dp"
-                app:text="@string/qs_anime4k_off" />
+                app:text="@string/qs_anime4k" />
 
         </LinearLayout>
     </ScrollView>
