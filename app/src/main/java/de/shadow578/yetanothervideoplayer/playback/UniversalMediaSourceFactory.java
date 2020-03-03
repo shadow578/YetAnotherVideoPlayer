@@ -138,12 +138,12 @@ class UniversalMediaSourceFactory
             Logging.logD("Cache released!");
         }
 
-        //clear cache & close database connection
+        //--clear cache &-- close database connection
         if (databaseProvider != null)
         {
-            SimpleCache.delete(cacheDir, databaseProvider);
+            //SimpleCache.delete(cacheDir, databaseProvider);
             databaseProvider.close();
-            Logging.logD("Cache cleared + database connection closed!");
+            Logging.logD("database connection closed!");
         }
     }
 }
