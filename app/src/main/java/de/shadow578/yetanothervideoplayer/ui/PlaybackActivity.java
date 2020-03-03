@@ -1353,9 +1353,14 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
      */
     private void setUseController(boolean useController)
     {
+        Logging.logD("setUseController() useController= %b", useController);
+
         //skip if not everything is ok
         if (playerControlView == null || playbackService == null || !playbackService.getIsPlayerValid())
+        {
+            Logging.logW("setUseController(): either playerControlView or playbackService is not valid!");
             return;
+        }
 
         if (useController)
         {
@@ -1366,11 +1371,13 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             }
 
             //show controls
+            playerControlView.setControlsHidden(false);
             playerControlView.show();
         }
         else
         {
             //hide controls
+            playerControlView.setControlsHidden(true);
             playerControlView.hide();
         }
     }
