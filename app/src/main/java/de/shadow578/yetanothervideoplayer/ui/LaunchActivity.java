@@ -135,12 +135,9 @@ public class LaunchActivity extends AppCompatActivity
         //check if there is a playback position to resume stored
         if (appPreferences.getLong(ConfigKeys.KEY_LAST_PLAYED_POSITION, -1) <= 0) return false;
 
-        //check url is the same
-        if (url.toString().equalsIgnoreCase(appPreferences.getString(ConfigKeys.KEY_LAST_PLAYED_URL, "")))
-            return true;
-
-        //check if title is the same
-        return title.equalsIgnoreCase(appPreferences.getString(ConfigKeys.KEY_LAST_PLAYED_TITLE, ""));
+        //check that url or title is the same as the last played
+        return url.toString().equalsIgnoreCase(appPreferences.getString(ConfigKeys.KEY_LAST_PLAYED_URL, ""))
+                || title.equalsIgnoreCase(appPreferences.getString(ConfigKeys.KEY_LAST_PLAYED_TITLE, ""));
     }
 
     /**

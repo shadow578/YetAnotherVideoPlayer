@@ -1197,26 +1197,44 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     }
 
     /**
-     * Save the current playback position to LAST_PLAYED_POSITION
+     * Save the current playback position to save as LAST_PLAYED_POSITION for use in the "resume where i left off" feature
      */
-    @SuppressLint("ApplySharedPref")
     private void savePlaybackPosition()
     {
-        //check player and prefs are ok
-        //if (player == null || appPreferences == null)
-        //{
-        //    Logging.logD("player or preferences null, cannot save!");
-        //    return;
-        //}
-//
-        ////get position
-        //long pos = player.getCurrentPosition();
-//
-        ////save to prefs
-        ////use .commit() here since the main thread may close pretty much as soon as this function exits.
-        ////this would leave no time for any async saving...
-        //appPreferences.edit().putLong(ConfigKeys.KEY_LAST_PLAYED_POSITION, pos).commit();
-        Logging.logD("Saved LAST_PLAYED_POSITION!");
+        //check playback service is ok
+        if (playbackService == null || !playbackService.getIsPlayerValid())
+        {
+            Logging.logD("Cannot save current playback position: player or playback service invalid!");
+            return;
+        }
+
+        //get current position
+        long pos = playbackService.getPlaybackPosition();
+
+        //save the current position
+        savePlaybackPosition(pos);
+    }
+
+    /**
+     * Save the given playback position to save as LAST_PLAYED_POSITION for use in the "resume where i left off" feature
+     *
+     * @param positionToSave the playback position to save
+     */
+    @SuppressLint("ApplySharedPref")
+    private void savePlaybackPosition(long positionToSave)
+    {
+        //check that the prefs are ok
+        if (appPreferences == null)
+        {
+            Logging.logD("cannot save playback position: appPreferences are null!");
+            return;
+        }
+
+        //save to prefs
+        //we use .commit() here since the main thread could close pretty much the moment this function returns.
+        //this would not leave enough time for saving the preferences using .apply() (which is async)...
+        appPreferences.edit().putLong(ConfigKeys.KEY_LAST_PLAYED_POSITION, positionToSave).commit();
+        Logging.logD("Saved LAST_PLAYED_POSITION");
     }
 
     /**
@@ -1673,6 +1691,9 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             //log error
             Logging.logE("VideoServiceCallbackListener:onError(): %s", error.toString());
 
+            //save playback position to prefs to be able to resume later
+            savePlaybackPosition();
+
             //try to call exception handler for the app (to open exception handler)
             Application app = getApplication();
             if (app instanceof YAVPApp)
@@ -1709,6 +1730,8 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         {
             //lift screen lock
             setScreenForcedOn(false);
+
+            //TODO reset playback pos
 
             //close app if pref is set
             if (getPrefBool(ConfigKeys.KEY_CLOSE_WHEN_FINISHED_PLAYING, R.bool.DEF_CLOSE_WHEN_FINISHED_PLAYING))

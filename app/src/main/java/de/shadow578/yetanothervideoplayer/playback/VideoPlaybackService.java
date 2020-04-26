@@ -12,6 +12,7 @@ import android.webkit.URLUtil;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlaybackException;
@@ -292,11 +293,27 @@ public class VideoPlaybackService extends Service
     }
 
     /**
-     * @return the total duration of the currently loaded media, in milliseconds
+     * @return the total duration of the currently loaded media, in milliseconds (-1 if not known or invalid)
      */
     public long getMediaDuration()
     {
-        return isPlayerValid() ? player.getDuration() : -1;
+        //default duration to -1
+        long contentDuration = -1;
+
+        //check player is valid
+        if (isPlayerValid())
+        {
+            //get content duration
+            contentDuration = player.getContentDuration();
+
+            //reset duration to 0 if equals C_UN
+            if (contentDuration == C.TIME_UNSET)
+            {
+                contentDuration = -1;
+            }
+        }
+
+        return contentDuration;
     }
 
     /**
@@ -328,8 +345,9 @@ public class VideoPlaybackService extends Service
         if (!isPlayerValid()) return;
 
         //keep pos inside player bounds
+        long mediaDuration = getMediaDuration();
         if (pos < 0) pos = 0;
-        if (pos > getMediaDuration()) pos = getMediaDuration();
+        if (pos > mediaDuration && mediaDuration != -1) pos = mediaDuration;
 
         //seek the player
         player.seekTo(pos);
@@ -458,7 +476,7 @@ public class VideoPlaybackService extends Service
                     eventListener.onBufferingChanged(true);
             }
 
-            //perform seek if load media seek is still pending and player is ready or buffering
+            //perform seek to start if load media seek is still pending and player is ready or buffering
             if (isLoadMediaSeekPending && (playbackState == Player.STATE_READY || playbackState == Player.STATE_BUFFERING))
             {
                 //seek media to start position
@@ -576,7 +594,7 @@ public class VideoPlaybackService extends Service
      */
     private boolean isLocalFile(Uri uri)
     {
-        return URLUtil.isValidUrl(uri.toString()) && (URLUtil.isFileUrl(uri.toString()) ||URLUtil.isContentUrl(uri.toString()));
+        return URLUtil.isValidUrl(uri.toString()) && (URLUtil.isFileUrl(uri.toString()) || URLUtil.isContentUrl(uri.toString()));
     }
 
     /**
