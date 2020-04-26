@@ -22,12 +22,12 @@ public class LaunchActivity extends AppCompatActivity
     /**
      * The Shared prefs of this app
      */
-    SharedPreferences appPreferences;
+    private SharedPreferences appPreferences;
 
     /**
      * A handler that is used to post (delayed) messages and events
      */
-    Handler splashHandler = new Handler();
+    private Handler splashHandler = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState)

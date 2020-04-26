@@ -133,6 +133,11 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
      */
     private ControlQuickSettingsButton anime4kQSButton;
 
+    /**
+     * the TextView in the shader qs drawer that contains info about the current video (resolution, ...)
+     */
+    private TextView videoInfoTextView;
+
     //endregion
 
     /**
@@ -366,6 +371,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         bufferingIndicatorNormal = findViewById(R.id.pb_playerBufferingWheel_normal);
         bufferingIndicatorPip = findViewById(R.id.pb_playerBufferingWheel_pipmode);
         playButton = findViewById(R.id.exo_play);
+        videoInfoTextView = findViewById(R.id.qs_txt_video_info);
 
         //set fast-forward and rewind increments
         int seekIncrement = getPrefInt(ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT);
