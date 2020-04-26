@@ -226,7 +226,14 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
      * Was the Back button pressed once already?
      * Used for "Press Back again to exit" function
      */
-    private boolean wasBackPressedOnce;
+    private boolean wasBackPressedOnce = false;
+
+    /**
+     * Should we not save the playback position when exiting the app?
+     * Set by VideoServiceCallbackListener.onPlaybackEnded()
+     * Reset in onStop()
+     */
+    private boolean dontSavePlaybackPositionOnExit = false;
     //endregion
 
     //region ~~ Message Handler (delayHandler) ~~
@@ -518,7 +525,11 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         Logging.logD("onStop of PlaybackActivity called.");
 
         //save playback position to prefs to be able to resume later
-        savePlaybackPosition();
+        if (!dontSavePlaybackPositionOnExit)
+        {
+            savePlaybackPosition();
+        }
+        dontSavePlaybackPositionOnExit = false;
 
         //disconnect from the service
         disconnectPlaybackService();
@@ -1731,7 +1742,11 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             //lift screen lock
             setScreenForcedOn(false);
 
-            //TODO reset playback pos
+            //reset lastPlaybackPosition so we restart the video next time
+            savePlaybackPosition(0);
+
+            //prevent onStop() from overwriting the position
+            dontSavePlaybackPositionOnExit = true;
 
             //close app if pref is set
             if (getPrefBool(ConfigKeys.KEY_CLOSE_WHEN_FINISHED_PLAYING, R.bool.DEF_CLOSE_WHEN_FINISHED_PLAYING))
