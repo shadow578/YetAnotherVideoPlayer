@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
+import android.webkit.URLUtil;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -177,19 +178,20 @@ public class VideoPlaybackService extends Service
         lastLoadPlayWhenReady = playWhenReady;
         lastLoadStartPosition = startPosition;
 
+        //check player is valid
+        if (!isPlayerValid()) return;
+
         //check if we need permissions to access the uri (=local file) but dont have them
         if (isLocalFile(mediaUri) && !hasStoragePermission())
         {
             //missing permissions
+            Logging.logE("Missing local storage permissions!");
             if (eventListener != null)
                 eventListener.onMissingStoragePermissions();
 
             //abort load
             return;
         }
-
-        //check player is valid
-        if (!isPlayerValid()) return;
 
         //load media from the uri
         player.prepare(mediaFactory.createMediaSource(mediaUri), true, true);
@@ -574,7 +576,7 @@ public class VideoPlaybackService extends Service
      */
     private boolean isLocalFile(Uri uri)
     {
-        return uri.getScheme() != null && (uri.getScheme().equals("content") || uri.getScheme().equals("file"));
+        return URLUtil.isValidUrl(uri.toString()) && (URLUtil.isFileUrl(uri.toString()) ||URLUtil.isContentUrl(uri.toString()));
     }
 
     /**
@@ -582,7 +584,7 @@ public class VideoPlaybackService extends Service
      */
     private boolean hasStoragePermission()
     {
-        return checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED;
+        return checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
     }
     //endregion
 }

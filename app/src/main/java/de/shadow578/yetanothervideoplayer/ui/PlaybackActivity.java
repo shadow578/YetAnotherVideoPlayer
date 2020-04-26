@@ -450,7 +450,8 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                 if (granted)
                 {
                     //have permissions now, start playing by reload
-                    playbackService.reloadMedia();
+                    if (playbackService != null)
+                        playbackService.reloadMedia();
                 }
                 else
                 {
@@ -1655,7 +1656,8 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             //storage permissions are missing, request them
             if (checkAndRequestPermission(Manifest.permission.READ_EXTERNAL_STORAGE, PERMISSION_REQUEST_READ_EXT_STORAGE))
             {
-                //we have the permission?? reload the media
+                //we already have the permission?? reload the media then!
+                Logging.logD("onMissingStoragePermissions(): we already have those permissions? reload media...");
                 playbackService.reloadMedia();
             }
         }
