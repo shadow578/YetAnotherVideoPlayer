@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".ui.test.AutoPauseDebugActivity">
+
+    <!-- switches on top -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- main enable switch -->
+        <Switch
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:id="@+id/apd_switch_enable"
+            android:text= "Enabled"
+            android:checked="false"
+            tools:ignore="HardcodedText" />
+
+        <!-- use proximity switch -->
+        <Switch
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:id="@+id/apd_switch_use_proximity"
+            android:text="Use Proximity"
+            android:checked="true"
+            tools:ignore="HardcodedText" />
+
+        <!-- use camera switch -->
+        <Switch
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:id="@+id/apd_switch_use_camera"
+            android:text="Use Camera"
+            android:checked="true"
+            tools:ignore="HardcodedText" />
+    </LinearLayout>
+
+    <!-- placeholder for camera preview -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"
+        android:background="#000000"
+        android:id="@+id/apd_preview_placeholder"/>
+
+    <!-- last messages -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="120dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:id="@+id/apd_message_container"/>
+    </ScrollView>
+</LinearLayout>

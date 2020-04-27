@@ -75,6 +75,11 @@ public class PlayerAutoPauseManager
     private UserFaceTracker faceTracker;
 
     /**
+     * Preview for the face tracker. THIS may be null, so handle with care!
+     */
+    private DetectorCameraPreview faceTrackerPreview;
+
+    /**
      * create a new auto pause manager
      *
      * @param ctx the context of the manager (activity)
@@ -83,6 +88,8 @@ public class PlayerAutoPauseManager
     {
         context = ctx;
     }
+
+    //region manager interface
 
     /**
      * Initialize the Auto pause manager
@@ -93,7 +100,7 @@ public class PlayerAutoPauseManager
     public boolean initialize(PlayerAutoPauseCallback pauseCallback)
     {
         //check callback is valid
-        if (callback == null) return false;
+        if (pauseCallback == null) return false;
 
         //set callback
         callback = pauseCallback;
@@ -106,6 +113,17 @@ public class PlayerAutoPauseManager
 
         //check we have a sensor manager
         return sensorManager != null;
+    }
+
+    /**
+     * Set the preview component for the face tracker.
+     * Does not automatically update anything, so make sure to call activate() only after calling this (when you want a preview)
+     *
+     * @param preview the preview to use
+     */
+    public void setFaceTrackerPreview(DetectorCameraPreview preview)
+    {
+        faceTrackerPreview = preview;
     }
 
     /**
@@ -156,6 +174,7 @@ public class PlayerAutoPauseManager
         disableLight();
         disableFaceDetect();
     }
+    //endregion
 
     //region sub- function enables/disables
 
@@ -610,10 +629,19 @@ public class PlayerAutoPauseManager
                 return false;
             }
 
-            //try to start tracking (without a preview)
+            //try to start the tracking
             try
             {
-                detectorCam.start();
+                if (faceTrackerPreview != null)
+                {
+                    //start detector with preview
+                    faceTrackerPreview.setCameraSource(detectorCam);
+                }
+                else
+                {
+                    //start detector without preview
+                    detectorCam.start();
+                }
                 return true;
             }
             catch (IOException e)
@@ -691,11 +719,18 @@ public class PlayerAutoPauseManager
          */
         private void releaseAll()
         {
+            //release preview
+            //if (faceTrackerPreview != null) faceTrackerPreview.release();
+
             //release detector
             if (detector != null) detector.release();
 
             //release cam source
-            if (detectorCam != null) detectorCam.release();
+            if (detectorCam != null)
+            {
+                detectorCam.stop();
+                detectorCam.release();
+            }
         }
 
         /**
