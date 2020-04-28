@@ -3,11 +3,15 @@ package de.shadow578.yetanothervideoplayer.feature.swipe;
 import android.content.Context;
 import android.graphics.PointF;
 import android.graphics.RectF;
+import android.os.Handler;
 import android.util.SizeF;
 import android.util.TypedValue;
 import android.view.InputDevice;
 import android.view.MotionEvent;
 import android.view.View;
+
+
+import de.shadow578.yetanothervideoplayer.util.Logging;
 
 public class SwipeGestureListener implements View.OnTouchListener
 {
@@ -25,6 +29,16 @@ public class SwipeGestureListener implements View.OnTouchListener
      * The time the last swipe point was changed
      */
     private long lastSwipePointMillis;
+
+
+    private PointF lastDoubleTapPoint;
+
+    private long lastDoubleTapPointMillis;
+
+    private final long doubleTapDecayTime = 750;
+
+    private final float doubleTapMaxRadiusSq = 100f;//dp, squared
+
 
     /**
      * How long the user can stay without moving his finger before
@@ -52,6 +66,7 @@ public class SwipeGestureListener implements View.OnTouchListener
      * (Kind of misusing RectF here... the values represent the dp's from the edge that are ignored, not the position of the rect)
      */
     private final RectF swipeEdgeIgnore;
+
 
     /**
      * Initialize the Swipe Gesture Listener without ignored pixels on the edges
@@ -111,6 +126,31 @@ public class SwipeGestureListener implements View.OnTouchListener
         {
             case MotionEvent.ACTION_DOWN:
             {
+                //first check if we have a double tap point recorded that is not yet decayed
+                if (lastDoubleTapPoint != null && ((System.currentTimeMillis() - lastDoubleTapPointMillis) <= doubleTapDecayTime))
+                {
+                    //point is not decayed, check distance between between the current and the initial tap
+                    float deltaX = Math.abs(lastDoubleTapPoint.x - currentPos.x);
+                    float deltaY = Math.abs(lastDoubleTapPoint.y - currentPos.y);
+                    float distanceSq = (deltaX * deltaX) + (deltaY * deltaY);
+                    if (distanceSq <= doubleTapMaxRadiusSq)
+                    {
+                        //the current tap is inside the radius for a double- tap AND was fast enough
+                        //so this is a double- tap
+                        Logging.logE("IS_DOUBLE_TAP!");
+
+                        //reset the last double tap point recorded
+                        lastDoubleTapPoint = null;
+                        lastDoubleTapPointMillis = 0;
+                        return true;
+                    }
+                }
+
+                //record position of event as last touchUp
+                lastDoubleTapPoint = currentPos;
+                lastDoubleTapPointMillis = System.currentTimeMillis();
+
+                //check deadzone for swipe detection
                 if (!isInDeadZone)
                 {
                     //finger pressed down outside of dead zone, get initial position
