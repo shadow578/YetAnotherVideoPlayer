@@ -72,7 +72,7 @@ public class AutoPauseDebugActivity extends AppCompatActivity
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b)
             {
-                addUIMessage("~~~~~~~~~~~~~~~~~~~~", false  );
+                addUIMessage("~~~~~~~~~~~~~~~~~~~~", false);
 
                 if (swEnableManager != null && swEnableManager.isChecked())
                 {
@@ -247,6 +247,9 @@ public class AutoPauseDebugActivity extends AppCompatActivity
                     break;
                 case LOW_LIGHT:
                     eventStr = "State = Low Light";
+                    break;
+                case GOT_ACTIVE_FACE:
+                    eventStr = "State = Got Face";
                     break;
                 case LOST_ACTIVE_FACE:
                     eventStr = "State = Lost Face";

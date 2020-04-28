@@ -748,7 +748,8 @@ public class PlayerAutoPauseManager
         public void foundActiveFace()
         {
             //we have the active face!
-            hasActiveFace = false;
+            hasActiveFace = true;
+            internal_onEvent(PlayerAutoPauseEvents.GOT_ACTIVE_FACE);
         }
 
         @Override

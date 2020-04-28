@@ -47,6 +47,11 @@ public enum PlayerAutoPauseEvents
     LOW_LIGHT,
 
     /**
+     * Face tracing found a active face
+     */
+    GOT_ACTIVE_FACE,
+
+    /**
      * Face tracking lost a previously active face (=pause the video)
      */
     LOST_ACTIVE_FACE
