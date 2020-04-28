@@ -54,54 +54,30 @@
 
     </RelativeLayout>
 
-    <!-- center controls -->
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true">
+    <!-- play/pause button -->
+    <FrameLayout
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_centerInParent="true"
+        android:layout_gravity="center"
+        android:layout_marginHorizontal="45dp"
+        android:clipChildren="false">
 
-        <!-- rewind button -->
         <ImageButton
-            android:id="@id/exo_rew"
-            style="@style/AppButton.FastRewindButton"
-            android:layout_height="35dp"
-            android:layout_gravity="center"
-            android:contentDescription="@string/exo_controls_rewind_description"
-            android:visibility="visible" />
+            android:id="@id/exo_play"
+            style="@style/AppButton.PlayButton"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/exo_controls_play_description" />
 
-        <!-- play/pause button -->
-        <FrameLayout
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:layout_gravity="center"
-            android:layout_marginHorizontal="45dp"
-            android:clipChildren="false">
-
-            <ImageButton
-                android:id="@id/exo_play"
-                style="@style/AppButton.PlayButton"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:contentDescription="@string/exo_controls_play_description" />
-
-            <ImageButton
-                android:id="@id/exo_pause"
-                style="@style/AppButton.PauseButton"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:contentDescription="@string/exo_controls_pause_description"
-                android:visibility="invisible" />
-        </FrameLayout>
-
-        <!-- fast forward button -->
         <ImageButton
-            android:id="@id/exo_ffwd"
-            style="@style/AppButton.FastForwardButton"
-            android:layout_height="35dp"
-            android:layout_gravity="center"
-            android:contentDescription="@string/exo_controls_fastforward_description"
-            android:visibility="visible" />
-    </LinearLayout>
+            android:id="@id/exo_pause"
+            style="@style/AppButton.PauseButton"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/exo_controls_pause_description"
+            android:visibility="invisible" />
+    </FrameLayout>
 
     <!-- bottom controls -->
     <LinearLayout
