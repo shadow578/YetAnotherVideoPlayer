@@ -47,12 +47,15 @@ public class DetectorCameraPreview extends ViewGroup
      */
     public void setCameraSource(CameraSource source) throws IOException
     {
-        //stop if no source is supplied
+        //stop and abort if no source is supplied
         if (source == null)
         {
             stop();
             return;
         }
+
+        //stop if already active
+        if (isPreviewActive) stop();
 
         //set camera source
         camSource = source;
@@ -113,8 +116,8 @@ public class DetectorCameraPreview extends ViewGroup
         }
 
         //calculate x and y offsets for centering the preview
-        final int cX = (int)(((float)layoutWidth / 2f) - ((float)cWidth / 2f));
-        final int cY = (int)(((float)layoutHeight / 2f) - ((float)cHeight / 2f));
+        final int cX = (int) (((float) layoutWidth / 2f) - ((float) cWidth / 2f));
+        final int cY = (int) (((float) layoutHeight / 2f) - ((float) cHeight / 2f));
 
         //do layout for children
         for (int ci = 0; ci < getChildCount(); ci++)
@@ -168,6 +171,7 @@ public class DetectorCameraPreview extends ViewGroup
         if (camSource != null)
         {
             camSource.stop();
+            camSource = null;
         }
 
         //reset preview active flag
