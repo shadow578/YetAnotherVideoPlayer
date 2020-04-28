@@ -665,15 +665,10 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                         getPrefInt(ConfigKeys.KEY_SWIPE_DEAD_ZONE_RECT_BOTTOM, R.integer.DEF_SWIPE_DEAD_ZONE_BOTTOM)))
         {
             @Override
-            public void onHorizontalSwipe(float deltaX, PointF swipeStart, PointF swipeEnd, PointF firstContact, SizeF screenSize)
-            {
-            }
-
-            @Override
             public void onVerticalSwipe(float deltaY, PointF swipeStart, PointF swipeEnd, PointF firstContact, SizeF screenSize)
             {
                 //check which screen size the swipe originated from
-                if (firstContact.x > (screenSize.getWidth() / 2))
+                if (isRightScreenSide(firstContact, screenSize))
                 {
                     //swipe on right site of screen, adjust volume
                     if (deltaY > 0.0)
@@ -709,22 +704,48 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             }
 
             @Override
-            public void onHorizontalFling(float deltaX, PointF flingStart, PointF flingEnd, SizeF screenSize)
-            {
-                Logging.logD("HFling: " + deltaX + " dp");
-            }
-
-            @Override
-            public void onVerticalFling(float deltaY, PointF flingStart, PointF flingEnd, SizeF screenSize)
-            {
-            }
-
-            @Override
             public void onNoSwipeClick(View view, PointF clickPos, SizeF screenSize)
             {
                 //forward click to player controls
                 playerControlView.performClick();
-                super.onNoSwipeClick(view, clickPos, screenSize);
+
+                //also perform click on original view
+                //super.onNoSwipeClick(view, clickPos, screenSize);
+            }
+
+            @Override
+            protected void onDoubleClick(float distanceSquared, long tapDeltaTime, PointF firstTouchPos, PointF secondTouchPos, SizeF screenSize)
+            {
+                //get fast- forward and rewind increments
+                int seekAmount = getPrefInt(ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT);
+
+                //check on which side of the screen the double click ended
+                if (isRightScreenSide(secondTouchPos, screenSize))
+                {
+                    //double click on right side, seek forward
+                    //TODO: add effects?
+                }
+                else
+                {
+                    //double click on left side, seek backwards
+                    //TODO: add effects?
+
+                    //invert seek increment for seeking backwards
+                    seekAmount *= -1;
+                }
+
+                //seek relative to the current playback position
+                playbackService.seekRelative(seekAmount);
+            }
+
+            /**
+             * @param point the point to check
+             * @param screenSize the size of the screen
+             * @return is the point on the right side of the screen?
+             */
+            private boolean isRightScreenSide(PointF point, SizeF screenSize)
+            {
+                return point.x > (screenSize.getWidth() / 2);
             }
         });
     }

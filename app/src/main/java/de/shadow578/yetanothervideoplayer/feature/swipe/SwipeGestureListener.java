@@ -10,9 +10,6 @@ import android.view.InputDevice;
 import android.view.MotionEvent;
 import android.view.View;
 
-
-import de.shadow578.yetanothervideoplayer.util.Logging;
-
 public class SwipeGestureListener implements View.OnTouchListener
 {
     /**
@@ -30,15 +27,40 @@ public class SwipeGestureListener implements View.OnTouchListener
      */
     private long lastSwipePointMillis;
 
-
+    /**
+     * The position of the finger on the last touch
+     * Used for double- tap detection
+     */
     private PointF lastDoubleTapPoint;
 
+    /**
+     * when the last double tap point was changed
+     */
     private long lastDoubleTapPointMillis;
 
-    private final long doubleTapDecayTime = 750;
+    /**
+     * the runnable responsible for clicking the underlying view, from the last normal click
+     */
+    private Runnable lastPerformNormalClick;
 
-    private final float doubleTapMaxRadiusSq = 100f;//dp, squared
+    /**
+     * handler for delaying clicks on views
+     * Currently only used for double- tap detection
+     */
+    private Handler clickDelayHandler = new Handler();
 
+
+    /**
+     * How long two taps near to each other can be spaced apart (in time) to be counted as a double- tap
+     * this also affects by how much normal taps / clicks are delayed, so set as low as possible
+     */
+    private final long doubleTapDecayTime;
+
+    /**
+     * maximum radius between two taps to be counted as a double- tap
+     * this value is in dp, but squared
+     */
+    private final float doubleTapMaxRadiusSq;
 
     /**
      * How long the user can stay without moving his finger before
@@ -49,14 +71,12 @@ public class SwipeGestureListener implements View.OnTouchListener
     /**
      * The Minimum distance the user has to move his finger before the movement is
      * registered as swipe
-     * [Device- Dependent Pixels]
      */
     private final float swipeThreshold;
 
     /**
      * The Minimum distance the user has to move his finger before the movement is
      * registered as a fling
-     * [Device- Dependent Pixels]
      */
     private final float flingThreshold;
 
@@ -75,6 +95,7 @@ public class SwipeGestureListener implements View.OnTouchListener
      * @param swipeThresholdDp the minimum distance the user has to move his finger before the movement is registered as swipe [in density- independent pixels (dp)]
      * @param flingThresholdDp the minimum distance the user has to move his finger before the movement is registered as fling [in density- independent pixels (dp)]
      */
+    @SuppressWarnings({"unused", "WeakerAccess", "RedundantSuppression"})
     protected SwipeGestureListener(long touchDecayTimeMs, float swipeThresholdDp, float flingThresholdDp)
     {
         this(touchDecayTimeMs, swipeThresholdDp, flingThresholdDp, new RectF(0, 0, 0, 0));
@@ -88,22 +109,41 @@ public class SwipeGestureListener implements View.OnTouchListener
      * @param flingThresholdDp the minimum distance the user has to move his finger before the movement is registered as fling [in density- independent pixels (dp)]
      * @param swipeIgnore      how many pixels are ignored on the edges of the screen. (!!Not a rect!!, top means top edge, left means left edge, etc.) [in density- independent pixels (dp)]
      */
+    @SuppressWarnings({"unused", "WeakerAccess", "RedundantSuppression"})
     protected SwipeGestureListener(long touchDecayTimeMs, float swipeThresholdDp, float flingThresholdDp, RectF swipeIgnore)
     {
+        this(touchDecayTimeMs, 200, swipeThresholdDp, flingThresholdDp, 5, swipeIgnore);
+    }
+
+    /**
+     * Initialize the Swipe Gesture Listener
+     *
+     * @param touchDecayTimeMs     how long the user can stay in one place before the swipe reference it updated to the current position [milliseconds]
+     * @param doubleTapDecayTimeMs how long two taps can be spaced apart (in time) to still be registered as a double- tap [milliseconds]
+     * @param swipeThresholdDp     the minimum distance the user has to move his finger before the movement is registered as swipe [in density- independent pixels (dp)]
+     * @param flingThresholdDp     the minimum distance the user has to move his finger before the movement is registered as fling [in density- independent pixels (dp)]
+     * @param doubleTapMaxRadiusDp the maximum distance two taps can be apart to be registered as a double- tap [in density- independent pixels (dp)]
+     * @param swipeIgnore          how many pixels are ignored on the edges of the screen. (!!Not a rect!!, top means top edge, left means left edge, etc.) [in density- independent pixels (dp)]
+     */
+    @SuppressWarnings({"unused", "WeakerAccess", "RedundantSuppression"})
+    protected SwipeGestureListener(long touchDecayTimeMs, long doubleTapDecayTimeMs, float swipeThresholdDp, float flingThresholdDp, float doubleTapMaxRadiusDp, RectF swipeIgnore)
+    {
         touchDecayTime = touchDecayTimeMs;
+        doubleTapDecayTime = doubleTapDecayTimeMs;
         swipeThreshold = swipeThresholdDp;
         flingThreshold = flingThresholdDp;
+        doubleTapMaxRadiusSq = (doubleTapMaxRadiusDp * doubleTapMaxRadiusDp);
         swipeEdgeIgnore = swipeIgnore;
     }
 
     @Override
-    public boolean onTouch(View view, MotionEvent e)
+    public boolean onTouch(final View view, MotionEvent e)
     {
         //get context of view for px -> dp conversion
         Context ctx = view.getContext();
 
         //get current finger position in dp
-        PointF currentPos = new PointF(pxToDp(e.getX(), ctx), pxToDp(e.getY(), ctx));
+        final PointF currentPos = new PointF(pxToDp(e.getX(), ctx), pxToDp(e.getY(), ctx));
 
         //get input device (=touch screen) this event was invoked on
         //this device can be null (tho rare), so check for that
@@ -113,7 +153,7 @@ public class SwipeGestureListener implements View.OnTouchListener
         //get screen size in dp
         float screenWidthRaw = eventDevice.getMotionRange(MotionEvent.AXIS_X).getRange();
         float screenHeightRaw = eventDevice.getMotionRange(MotionEvent.AXIS_Y).getRange();
-        SizeF screenSize = new SizeF(pxToDp(screenWidthRaw, ctx), pxToDp(screenHeightRaw, ctx));
+        final SizeF screenSize = new SizeF(pxToDp(screenWidthRaw, ctx), pxToDp(screenHeightRaw, ctx));
 
         //check if finger is in dead zone around the edges
         boolean isInDeadZone = currentPos.x < swipeEdgeIgnore.left                      //check left edge
@@ -136,8 +176,15 @@ public class SwipeGestureListener implements View.OnTouchListener
                     if (distanceSq <= doubleTapMaxRadiusSq)
                     {
                         //the current tap is inside the radius for a double- tap AND was fast enough
-                        //so this is a double- tap
-                        Logging.logE("IS_DOUBLE_TAP!");
+                        //so this is a double- tap:
+                        //cancel the first tap clicking on a view asap
+                        if (lastPerformNormalClick != null)
+                        {
+                            clickDelayHandler.removeCallbacks(lastPerformNormalClick);
+                        }
+
+                        //now call the event
+                        onDoubleClick(distanceSq, (System.currentTimeMillis() - lastDoubleTapPointMillis), lastDoubleTapPoint, currentPos, screenSize);
 
                         //reset the last double tap point recorded
                         lastDoubleTapPoint = null;
@@ -179,9 +226,20 @@ public class SwipeGestureListener implements View.OnTouchListener
                 //check if movement fulfills length requirements
                 if (Math.abs(deltaX) < flingThreshold && Math.abs(deltaY) < flingThreshold)
                 {
-                    //does not qualify as fling, make click
-                    onNoSwipeClick(view, currentPos, screenSize);
-                    view.performClick();
+                    //does not qualify as a fling, make click
+                    //perform the click on the view delayed, inside a (saved) runnable so we can cancel it
+                    lastPerformNormalClick = new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            onNoSwipeClick(view, currentPos, screenSize);
+                        }
+                    };
+
+                    //dispatch the click delayed, so we perform the click right after
+                    //the tap reached it's decay time for being a double- tap
+                    clickDelayHandler.postDelayed(lastPerformNormalClick, doubleTapDecayTime);
 
                     //null values
                     firstContactPoint = null;
@@ -302,8 +360,8 @@ public class SwipeGestureListener implements View.OnTouchListener
      * @param firstContact the first contact point of the finger
      * @param screenSize   the size of the screen
      */
-    @SuppressWarnings({"EmptyMethod", "unused"})
-    public void onHorizontalSwipe(float deltaX, PointF swipeStart, PointF swipeEnd, PointF firstContact, SizeF screenSize)
+    @SuppressWarnings({"EmptyMethod", "unused", "WeakerAccess", "RedundantSuppression"})
+    protected void onHorizontalSwipe(float deltaX, PointF swipeStart, PointF swipeEnd, PointF firstContact, SizeF screenSize)
     {
 
     }
@@ -319,9 +377,9 @@ public class SwipeGestureListener implements View.OnTouchListener
      * @param firstContact the first contact point of the finger
      * @param screenSize   the size of the screen
      */
+    @SuppressWarnings({"EmptyMethod", "unused", "WeakerAccess", "RedundantSuppression"})
     protected void onVerticalSwipe(float deltaY, PointF swipeStart, PointF swipeEnd, PointF firstContact, SizeF screenSize)
     {
-
     }
 
     /**
@@ -334,8 +392,8 @@ public class SwipeGestureListener implements View.OnTouchListener
      * @param flingEnd   the position the fling ended
      * @param screenSize the size of the screen
      */
-    @SuppressWarnings({"EmptyMethod", "unused"})
-    public void onHorizontalFling(float deltaX, PointF flingStart, PointF flingEnd, SizeF screenSize)
+    @SuppressWarnings({"EmptyMethod", "unused", "WeakerAccess", "RedundantSuppression"})
+    protected void onHorizontalFling(float deltaX, PointF flingStart, PointF flingEnd, SizeF screenSize)
     {
 
     }
@@ -350,24 +408,41 @@ public class SwipeGestureListener implements View.OnTouchListener
      * @param flingEnd   the position the fling ended
      * @param screenSize the size of the screen
      */
-    @SuppressWarnings({"EmptyMethod", "unused"})
-    public void onVerticalFling(float deltaY, PointF flingStart, PointF flingEnd, SizeF screenSize)
+    @SuppressWarnings({"EmptyMethod", "unused", "WeakerAccess", "RedundantSuppression"})
+    protected void onVerticalFling(float deltaY, PointF flingStart, PointF flingEnd, SizeF screenSize)
     {
 
     }
 
     /**
      * Called when a click is detected and performed
+     * (call super to actually perform the click on the given view)
      * (all units, positions, etc. in dp (density- independent- pixels))
      *
      * @param view       the view that was clicked
      * @param clickPos   the position of the click
      * @param screenSize the size of the screen
      */
-    @SuppressWarnings({"EmptyMethod", "unused"})
-    public void onNoSwipeClick(View view, PointF clickPos, SizeF screenSize)
+    @SuppressWarnings({"EmptyMethod", "unused", "WeakerAccess", "RedundantSuppression"})
+    protected void onNoSwipeClick(View view, PointF clickPos, SizeF screenSize)
     {
+        view.performClick();
     }
 
+    /**
+     * Called when a double- click is detected
+     * (all units, positions, etc. in dp (density- independent- pixels))
+     *
+     * @param distanceSquared the distance between the two positions that were touched
+     * @param tapDeltaTime    the time between the two touches
+     * @param firstTouchPos   the position of the first touch
+     * @param secondTouchPos  the position of the second touch
+     * @param screenSize      the size of the screen
+     */
+    @SuppressWarnings({"EmptyMethod", "unused", "WeakerAccess", "RedundantSuppression"})
+    protected void onDoubleClick(float distanceSquared, long tapDeltaTime, PointF firstTouchPos, PointF secondTouchPos, SizeF screenSize)
+    {
+
+    }
     //endregion
 }
