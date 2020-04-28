@@ -39,6 +39,7 @@
     <string name="qs_repeat">Loop</string>
     <string name="qs_closed_captions">Subtitles</string>
     <string name="qs_app_settings">Global Settings</string>
+    <string name="qs_skip_intro">Skip Opening</string>
 
     <string name="qs_anime4k">Anime4K</string>
     <!--<string name="qs_anime4k_x1">Anime4K (x1)</string>-->

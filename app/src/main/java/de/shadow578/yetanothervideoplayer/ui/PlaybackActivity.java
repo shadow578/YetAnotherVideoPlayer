@@ -910,6 +910,17 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                 //subtitles toggle
                 break;
             }
+            case R.id.qs_btn_skip_intro:
+            {
+                //skip the (anime) intro
+                //quick hack: pretend you use some fancy API to get how long a anime opening is,
+                //but actually just always skip 85 seconds since that is (roughly) how long most openings are :P
+                //nobody could tell anyways ;)
+                if(playbackService != null)
+                    playbackService.seekRelative(85000);
+
+                break;
+            }
             case R.id.qs_btn_app_settings:
             {
                 //open global app settings
