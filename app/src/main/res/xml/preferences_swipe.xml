@@ -10,14 +10,6 @@
         android:summaryOn="@string/settings_swipe_enable_on"
         android:title="@string/settings_swipe_enable_title" />
 
-    <EditTextPreference
-        android:defaultValue="@integer/DEF_BRIGHTNESS_ADJUST_STEP"
-        android:dependency="SWIPE_GESTURES_EN"
-        android:key="BRIGHTNESS_ADJUST_STEP"
-        android:numeric="integer"
-        android:summary="@string/settings_swipe_brightness_step_summary"
-        android:title="@string/settings_swipe_brightness_step_title" />
-
     <SwitchPreference
         android:defaultValue="@bool/DEF_BRIGHTNESS_HARD_SWIPE_EN"
         android:dependency="SWIPE_GESTURES_EN"
@@ -27,13 +19,6 @@
         android:title="@string/settings_swipe_hard_swipe_enable_title" />
 
     <EditTextPreference
-        android:defaultValue="@integer/DEF_BRIGHTNESS_HARD_SWIPE_THRESHOLD"
-        android:dependency="BRIGHTNESS_HARD_SWIPE_EN"
-        android:key="BRIGHTNESS_HARD_SWIPE_THRESHOLD"
-        android:summary="@string/settings_swipe_hard_swipe_thresh_summary"
-        android:title="@string/settings_swipe_hard_swipe_thresh_title" />
-
-    <EditTextPreference
         android:defaultValue="@integer/DEF_INFO_TEXT_DURATION"
         android:dependency="SWIPE_GESTURES_EN"
         android:key="INFO_TEXT_DURATION"
@@ -41,7 +26,6 @@
         android:title="@string/settings_swipe_info_duration_title" />
 
     <Preference
-        android:dependency="SWIPE_GESTURES_EN"
         android:fragment="de.shadow578.yetanothervideoplayer.ui.AppSettingsActivity$PreferencesSwipeAdvancedFragment"
         android:title="@string/settings_swipe_adv_title" />
 </PreferenceScreen>

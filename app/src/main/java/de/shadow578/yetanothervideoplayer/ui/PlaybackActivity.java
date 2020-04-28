@@ -654,33 +654,35 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
      */
     private void setupGestures()
     {
-        //check if swipe gestures are enables
-        if (!getPrefBool(ConfigKeys.KEY_SWIPE_GESTURE_EN, R.bool.DEF_SWIPE_GESTURES_EN))
-        {
-            Logging.logD("Not initializing swipe gestures: swipe gestures are disabled!");
-            return;
-        }
-
         //get configuration values needed in swipe handler (avoid looking up values constantly)
+        final boolean enableSwipeGestures = getPrefBool(ConfigKeys.KEY_SWIPE_GESTURES_EN, R.bool.DEF_SWIPE_GESTURES_EN);
+        final int touchDecayTime = getPrefInt(ConfigKeys.KEY_SWIPE_DECAY_TIME, R.integer.DEF_TOUCH_DECAY_TIME);
+        final int swipeFlingThreshold = getPrefInt(ConfigKeys.KEY_SWIPE_FLING_THRESHOLD, R.integer.DEF_SWIPE_FLING_THRESHOLD);
+        final int doubleTapDecayTime = getPrefInt(ConfigKeys.KEY_DOUBLE_TAP_DECAY_TIME, R.integer.DEF_DOUBLE_TAP_DECAY_TIME);
+        final int doubleTapMaxDistance = getPrefInt(ConfigKeys.KEY_DOUBLE_TAP_MAX_RADIUS, R.integer.DEF_DOUBLE_TAP_MAX_RADIUS);
+
+        final RectF swipeIgnore = new RectF(getPrefInt(ConfigKeys.KEY_SWIPE_DEAD_ZONE_RECT_LEFT, R.integer.DEF_SWIPE_DEAD_ZONE_LEFT),
+                getPrefInt(ConfigKeys.KEY_SWIPE_DEAD_ZONE_RECT_TOP, R.integer.DEF_SWIPE_DEAD_ZONE_TOP),
+                getPrefInt(ConfigKeys.KEY_SWIPE_DEAD_ZONE_RECT_RIGHT, R.integer.DEF_SWIPE_DEAD_ZONE_RIGHT),
+                getPrefInt(ConfigKeys.KEY_SWIPE_DEAD_ZONE_RECT_BOTTOM, R.integer.DEF_SWIPE_DEAD_ZONE_BOTTOM));
+
         final float brightnessAdjustStep = getPrefInt(ConfigKeys.KEY_BRIGHTNESS_ADJUST_STEP, R.integer.DEF_BRIGHTNESS_ADJUST_STEP) / 100.0f;
         final float hardSwipeThreshold = getPrefInt(ConfigKeys.KEY_BRIGHTNESS_HARD_SWIPE_THRESHOLD, R.integer.DEF_BRIGHTNESS_HARD_SWIPE_THRESHOLD);
         final boolean hardSwipeEnable = getPrefBool(ConfigKeys.KEY_BRIGHTNESS_HARD_SWIPE_EN, R.bool.DEF_BRIGHTNESS_HARD_SWIPE_EN);
 
         //init and set listener
-        // playerView.setOnTouchListener(new SwipeGestureListener(TOUCH_DECAY_TIME, SWIPE_THRESHOLD_N, FLING_THRESHOLD_N,
-        // new RectF(0, 20, 0, 75))
-        int swipeFlingThreshold = getPrefInt(ConfigKeys.KEY_SWIPE_FLING_THRESHOLD, R.integer.DEF_SWIPE_FLING_THRESHOLD);
-        int touchDecayTime = getPrefInt(ConfigKeys.KEY_TOUCH_DECAY_TIME, R.integer.DEF_TOUCH_DECAY_TIME);
-
-        playbackRootView.setOnTouchListener(new SwipeGestureListener(touchDecayTime, swipeFlingThreshold, swipeFlingThreshold,
-                new RectF(getPrefInt(ConfigKeys.KEY_SWIPE_DEAD_ZONE_RECT_LEFT, R.integer.DEF_SWIPE_DEAD_ZONE_LEFT),
-                        getPrefInt(ConfigKeys.KEY_SWIPE_DEAD_ZONE_RECT_TOP, R.integer.DEF_SWIPE_DEAD_ZONE_TOP),
-                        getPrefInt(ConfigKeys.KEY_SWIPE_DEAD_ZONE_RECT_RIGHT, R.integer.DEF_SWIPE_DEAD_ZONE_RIGHT),
-                        getPrefInt(ConfigKeys.KEY_SWIPE_DEAD_ZONE_RECT_BOTTOM, R.integer.DEF_SWIPE_DEAD_ZONE_BOTTOM)))
+        playbackRootView.setOnTouchListener(new SwipeGestureListener(touchDecayTime, doubleTapDecayTime, swipeFlingThreshold, swipeFlingThreshold, doubleTapMaxDistance, swipeIgnore)
         {
             @Override
             public void onVerticalSwipe(float deltaY, PointF swipeStart, PointF swipeEnd, PointF firstContact, SizeF screenSize)
             {
+                //ignore if swipe gestures are disabled
+                if (!enableSwipeGestures)
+                {
+                    super.onVerticalSwipe(deltaY, swipeStart, swipeEnd, firstContact, screenSize);
+                    return;
+                }
+
                 //check which screen size the swipe originated from
                 if (isRightScreenSide(firstContact, screenSize))
                 {

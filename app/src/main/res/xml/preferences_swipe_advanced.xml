@@ -4,6 +4,19 @@
     <PreferenceCategory android:title="@string/settings_swipe_adv_title" />
 
     <EditTextPreference
+        android:defaultValue="@integer/DEF_BRIGHTNESS_ADJUST_STEP"
+        android:key="BRIGHTNESS_ADJUST_STEP"
+        android:numeric="integer"
+        android:summary="@string/settings_swipe_brightness_step_summary"
+        android:title="@string/settings_swipe_brightness_step_title" />
+
+    <EditTextPreference
+        android:defaultValue="@integer/DEF_BRIGHTNESS_HARD_SWIPE_THRESHOLD"
+        android:key="BRIGHTNESS_HARD_SWIPE_THRESHOLD"
+        android:summary="@string/settings_swipe_hard_swipe_thresh_summary"
+        android:title="@string/settings_swipe_hard_swipe_thresh_title" />
+
+    <EditTextPreference
         android:defaultValue="@integer/DEF_TOUCH_DECAY_TIME"
         android:key="TOUCH_DECAY_TIME"
         android:numeric="integer"
@@ -16,6 +29,20 @@
         android:numeric="integer"
         android:summary="@string/settings_swipe_adv_swipe_thresh_summary"
         android:title="@string/settings_swipe_adv_swipe_thresh_title" />
+
+    <EditTextPreference
+        android:defaultValue="@integer/DEF_DOUBLE_TAP_DECAY_TIME"
+        android:key="DOUBLE_TAP_DECAY_TIME"
+        android:numeric="integer"
+        android:summary="@string/settings_swipe_adv_doubletap_decay_summary"
+        android:title="@string/settings_swipe_adv_doubletap_decay_title" />
+
+    <EditTextPreference
+        android:defaultValue="@integer/DEF_DOUBLE_TAP_MAX_RADIUS"
+        android:key="DOUBLE_TAP_MAX_RADIUS"
+        android:numeric="integer"
+        android:summary="@string/settings_swipe_adv_doubletap_radius_summary"
+        android:title="@string/settings_swipe_adv_doubletap_radius_title" />
 
     <PreferenceCategory android:title="@string/settings_swipe_adv_cat_dead_zone" />
 

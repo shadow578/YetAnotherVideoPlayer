@@ -76,7 +76,7 @@
     <string name="settings_general_battery_warn_thresh_summary">Threshold below which the battery warning is shown</string>
 
     <!-- Settings: swipe -->
-    <string name="settings_swipe_title">Swipe Controls</string>
+    <string name="settings_swipe_title">Gestures</string>
     <string name="settings_swipe_enable_title">Enable Swipe Gestures</string>
     <string name="settings_swipe_enable_off">Swipe Gestures are disabled</string>
     <string name="settings_swipe_enable_on">Volume &amp; Brightness can be adjusted by swiping</string>
@@ -91,11 +91,15 @@
     <string name="settings_swipe_info_duration_summary">How many milliseconds the Info Text (Brightness &amp; Volume) stays visible</string>
 
     <!-- Settings: swipe - advanced -->
-    <string name="settings_swipe_adv_title">Swipe Controls - Advanced</string>
+    <string name="settings_swipe_adv_title">Gesture Controls - Advanced</string>
     <string name="settings_swipe_adv_touch_decay_title">Touch Decay Time</string>
     <string name="settings_swipe_adv_touch_decay_summary">How many milliseconds a touch stays valid without movement</string>
     <string name="settings_swipe_adv_swipe_thresh_title">Swipe Threshold</string>
     <string name="settings_swipe_adv_swipe_thresh_summary">How many Pixels long a swipe hast to be to be detected as a Swipe</string>
+    <string name="settings_swipe_adv_doubletap_decay_title">Double- Tap Decay Time</string>
+    <string name="settings_swipe_adv_doubletap_decay_summary">How many milliseconds a touch stays valid for a double- tap</string>
+    <string name="settings_swipe_adv_doubletap_radius_title">Double- Tap Radius</string>
+    <string name="settings_swipe_adv_doubletap_radius_summary">How far apart two taps are allowed to be for a double- tap</string>
     <string name="settings_swipe_adv_cat_dead_zone">Swipe Dead- Zone</string>
     <string name="settings_swipe_adv_dead_zone_t_title">Ignored Pixels (Top)</string>
     <string name="settings_swipe_adv_dead_zone_b_title">Ignored Pixels (Bottom)</string>
