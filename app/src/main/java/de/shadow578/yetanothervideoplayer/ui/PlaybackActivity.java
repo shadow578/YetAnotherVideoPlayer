@@ -76,14 +76,19 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     private static final int PERMISSION_REQUEST_READ_EXT_STORAGE = 0;
 
     /**
+     * Intent Extra key that tells the player to immediately jump to the given position in the video
+     */
+    public static final String INTENT_EXTRA_JUMP_TO = "jumpTo";
+
+    /**
      * Interval in which the battery level is checked
      */
     private static final int BATTERY_WARN_CHECK_INTERVAL_MS = 10000;
 
     /**
-     * Intent Extra key that tells the player to immediately jump to the given position in the video
+     * With how much delay the buffering indicator is enabled after the player is buffering
      */
-    public static final String INTENT_EXTRA_JUMP_TO = "jumpTo";
+    private static final int BUFFERING_INDICATOR_LAZY_TIME_MS = 750;
     //endregion
 
     //region ~~ Variables ~~
@@ -267,6 +272,11 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
          * Message to check the battery level. (only call once - this message calls itself)
          */
         private static final int BATTERY_WARN_CHECK = 3;
+
+        /**
+         * Message to make the buffering indicator visible (with a *optional* delay)
+         */
+        private static final int SHOW_BUFFERING_INDICATOR = 4;
     }
 
     /**
@@ -336,6 +346,10 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                     //call self later
                     delayHandler.sendEmptyMessageDelayed(Messages.BATTERY_WARN_CHECK, BATTERY_WARN_CHECK_INTERVAL_MS);
                     break;
+                }
+                case Messages.SHOW_BUFFERING_INDICATOR:
+                {
+                    setBufferingIndicatorVisible(true, isPictureInPicture);
                 }
             }
         }
@@ -1811,7 +1825,17 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         @Override
         public void onBufferingChanged(boolean isBuffering)
         {
-            setBufferingIndicatorVisible(isBuffering, isPictureInPicture);
+            if (isBuffering)
+            {
+                //make buffering indicator visible after delay
+                delayHandler.sendEmptyMessageDelayed(Messages.SHOW_BUFFERING_INDICATOR, BUFFERING_INDICATOR_LAZY_TIME_MS);
+            }
+            else
+            {
+                //make buffering indicator invisible and cancel all events that would make it visible
+                delayHandler.removeMessages(Messages.SHOW_BUFFERING_INDICATOR);
+                setBufferingIndicatorVisible(false, isPictureInPicture);
+            }
         }
 
         /**
