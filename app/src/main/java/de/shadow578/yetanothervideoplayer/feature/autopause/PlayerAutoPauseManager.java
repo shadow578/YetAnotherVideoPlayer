@@ -635,11 +635,13 @@ public class PlayerAutoPauseManager
                 if (faceTrackerPreview != null)
                 {
                     //start detector with preview
+                    Logging.logD("Start Face Tracker with preview...");
                     faceTrackerPreview.setCameraSource(detectorCam);
                 }
                 else
                 {
                     //start detector without preview
+                    Logging.logD("Start Face Tracker without preview...");
                     detectorCam.start();
                 }
                 return true;
@@ -698,8 +700,9 @@ public class PlayerAutoPauseManager
             //create cam source
             detectorCam = new CameraSource.Builder(context, detector)
                     .setRequestedPreviewSize(640, 480)
-                    .setFacing(CameraSource.CAMERA_FACING_FRONT)
                     .setRequestedFps(30.0f)
+                    .setAutoFocusEnabled(true)
+                    .setFacing(CameraSource.CAMERA_FACING_FRONT)
                     .build();
 
             //all ok
@@ -719,8 +722,8 @@ public class PlayerAutoPauseManager
          */
         private void releaseAll()
         {
-            //release preview
-            //if (faceTrackerPreview != null) faceTrackerPreview.release();
+            //release preview if we have one
+            if (faceTrackerPreview != null) faceTrackerPreview.release();
 
             //release detector
             if (detector != null) detector.release();

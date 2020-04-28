@@ -6,7 +6,6 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.ViewGroup;
 
-import com.google.android.gms.common.images.Size;
 import com.google.android.gms.vision.CameraSource;
 
 import java.io.IOException;
@@ -29,6 +28,11 @@ public class DetectorCameraPreview extends ViewGroup
      * Is the preview surface view ready for use?
      */
     private boolean isPreviewSurfaceReady = false;
+
+    /**
+     * Is the camera preview currently active?
+     */
+    private boolean isPreviewActive = false;
 
     public DetectorCameraPreview(Context ctx)
     {
@@ -62,28 +66,26 @@ public class DetectorCameraPreview extends ViewGroup
      */
     public void release()
     {
-        if (camSource != null)
-        {
-            camSource.release();
-            camSource = null;
-        }
+        camSource = null;
     }
 
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom)
     {
+        Logging.logE("onLayout DetectorCameraPreview");
+
         //get size of camera source
-        int camWidth = 1;
-        int camHeight = 1;
-        if (camSource != null)
-        {
-            Size camSize = camSource.getPreviewSize();
-            if (camSize != null)
-            {
-                camWidth = camSize.getWidth();
-                camHeight = camSize.getHeight();
-            }
-        }
+        int camWidth = 640;
+        int camHeight = 480;
+        //if (camSource != null)
+        //{
+        //    Size camSize = camSource.getPreviewSize();
+        //    if (camSize != null)
+        //    {
+        //        camWidth = camSize.getWidth();
+        //        camHeight = camSize.getHeight();
+        //    }
+        //}
 
         //swap width and height when in portrait mode
         if (isPortrait())
@@ -96,7 +98,7 @@ public class DetectorCameraPreview extends ViewGroup
         }
 
         //calculate current layout width and height
-        final int layoutWidth = right - bottom;
+        final int layoutWidth = right - left;
         final int layoutHeight = bottom - top;
 
         //calculate width and height for WIDTH fit
@@ -110,10 +112,14 @@ public class DetectorCameraPreview extends ViewGroup
             cWidth = (int) (((float) layoutHeight / (float) camHeight) * camWidth);
         }
 
+        //calculate x and y offsets for centering the preview
+        final int cX = (int)(((float)layoutWidth / 2f) - ((float)cWidth / 2f));
+        final int cY = (int)(((float)layoutHeight / 2f) - ((float)cHeight / 2f));
+
         //do layout for children
         for (int ci = 0; ci < getChildCount(); ci++)
         {
-            getChildAt(ci).layout(0, 0, cWidth, cHeight);
+            getChildAt(ci).layout(cX, cY, cX + cWidth, cY + cHeight);
         }
 
         //try to start preview
@@ -140,9 +146,17 @@ public class DetectorCameraPreview extends ViewGroup
      */
     private void startIfReady() throws IOException
     {
+        //dont start if already running
+        if (isPreviewActive) return;
+
+        //start if everything is ready
         if (camSource != null && previewSurface != null && isPreviewSurfaceReady)
         {
+            //start camera source
             camSource.start(previewSurface.getHolder());
+
+            //set preview active flag
+            isPreviewActive = true;
         }
     }
 
@@ -155,6 +169,9 @@ public class DetectorCameraPreview extends ViewGroup
         {
             camSource.stop();
         }
+
+        //reset preview active flag
+        isPreviewActive = false;
     }
 
     /**
@@ -189,7 +206,6 @@ public class DetectorCameraPreview extends ViewGroup
             //try to start
             tryStartIfReady();
         }
-
 
         @Override
         public void surfaceDestroyed(SurfaceHolder surfaceHolder)

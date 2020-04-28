@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -45,7 +46,7 @@ public class AutoPauseDebugActivity extends AppCompatActivity
     /**
      * View that is the placeholder for the camera preview
      */
-    private FrameLayout cameraPreviewPlaceholder;
+    private RelativeLayout cameraPreviewPlaceholder;
 
     /**
      * linear layout that will later contain the messages
@@ -141,7 +142,9 @@ public class AutoPauseDebugActivity extends AppCompatActivity
 
         //create preview
         DetectorCameraPreview preview = new DetectorCameraPreview(this);
-        preview.setLayoutParams(new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+
+        //set layout to fill parent
+        preview.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
 
         //add preview to placeholder
         cameraPreviewPlaceholder.addView(preview);
