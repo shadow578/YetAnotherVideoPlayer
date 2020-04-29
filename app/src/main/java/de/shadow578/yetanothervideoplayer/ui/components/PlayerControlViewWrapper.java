@@ -12,6 +12,7 @@ import com.google.android.exoplayer2.ui.PlayerControlView;
 /**
  * Basically the same as PlayerControlView, but implements "hide on click" functionality
  */
+@Deprecated
 public class PlayerControlViewWrapper extends PlayerControlView implements Player.EventListener
 {
     /**

@@ -233,7 +233,7 @@
             android:name=".ui.CrashScreenActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.SplashActivity" /> <!-- video playback service -->
-        <service android:name=".playback.VideoPlaybackService" />
+        <service android:name=".feature.playback.VideoPlaybackService" />
     </application>
 
 </manifest>

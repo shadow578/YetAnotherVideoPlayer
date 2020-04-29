@@ -6,18 +6,17 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.preference.PreferenceManager;
 
 import de.shadow578.yetanothervideoplayer.R;
 import de.shadow578.yetanothervideoplayer.YAVPApp;
+import de.shadow578.yetanothervideoplayer.feature.controlview.GesturePlayerControlView;
 import de.shadow578.yetanothervideoplayer.feature.gl.GLAnime4K;
-import de.shadow578.yetanothervideoplayer.playback.VideoPlaybackService;
-import de.shadow578.yetanothervideoplayer.playback.VideoPlaybackServiceListener;
+import de.shadow578.yetanothervideoplayer.feature.playback.VideoPlaybackService;
+import de.shadow578.yetanothervideoplayer.feature.playback.VideoPlaybackServiceListener;
 import de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton;
-import de.shadow578.yetanothervideoplayer.ui.components.PlayerControlViewWrapper;
 import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
+import de.shadow578.yetanothervideoplayer.util.ConfigUtil;
 import de.shadow578.yetanothervideoplayer.util.Logging;
-import de.shadow578.yetanothervideoplayer.feature.swipe.SwipeGestureListener;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -34,8 +33,6 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
-import android.graphics.PointF;
-import android.graphics.RectF;
 import android.graphics.drawable.Icon;
 import android.media.AudioManager;
 import android.net.Uri;
@@ -45,13 +42,9 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
-import android.util.SizeF;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
-import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -94,11 +87,6 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     //region ~~ Variables ~~
     //region static views
     /**
-     * The topmost view of the playback activity
-     */
-    private View playbackRootView;
-
-    /**
      * The drawer layout that contains the quick settings and shader effect drawers
      */
     private DrawerLayout quickAccessDrawer;
@@ -124,11 +112,6 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     private ImageButton playButton;
 
     /**
-     * The TextView in the center of the screen, used to show information
-     */
-    private TextView infoTextView;
-
-    /**
      * The Text View used to display the stream title
      */
     private TextView titleTextView;
@@ -146,11 +129,6 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     //endregion
 
     /**
-     * The Preferences of the app
-     */
-    private SharedPreferences appPreferences;
-
-    /**
      * The connection to the video playback service
      */
     private VideoServiceConnection playbackServiceConnection;
@@ -166,9 +144,9 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     private EPlayerView playerView;
 
     /**
-     * The View that contains and controls the player controls
+     * The View that contains and controls the player controls and also handles gestures for us
      */
-    private PlayerControlViewWrapper playerControlView;
+    private GesturePlayerControlView playerControlView;
 
     /**
      * The uri of the media requested to be played
@@ -254,16 +232,6 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     private static final class Messages
     {
         /**
-         * Message id to start fading out info text
-         */
-        private static final int START_FADE_OUT_INFO_TEXT = 0;
-
-        /**
-         * Message id to make info text invisible
-         */
-        private static final int SET_INFO_TEXT_INVISIBLE = 1;
-
-        /**
          * Message id to reset wasBackPressedOnce flag
          */
         private static final int RESET_BACK_PRESSED = 2;
@@ -289,28 +257,6 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         {
             switch (msg.what)
             {
-                case Messages.START_FADE_OUT_INFO_TEXT:
-                {
-                    //get fade out duration
-                    int fadeDuration = getResources().getInteger(R.integer.info_text_fade_duration);
-
-                    //start fade out animation
-                    Animation fadeOut = new AlphaAnimation(1.0f, 0.0f);
-                    fadeOut.setInterpolator(new DecelerateInterpolator());
-                    fadeOut.setDuration(fadeDuration);
-                    infoTextView.setAnimation(fadeOut);
-
-                    //make invisible after animation
-                    delayHandler.sendEmptyMessageDelayed(Messages.SET_INFO_TEXT_INVISIBLE, fadeDuration);
-                    break;
-                }
-                case Messages.SET_INFO_TEXT_INVISIBLE:
-                {
-                    //set invisible + clear animation
-                    infoTextView.setVisibility(View.INVISIBLE);
-                    infoTextView.setAnimation(null);
-                    break;
-                }
                 case Messages.RESET_BACK_PRESSED:
                 {
                     wasBackPressedOnce = false;
@@ -326,14 +272,14 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                     {
                         //get battery level and warn threshold in percent
                         int batteryPercent = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
-                        int batteryThresh = getPrefInt(ConfigKeys.KEY_BATTERY_WARN_THRESHOLD, R.integer.DEF_BATTERY_WARN_THRESHOLD);
+                        int batteryThresh = ConfigUtil.getConfigInt(getApplicationContext(), ConfigKeys.KEY_BATTERY_WARN_THRESHOLD, R.integer.DEF_BATTERY_WARN_THRESHOLD);
 
                         //check level against threshold
                         Logging.logD("[BatWarn] Battery is at %d %% - warn threshold is %d %%", batteryPercent, batteryThresh);
                         if (batteryPercent <= batteryThresh && !wasBatteryWarningShown)
                         {
                             //send a warning
-                            showInfoText(getText(R.string.info_battery_low).toString());
+                            playerControlView.showInfoText(getText(R.string.info_battery_low).toString());
                             wasBatteryWarningShown = true;
                         }
                     }
@@ -370,15 +316,9 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         //set layout
         setContentView(R.layout.activity_playback);
 
-        //get preferences
-        appPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-
         //get views
-        playbackRootView = findViewById(R.id.pb_playbackRootView);
-        //playerView = findViewById(R.id.pb_playerView);
         playerViewPlaceholder = findViewById(R.id.pb_playerViewPlaceholder);
         playerControlView = findViewById(R.id.pb_playerControlView);
-        infoTextView = findViewById(R.id.pb_infoText);
         titleTextView = findViewById(R.id.pb_streamTitle);
         quickAccessDrawer = findViewById(R.id.pb_quick_settings_drawer);
         anime4kQSButton = findViewById(R.id.qs_btn_a4k_tgl);
@@ -388,7 +328,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         videoInfoTextView = findViewById(R.id.qs_txt_video_info);
 
         //set fast-forward and rewind increments
-        int seekIncrement = getPrefInt(ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT);
+        int seekIncrement = ConfigUtil.getConfigInt(this, ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT);
         playerControlView.setFastForwardIncrementMs(seekIncrement);
         playerControlView.setRewindIncrementMs(seekIncrement);
 
@@ -397,7 +337,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         screenRotationManager.findComponents();
 
         //get battery manager service
-        if (getPrefBool(ConfigKeys.KEY_BATTERY_WARN_ENABLE, R.bool.DEF_BATTERY_WARN_ENABLE))
+        if (ConfigUtil.getConfigBoolean(this, ConfigKeys.KEY_BATTERY_WARN_ENABLE, R.bool.DEF_BATTERY_WARN_ENABLE))
         {
             batteryManager = (BatteryManager) getSystemService(Context.BATTERY_SERVICE);
 
@@ -405,11 +345,8 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             delayHandler.sendEmptyMessageDelayed(Messages.BATTERY_WARN_CHECK, BATTERY_WARN_CHECK_INTERVAL_MS);
         }
 
-        //get audio manager
+        //get audio manager for persistent volume
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-
-        //setup gesture controls
-        setupGestures();
 
         //setup auto- pause manager
         //autoPauseManager = new AutomaticPauseManager(this);
@@ -457,7 +394,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         playbackStartPosition = callIntent.getLongExtra(INTENT_EXTRA_JUMP_TO, 0);
 
         //get auto play when launching
-        playbackPlayWhenReady = getPrefBool(ConfigKeys.KEY_AUTO_PLAY, R.bool.DEF_AUTO_PLAY);
+        playbackPlayWhenReady = ConfigUtil.getConfigBoolean(this, ConfigKeys.KEY_AUTO_PLAY, R.bool.DEF_AUTO_PLAY);
     }
 
     @SuppressWarnings("SwitchStatementWithTooFewBranches")
@@ -608,14 +545,14 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         super.onUserLeaveHint();
 
         //enter pip mode if enabled
-        if (getPrefBool(ConfigKeys.KEY_ENTER_PIP_ON_LEAVE, R.bool.DEF_ENTER_PIP_ON_LEAVE) && playbackService.getIsPlaying())
+        if (ConfigUtil.getConfigBoolean(this, ConfigKeys.KEY_ENTER_PIP_ON_LEAVE, R.bool.DEF_ENTER_PIP_ON_LEAVE) && playbackService.getIsPlaying())
             tryGoPip();
     }
 
     @Override
     public void onBackPressed()
     {
-        if (wasBackPressedOnce || !getPrefBool(ConfigKeys.KEY_BACK_DOUBLE_PRESS_EN, R.bool.DEF_BACK_DOUBLE_PRESS_EN))
+        if (wasBackPressedOnce || !ConfigUtil.getConfigBoolean(this, ConfigKeys.KEY_BACK_DOUBLE_PRESS_EN, R.bool.DEF_BACK_DOUBLE_PRESS_EN))
         {
             //back pressed once already, do normal thing...
             super.onBackPressed();
@@ -626,7 +563,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         wasBackPressedOnce = true;
 
         //send reset message delayed
-        delayHandler.sendEmptyMessageDelayed(Messages.RESET_BACK_PRESSED, getPrefInt(ConfigKeys.KEY_BACK_DOUBLE_PRESS_TIMEOUT, R.integer.DEF_BACK_DOUBLE_PRESS_TIMEOUT));
+        delayHandler.sendEmptyMessageDelayed(Messages.RESET_BACK_PRESSED, ConfigUtil.getConfigInt(this, ConfigKeys.KEY_BACK_DOUBLE_PRESS_TIMEOUT, R.integer.DEF_BACK_DOUBLE_PRESS_TIMEOUT));
 
         //show user a Toast
         Toast.makeText(this, getString(R.string.toast_press_back_again_to_exit), Toast.LENGTH_SHORT).show();
@@ -643,192 +580,6 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         //save playback position before app closes
         Logging.logD("Saving Playback position on app crash...");
         savePlaybackPosition();
-    }
-
-    //endregion
-
-    //region ~~ Swipe Gestures ~~
-
-    /**
-     * Setup Gesture controls for Volume and Brightness
-     */
-    private void setupGestures()
-    {
-        //get configuration values needed in swipe handler (avoid looking up values constantly)
-        final boolean enableSwipeGestures = getPrefBool(ConfigKeys.KEY_SWIPE_GESTURES_EN, R.bool.DEF_SWIPE_GESTURES_EN);
-        final int touchDecayTime = getPrefInt(ConfigKeys.KEY_SWIPE_DECAY_TIME, R.integer.DEF_TOUCH_DECAY_TIME);
-        final int swipeFlingThreshold = getPrefInt(ConfigKeys.KEY_SWIPE_FLING_THRESHOLD, R.integer.DEF_SWIPE_FLING_THRESHOLD);
-        final int doubleTapDecayTime = getPrefInt(ConfigKeys.KEY_DOUBLE_TAP_DECAY_TIME, R.integer.DEF_DOUBLE_TAP_DECAY_TIME);
-        final int doubleTapMaxDistance = getPrefInt(ConfigKeys.KEY_DOUBLE_TAP_MAX_RADIUS, R.integer.DEF_DOUBLE_TAP_MAX_RADIUS);
-
-        final RectF swipeIgnore = new RectF(getPrefInt(ConfigKeys.KEY_SWIPE_DEAD_ZONE_RECT_LEFT, R.integer.DEF_SWIPE_DEAD_ZONE_LEFT),
-                getPrefInt(ConfigKeys.KEY_SWIPE_DEAD_ZONE_RECT_TOP, R.integer.DEF_SWIPE_DEAD_ZONE_TOP),
-                getPrefInt(ConfigKeys.KEY_SWIPE_DEAD_ZONE_RECT_RIGHT, R.integer.DEF_SWIPE_DEAD_ZONE_RIGHT),
-                getPrefInt(ConfigKeys.KEY_SWIPE_DEAD_ZONE_RECT_BOTTOM, R.integer.DEF_SWIPE_DEAD_ZONE_BOTTOM));
-
-        final float brightnessAdjustStep = getPrefInt(ConfigKeys.KEY_BRIGHTNESS_ADJUST_STEP, R.integer.DEF_BRIGHTNESS_ADJUST_STEP) / 100.0f;
-        final float hardSwipeThreshold = getPrefInt(ConfigKeys.KEY_BRIGHTNESS_HARD_SWIPE_THRESHOLD, R.integer.DEF_BRIGHTNESS_HARD_SWIPE_THRESHOLD);
-        final boolean hardSwipeEnable = getPrefBool(ConfigKeys.KEY_BRIGHTNESS_HARD_SWIPE_EN, R.bool.DEF_BRIGHTNESS_HARD_SWIPE_EN);
-
-        //init and set listener
-        playbackRootView.setOnTouchListener(new SwipeGestureListener(touchDecayTime, doubleTapDecayTime, swipeFlingThreshold, swipeFlingThreshold, doubleTapMaxDistance, swipeIgnore)
-        {
-            @Override
-            public void onVerticalSwipe(float deltaY, PointF swipeStart, PointF swipeEnd, PointF firstContact, SizeF screenSize)
-            {
-                //ignore if swipe gestures are disabled
-                if (!enableSwipeGestures)
-                {
-                    super.onVerticalSwipe(deltaY, swipeStart, swipeEnd, firstContact, screenSize);
-                    return;
-                }
-
-                //check which screen size the swipe originated from
-                if (isRightScreenSide(firstContact, screenSize))
-                {
-                    //swipe on right site of screen, adjust volume
-                    if (deltaY > 0.0)
-                    {
-                        //swipe up, increase volume
-                        adjustVolume(true);
-                    }
-                    else
-                    {
-                        //swipe down, decrease volume
-                        adjustVolume(false);
-                    }
-                }
-                else
-                {
-                    //swipe on left site of screen, adjust brightness
-                    if (deltaY > 0)
-                    {
-                        //swipe up, increase brightness
-                        adjustScreenBrightness(brightnessAdjustStep, false);
-                    }
-                    else
-                    {
-                        //swipe down, decrease brightness:
-                        //check if "hard" swipe, override hard swipe if not enabled
-                        boolean hardSwipe = hardSwipeEnable || Math.abs(deltaY) > hardSwipeThreshold;
-
-
-                        //allow setting brightness to 0 when hard swiping (but ONLY then)
-                        adjustScreenBrightness(-brightnessAdjustStep, hardSwipe);
-                    }
-                }
-            }
-
-            @Override
-            public void onNoSwipeClick(View view, PointF clickPos, SizeF screenSize)
-            {
-                //forward click to player controls
-                playerControlView.performClick();
-
-                //also perform click on original view
-                //super.onNoSwipeClick(view, clickPos, screenSize);
-            }
-
-            @Override
-            protected void onDoubleClick(float distanceSquared, long tapDeltaTime, PointF firstTouchPos, PointF secondTouchPos, SizeF screenSize)
-            {
-                //get fast- forward and rewind increments
-                int seekAmount = getPrefInt(ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT);
-
-                //check on which side of the screen the double click ended
-                if (isRightScreenSide(secondTouchPos, screenSize))
-                {
-                    //double click on right side, seek forward
-                    //TODO: add effects?
-                }
-                else
-                {
-                    //double click on left side, seek backwards
-                    //TODO: add effects?
-
-                    //invert seek increment for seeking backwards
-                    seekAmount *= -1;
-                }
-
-                //seek relative to the current playback position
-                playbackService.seekRelative(seekAmount);
-            }
-
-            /**
-             * @param point the point to check
-             * @param screenSize the size of the screen
-             * @return is the point on the right side of the screen?
-             */
-            private boolean isRightScreenSide(PointF point, SizeF screenSize)
-            {
-                return point.x > (screenSize.getWidth() / 2);
-            }
-        });
-    }
-
-    /**
-     * Adjust the screen brightness
-     *
-     * @param adjust    the amount to adjust the brightness by. (range of brightness is 0.0 to 1.0)
-     * @param allowZero if set to true, setting the brightness to zero (=device default/auto) is allowed. Otherwise, minimum brightness is clamped to 0.01
-     */
-    private void adjustScreenBrightness(float adjust, boolean allowZero)
-    {
-        //get window attributes
-        WindowManager.LayoutParams windowAttributes = getWindow().getAttributes();
-
-        //check if brightness is already zero (overrides allowZero)
-        boolean alreadyZero = windowAttributes.screenBrightness == 0.0f;
-
-        //modify screen brightness attribute withing range
-        //allow setting it to zero if allowZero is set or the value was previously zero too
-        windowAttributes.screenBrightness = Math.min(Math.max(windowAttributes.screenBrightness + adjust, ((allowZero || alreadyZero) ? 0.0f : 0.01f)), 1f);
-
-        //set changed window attributes
-        getWindow().setAttributes(windowAttributes);
-
-        //show info text for brightness
-        String brightnessStr = ((int) Math.floor(windowAttributes.screenBrightness * 100)) + "%";
-        if (windowAttributes.screenBrightness == 0)
-        {
-            brightnessStr = getString(R.string.info_brightness_auto);
-        }
-        showInfoText(getString(R.string.info_brightness_change), brightnessStr);
-    }
-
-    /**
-     * Adjust the media volume by one volume step
-     *
-     * @param raise should the volume be raises (=true) or lowered (=false) by one step?
-     */
-    private void adjustVolume(boolean raise)
-    {
-        //check audioManager
-        if (audioManager == null)
-        {
-            Logging.logW("audioManager is null, cannot adjust media volume!");
-            return;
-        }
-
-        //adjusts volume without ui
-        audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, (raise ? AudioManager.ADJUST_RAISE : AudioManager.ADJUST_LOWER), 0);
-
-        //show info text for volume:
-        //get volume + range
-        int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-        int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-        int minVolume = 0;
-        if (Util.SDK_INT > 28)
-        {
-            //get minimum stream volume if above api28
-            minVolume = audioManager.getStreamMinVolume(AudioManager.STREAM_MUSIC);
-        }
-
-        //calculate volume in percent
-        int volumePercent = (int) Math.floor(((float) currentVolume - (float) minVolume) / ((float) maxVolume - (float) minVolume) * 100);
-
-        //show info text
-        showInfoText(getString(R.string.info_volume_change), volumePercent);
     }
 
     //endregion
@@ -916,7 +667,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                 //quick hack: pretend you use some fancy API to get how long a anime opening is,
                 //but actually just always skip 85 seconds since that is (roughly) how long most openings are :P
                 //nobody could tell anyways ;)
-                if(playbackService != null)
+                if (playbackService != null)
                     playbackService.seekRelative(85000);
 
                 break;
@@ -1005,7 +756,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             //adjustScreenBrightness(-1000, true);
 
             //hide info text
-            delayHandler.sendEmptyMessage(Messages.SET_INFO_TEXT_INVISIBLE);
+            playerControlView.hideInfoText(true);
         }
         else
         {
@@ -1037,7 +788,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             quickAccessDrawer.closeDrawers();
 
             //hide info text immediately
-            delayHandler.sendEmptyMessage(Messages.SET_INFO_TEXT_INVISIBLE);
+            playerControlView.hideInfoText(true);
 
             //enter pip
             enterPictureInPictureMode(params);
@@ -1083,13 +834,13 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                     case PIPConstants.REQUEST_FAST_FORWARD:
                     {
                         //fast- forward request, fast- forward video
-                        playbackService.seekRelative(getPrefInt(ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT));
+                        playbackService.seekRelative(ConfigUtil.getConfigInt(getApplicationContext(), ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT));
                         break;
                     }
                     case PIPConstants.REQUEST_REWIND:
                     {
                         //rewind request, rewind video
-                        playbackService.seekRelative(-getPrefInt(ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT));
+                        playbackService.seekRelative(-ConfigUtil.getConfigInt(getApplicationContext(), ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT));
                         break;
                     }
                     default:
@@ -1219,10 +970,10 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                 }
                 //set fps limiting values
                 int fpsLimit = -1;
-                if (getPrefBool(ConfigKeys.KEY_ANIME4K_FPS_LIMIT_ENABLE, R.bool.DEF_ANIME4K_FPS_LIMIT_EN))
+                if (ConfigUtil.getConfigBoolean(this, ConfigKeys.KEY_ANIME4K_FPS_LIMIT_ENABLE, R.bool.DEF_ANIME4K_FPS_LIMIT_EN))
                 {
                     //enable the fps limit
-                    fpsLimit = getPrefInt(ConfigKeys.KEY_ANIME4K_FPS_LIMIT, R.integer.DEF_ANIME4K_FPS_LIMIT);
+                    fpsLimit = ConfigUtil.getConfigInt(this, ConfigKeys.KEY_ANIME4K_FPS_LIMIT, R.integer.DEF_ANIME4K_FPS_LIMIT);
                 }
                 anime4KFilter.setFpsLimit(fpsLimit);
                 Logging.logD("Enabled Anime4K with fps limit= %d", fpsLimit);
@@ -1288,17 +1039,20 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     @SuppressLint("ApplySharedPref")
     private void savePlaybackPosition(long positionToSave)
     {
+        //get preferences from util class
+        SharedPreferences prefs = ConfigUtil.getAppConfig(this);
+
         //check that the prefs are ok
-        if (appPreferences == null)
+        if (prefs == null)
         {
-            Logging.logD("cannot save playback position: appPreferences are null!");
+            Logging.logD("cannot save playback position: ConfigUtil.getAppConfig() returned null!");
             return;
         }
 
         //save to prefs
         //we use .commit() here since the main thread could close pretty much the moment this function returns.
         //this would not leave enough time for saving the preferences using .apply() (which is async)...
-        appPreferences.edit().putLong(ConfigKeys.KEY_LAST_PLAYED_POSITION, positionToSave).commit();
+        prefs.edit().putLong(ConfigKeys.KEY_LAST_PLAYED_POSITION, positionToSave).commit();
         Logging.logD("Saved LAST_PLAYED_POSITION");
     }
 
@@ -1310,12 +1064,12 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     private void savePersistentValues(@SuppressWarnings("SameParameterValue") boolean restoreOriginalVolume)
     {
         //save volume
-        if (getPrefBool(ConfigKeys.KEY_PERSIST_VOLUME_EN, R.bool.DEF_PERSIST_VOLUME_EN))
-            appPreferences.edit().putInt(ConfigKeys.KEY_PERSIST_VOLUME, audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)).apply();
+        if (ConfigUtil.getConfigBoolean(this, ConfigKeys.KEY_PERSIST_VOLUME_EN, R.bool.DEF_PERSIST_VOLUME_EN))
+            ConfigUtil.setConfigInt(this, ConfigKeys.KEY_PERSIST_VOLUME, audioManager.getStreamVolume(AudioManager.STREAM_MUSIC));
 
         //save brightness
-        if (getPrefBool(ConfigKeys.KEY_PERSIST_BRIGHTNESS_EN, R.bool.DEF_PERSIST_BRIGHTNESS_EN))
-            appPreferences.edit().putInt(ConfigKeys.KEY_PERSIST_BRIGHTNESS, (int) Math.floor(getWindow().getAttributes().screenBrightness * 100)).apply();
+        if (ConfigUtil.getConfigBoolean(this, ConfigKeys.KEY_PERSIST_BRIGHTNESS_EN, R.bool.DEF_PERSIST_BRIGHTNESS_EN))
+            ConfigUtil.setConfigInt(this, ConfigKeys.KEY_PERSIST_BRIGHTNESS, (int) Math.floor(getWindow().getAttributes().screenBrightness * 100));
 
         //restore original volume after saving
         if (restoreOriginalVolume)
@@ -1338,20 +1092,20 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         }
 
         //restore volume
-        if (getPrefBool(ConfigKeys.KEY_PERSIST_VOLUME_EN, R.bool.DEF_PERSIST_VOLUME_EN))
+        if (ConfigUtil.getConfigBoolean(this, ConfigKeys.KEY_PERSIST_VOLUME_EN, R.bool.DEF_PERSIST_VOLUME_EN))
         {
-            int persistVolume = appPreferences.getInt(ConfigKeys.KEY_PERSIST_VOLUME, originalVolumeIndex);
+            int persistVolume = ConfigUtil.getAppConfig(this).getInt(ConfigKeys.KEY_PERSIST_VOLUME, originalVolumeIndex);
             audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, persistVolume, 0);
         }
 
         //restore brightness
-        if (getPrefBool(ConfigKeys.KEY_PERSIST_BRIGHTNESS_EN, R.bool.DEF_PERSIST_BRIGHTNESS_EN))
+        if (ConfigUtil.getConfigBoolean(this, ConfigKeys.KEY_PERSIST_BRIGHTNESS_EN, R.bool.DEF_PERSIST_BRIGHTNESS_EN))
         {
             //get window attributes
             WindowManager.LayoutParams windowAttributes = getWindow().getAttributes();
 
             //modify screen brightness attribute withing range
-            float persistBrightness = (float) appPreferences.getInt(ConfigKeys.KEY_PERSIST_BRIGHTNESS, -100) / 100.0f;
+            float persistBrightness = (float) ConfigUtil.getAppConfig(this  ).getInt(ConfigKeys.KEY_PERSIST_BRIGHTNESS, -100) / 100.0f;
             if (persistBrightness > 0)
             {
                 windowAttributes.screenBrightness = Math.min(Math.max(persistBrightness, 0f), 1f);
@@ -1360,30 +1114,6 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             //set changed window attributes
             getWindow().setAttributes(windowAttributes);
         }
-    }
-
-    /**
-     * Show info text in the middle of the screen, using the InfoText View
-     *
-     * @param text   the text to show
-     * @param format formatting options (using US locale)
-     */
-    private void showInfoText(String text, Object... format)
-    {
-        //remove all previous messages related to fading out the info text
-        delayHandler.removeMessages(Messages.START_FADE_OUT_INFO_TEXT);
-        delayHandler.removeMessages(Messages.SET_INFO_TEXT_INVISIBLE);
-
-        //set text
-        infoTextView.setText(String.format(text, format));
-
-        //reset animation and make text visible
-        infoTextView.setAnimation(null);
-        infoTextView.setVisibility(View.VISIBLE);
-
-        //hide text after delay
-        int infoTextDuration = getPrefInt(ConfigKeys.KEY_INFO_TEXT_DURATION, R.integer.DEF_INFO_TEXT_DURATION);
-        delayHandler.sendEmptyMessageDelayed(Messages.START_FADE_OUT_INFO_TEXT, infoTextDuration);
     }
 
     /**
@@ -1455,14 +1185,12 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             }
 
             //show controls
-            playerControlView.setControlsHidden(false);
-            playerControlView.show();
+            playerControlView.setControlsHidden(false).show();
         }
         else
         {
             //hide controls
-            playerControlView.setControlsHidden(true);
-            playerControlView.hide();
+            playerControlView.setControlsHidden(true).hide();
         }
     }
 
@@ -1505,43 +1233,6 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
-    }
-
-    /**
-     * Get a boolean from shared preferences
-     *
-     * @param key   the key of the value
-     * @param defId the id of the default value in R.bool
-     * @return the boolean value
-     */
-    private boolean getPrefBool(String key, int defId)
-    {
-        boolean def = getResources().getBoolean(defId);
-        boolean value = appPreferences.getBoolean(key, def);
-
-        //log the value
-        Logging.logD("getPrefBool(): key= %s; val= %b", key, value);
-        return value;
-    }
-
-    /**
-     * Get a int from shared preferences
-     *
-     * @param key   the key of the value
-     * @param defId the id of the default value in R.integer
-     * @return the int value
-     */
-    private int getPrefInt(String key, int defId)
-    {
-        int def = getResources().getInteger(defId);
-
-        //read value as string: workaround needed because i'm using a EditText to change these values in the settings activity, which
-        //changes the type of the preference to string...
-        int value = Integer.valueOf(appPreferences.getString(key, "" + def));
-
-        //log the value
-        Logging.logD("getPrefInt(): key= %s; val= %d", key, value);
-        return value;
     }
     //endregion
 
@@ -1803,7 +1494,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             dontSavePlaybackPositionOnExit = true;
 
             //close app if pref is set
-            if (getPrefBool(ConfigKeys.KEY_CLOSE_WHEN_FINISHED_PLAYING, R.bool.DEF_CLOSE_WHEN_FINISHED_PLAYING))
+            if (ConfigUtil.getConfigBoolean(getApplicationContext(), ConfigKeys.KEY_CLOSE_WHEN_FINISHED_PLAYING, R.bool.DEF_CLOSE_WHEN_FINISHED_PLAYING))
             {
                 //close app
                 finish();
