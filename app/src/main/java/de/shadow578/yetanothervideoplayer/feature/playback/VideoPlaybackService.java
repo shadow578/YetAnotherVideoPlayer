@@ -1,4 +1,4 @@
-package de.shadow578.yetanothervideoplayer.playback;
+package de.shadow578.yetanothervideoplayer.feature.playback;
 
 import android.Manifest;
 import android.app.Service;
