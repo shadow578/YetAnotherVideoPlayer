@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animation-list xmlns:android="http://schemas.android.com/apk/res/android"
+    android:oneshot="false">
+
+    <item android:duration="@integer/cseek_frame_duration">
+        <rotate
+            android:drawable="@drawable/seekr_00"
+            android:fromDegrees="180" />
+    </item>
+
+    <item android:duration="@integer/cseek_frame_duration">
+        <rotate
+            android:drawable="@drawable/seekr_01"
+            android:fromDegrees="180" />
+    </item>
+
+    <item android:duration="@integer/cseek_frame_duration">
+        <rotate
+            android:drawable="@drawable/seekr_02"
+            android:fromDegrees="180" />
+    </item>
+
+    <item android:duration="@integer/cseek_frame_duration">
+        <rotate
+            android:drawable="@drawable/seekr_03"
+            android:fromDegrees="180" />
+    </item>
+
+    <item android:duration="@integer/cseek_frame_duration">
+        <rotate
+            android:drawable="@drawable/seekr_04"
+            android:fromDegrees="180" />
+    </item>
+
+    <item android:duration="@integer/cseek_frame_duration">
+        <rotate
+            android:drawable="@drawable/seekr_05"
+            android:fromDegrees="180" />
+    </item>
+
+    <item android:duration="@integer/cseek_frame_duration">
+        <rotate
+            android:drawable="@drawable/seekr_06"
+            android:fromDegrees="180" />
+    </item>
+
+    <item android:duration="@integer/cseek_frame_duration">
+        <rotate
+            android:drawable="@drawable/seekr_07"
+            android:fromDegrees="180" />
+    </item>
+
+    <item android:duration="@integer/cseek_frame_duration">
+        <rotate
+            android:drawable="@drawable/seekr_08"
+            android:fromDegrees="180" />
+    </item>
+
+    <item android:duration="@integer/cseek_frame_duration">
+        <rotate
+            android:drawable="@drawable/seekr_09"
+            android:fromDegrees="180" />
+    </item>
+
+    <item android:duration="@integer/cseek_frame_duration">
+        <rotate
+            android:drawable="@drawable/seekr_10"
+            android:fromDegrees="180" />
+    </item>
+
+    <item android:duration="@integer/cseek_frame_duration">
+        <rotate
+            android:drawable="@drawable/seekr_11"
+            android:fromDegrees="180" />
+    </item>
+
+    <item android:duration="@integer/cseek_frame_duration">
+        <rotate
+            android:drawable="@drawable/seekr_12"
+            android:fromDegrees="180" />
+    </item>
+
+    <item android:duration="@integer/cseek_frame_duration">
+        <rotate
+            android:drawable="@drawable/seekr_13"
+            android:fromDegrees="180" />
+    </item>
+
+</animation-list>
