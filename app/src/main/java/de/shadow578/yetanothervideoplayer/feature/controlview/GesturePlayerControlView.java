@@ -26,6 +26,7 @@ import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.util.Util;
 
 import de.shadow578.yetanothervideoplayer.R;
+import de.shadow578.yetanothervideoplayer.feature.controlview.ui.CircleRippleAnimationView;
 import de.shadow578.yetanothervideoplayer.feature.controlview.ui.DoubleTapSeekOverlay;
 import de.shadow578.yetanothervideoplayer.feature.swipe.SwipeGestureListener;
 import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
@@ -65,6 +66,11 @@ public class GesturePlayerControlView extends FrameLayout
      * Seek Overlay for UI Effects while double- tap seeking
      */
     private DoubleTapSeekOverlay seekOverlay;
+
+    /**
+     * Custom ripple animation for double- tap seeking
+     */
+    private CircleRippleAnimationView rippleAnimation;
 
     //region ~~ Message Handler (delayHandler) ~~
 
@@ -148,8 +154,9 @@ public class GesturePlayerControlView extends FrameLayout
 
         //get views
         playerControls = findViewById(R.id.ctl_playercontrols);
-        infoTextView = findViewById(R.id.ctl_infotext);
-        seekOverlay = findViewById(R.id.ctl_seekoverlay);
+        infoTextView = findViewById(R.id.ctl_info_text);
+        seekOverlay = findViewById(R.id.ctl_seek_overlay);
+        rippleAnimation = findViewById(R.id.ctl_ripple_anim);
 
         //setup gesture controls
         setupGestures();
@@ -230,7 +237,8 @@ public class GesturePlayerControlView extends FrameLayout
         final boolean hardSwipeEnable = ConfigUtil.getConfigBoolean(getContext(), ConfigKeys.KEY_BRIGHTNESS_HARD_SWIPE_EN, R.bool.DEF_BRIGHTNESS_HARD_SWIPE_EN);
 
         //init and set listener
-        setOnTouchListener(new SwipeGestureListener(touchDecayTime, doubleTapDecayTime, swipeFlingThreshold, swipeFlingThreshold, doubleTapMaxDistance, swipeIgnore){
+        setOnTouchListener(new SwipeGestureListener(touchDecayTime, doubleTapDecayTime, swipeFlingThreshold, swipeFlingThreshold, doubleTapMaxDistance, swipeIgnore)
+        {
             @Override
             public void onVerticalSwipe(float deltaY, PointF swipeStart, PointF swipeEnd, PointF firstContact, SizeF screenSize)
             {
@@ -293,20 +301,19 @@ public class GesturePlayerControlView extends FrameLayout
                 //get fast- forward and rewind increments
                 int seekAmount = ConfigUtil.getConfigInt(getContext(), ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT);
 
+                //calculate second touch position in px (current is in dp) -> for animations
+                PointF secondTouchPosPx = new PointF(dpToPx(secondTouchPos.x, getContext()), dpToPx(secondTouchPos.y, getContext()));
+
                 //check on which side of the screen the double click ended
                 if (isRightScreenSide(secondTouchPos, screenSize))
                 {
                     //double click on right side, seek forward
-                    //TODO: add effects?
-                    if(seekOverlay != null)
-                        seekOverlay.showSeekAnimation(true,  520, (seekAmount / 1000), true);
+                    showDoubleTapSeekAnimation(true, seekAmount / 1000f, secondTouchPosPx);
                 }
                 else
                 {
                     //double click on left side, seek backwards
-                    //TODO: add effects?
-                    if(seekOverlay != null)
-                        seekOverlay.showSeekAnimation(false,  520, (seekAmount / 1000), true);
+                    showDoubleTapSeekAnimation(false, seekAmount / 1000f, secondTouchPosPx);
 
                     //invert seek increment for seeking backwards
                     seekAmount *= -1;
@@ -412,6 +419,24 @@ public class GesturePlayerControlView extends FrameLayout
 
         //show info text
         showInfoText(getContext().getString(R.string.info_volume_change), volumePercent);
+    }
+
+    /**
+     * show the animation(s) for double- tap seeking
+     *
+     * @param isForwardSeek is this a forward seek (true = seek forward, false = seek backwards)
+     * @param seekAmountS   by how many seconds are we seeking?
+     * @param tapPosPx      where was the screen tapped (in device- pixels [px])
+     */
+    private void showDoubleTapSeekAnimation(boolean isForwardSeek, float seekAmountS, PointF tapPosPx)
+    {
+        //show seek overlay
+        if (seekOverlay != null)
+            seekOverlay.showSeekAnimation(isForwardSeek, (int) Math.floor(seekAmountS));
+
+        //show ripple effect
+        if (rippleAnimation != null)
+            rippleAnimation.startAnimationAt(new PointF(isForwardSeek ? getWidth() : 0, tapPosPx.y));
     }
 
     //endregion

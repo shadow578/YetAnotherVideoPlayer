@@ -9,4 +9,8 @@
     <!-- seek animation frame durations -->
     <integer name="cseek_frame_duration">40</integer>
 
+    <!-- animation duration for double- tap animations (ms) -->
+    <integer name="double_tap_seek_anim_duration_overlay">650</integer>
+    <integer name="double_tap_seek_anim_duration_ripple">650</integer>
+
 </resources>

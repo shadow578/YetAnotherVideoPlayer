@@ -1,6 +1,7 @@
 package de.shadow578.yetanothervideoplayer.feature.controlview.ui;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.drawable.AnimationDrawable;
 import android.os.Handler;
 import android.os.Looper;
@@ -20,9 +21,23 @@ import de.shadow578.yetanothervideoplayer.util.Logging;
  * View that contains handles animations for double- tap seeking.
  * Just put this view in your layout with width & height set to match_parent and call the appropriate functions to play the animations - it's that simple!
  */
+@SuppressWarnings("unused")
 public class DoubleTapSeekOverlay extends FrameLayout
 {
+    /**
+     * After how many milliseconds the seek amount is reset (after a reset is requested)
+     */
     private final long SEEK_AMOUNT_RESET_DELAY_MS = 1500;
+
+    /**
+     * Default value for seek stacking
+     */
+    private final boolean DEFAULT_ENABLE_SEEK_AMOUNT_STACKING = true;
+
+    /**
+     * Default animation duration, in ms
+     */
+    private final int DEFAULT_ANIMATION_DURATION = 750;
 
     //region Variables
     //region Views
@@ -57,6 +72,17 @@ public class DoubleTapSeekOverlay extends FrameLayout
      * How many seconds we are currently seeking in the current direction
      */
     private int seekAmountStack = 0;
+
+    /**
+     * duration of the seek animation
+     */
+    private long animationDurationMs = DEFAULT_ANIMATION_DURATION;
+
+    /**
+     * Should the seek amount be stacked?
+     * can be overridden by showSeekAnimation's parameter
+     */
+    private boolean defStackSeekAmount = DEFAULT_ENABLE_SEEK_AMOUNT_STACKING;
     //endregion
 
     //region Message Handler
@@ -178,8 +204,164 @@ public class DoubleTapSeekOverlay extends FrameLayout
         //initially hide forward and reverse texts
         seekForwardText.setVisibility(GONE);
         seekReverseText.setVisibility(GONE);
+
+        //apply styleables
+        applyStyleAttributes(context, attrs);
+    }
+
+    /**
+     * Applies styleable values from the attribute set
+     *
+     * @param context the current context
+     * @param attrs   the attribute set of the view
+     */
+    private void applyStyleAttributes(Context context, AttributeSet attrs)
+    {
+        //check we have valid context and attributes
+        if (context == null || attrs == null) return;
+
+        //get style attributes
+        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.DoubleTapSeekOverlay);
+
+        //set values
+        setAnimationDuration(a.getInteger(R.styleable.DoubleTapSeekOverlay_seekAnimationDuration, DEFAULT_ANIMATION_DURATION));
+        setStackSeekAmount(a.getBoolean(R.styleable.DoubleTapSeekOverlay_enableSeekAmountStacking, DEFAULT_ENABLE_SEEK_AMOUNT_STACKING));
+
+        //we're finished, recycle attribute array
+        a.recycle();
     }
     //endregion
+
+    //region Interfacing
+
+    /**
+     * set the animation duration
+     *
+     * @param duration the animation duration, in milliseconds
+     * @return own instance, for set chaining
+     */
+    public DoubleTapSeekOverlay setAnimationDuration(long duration)
+    {
+        animationDurationMs = duration;
+        return this;
+    }
+
+    /**
+     * @return the animation duration, in milliseconds
+     */
+    public long getAnimationDuration()
+    {
+        return animationDurationMs;
+    }
+
+    /**
+     * set if seek amount stacking is enabled
+     *
+     * @param stackSeekAmount is seek stacking enabled?
+     * @return own instance, for set chaining
+     */
+    public DoubleTapSeekOverlay setStackSeekAmount(boolean stackSeekAmount)
+    {
+        defStackSeekAmount = stackSeekAmount;
+        return this;
+    }
+
+    /**
+     * @return is seek stacking enabled?
+     */
+    public boolean shouldStackSeekAmount()
+    {
+        return defStackSeekAmount;
+    }
+
+    //endregion
+
+    /**
+     * Show the seek animation.
+     * also cancels all other seek animations and updates the text shown
+     *
+     * @param forward     are we seeking forward or backwards.
+     * @param seekAmountS by how many seconds we are seeking (absolute, only used for ui text)
+     */
+    public void showSeekAnimation(boolean forward, int seekAmountS)
+    {
+        showSeekAnimation(forward, seekAmountS, defStackSeekAmount);
+    }
+
+    /**
+     * Show the seek animation.
+     * also cancels all other seek animations and updates the text shown
+     *
+     * @param forward         are we seeking forward or backwards.
+     * @param seekAmountS     by how many seconds we are seeking (absolute, only used for ui text)
+     * @param stackSeekAmount should the seekAmount stack with previous calls?
+     */
+    public void showSeekAnimation(boolean forward, int seekAmountS, boolean stackSeekAmount)
+    {
+        //cancel seek stack being reset
+        delayedHandler.removeMessages(Messages.RESET_SEEK_AMOUNT_STACK);
+
+        //reset seek amount to 0 if seeking in different direction OR stacking is disabled
+        if (forward != lastSeekDirection || !stackSeekAmount)
+        {
+            seekAmountStack = 0;
+        }
+
+        //add current seek amount to seek stack
+        seekAmountStack += seekAmountS;
+        seekAmountS = seekAmountStack;
+
+        //update last seek direction
+        lastSeekDirection = forward;
+
+        //do animation stuff
+        if (forward)
+        {
+            //cancel messages that would cancel the seeking animation we want to play
+            delayedHandler.removeMessages(Messages.STOP_SEEK_FORWARD_ANIM);
+
+            //cancel the animation for the reverse direction instantly
+            delayedHandler.sendEmptyMessage(Messages.STOP_SEEK_REVERSE_ANIM);
+
+            //make textview for seeking direction visible and start the animation we want
+            //also update the text in the textview
+            if (seekForwardText != null && seekForwardAnimation != null)
+            {
+                //set text
+                seekForwardText.setText(String.format(getContext().getString(R.string.dtso_seek_duration_label_f), seekAmountS));
+
+                //make visible and start animation
+                seekForwardText.setVisibility(VISIBLE);
+                seekForwardAnimation.start();
+            }
+
+            //cancel the animation after a delay
+            delayedHandler.sendEmptyMessageDelayed(Messages.STOP_SEEK_FORWARD_ANIM, animationDurationMs);
+        }
+        else
+        {
+            //cancel messages that would cancel the seeking animation we want to play
+            delayedHandler.removeMessages(Messages.STOP_SEEK_REVERSE_ANIM);
+
+            //cancel the animation for the reverse direction instantly
+            delayedHandler.sendEmptyMessage(Messages.STOP_SEEK_FORWARD_ANIM);
+
+            //make textview for seeking direction visible and start the animation we want
+            //also update the text in the textview
+            if (seekReverseText != null && seekReverseAnimation != null)
+            {
+                //set text
+                seekReverseText.setText(String.format(getContext().getString(R.string.dtso_seek_duration_label_f), seekAmountS));
+
+                //make visible and start animation
+                seekReverseText.setVisibility(VISIBLE);
+                seekReverseAnimation.start();
+            }
+
+            //cancel the animation after a delay
+            delayedHandler.sendEmptyMessageDelayed(Messages.STOP_SEEK_REVERSE_ANIM, animationDurationMs);
+        }
+    }
 
     /**
      * Initializes and sets the seek animation drawables
@@ -209,81 +391,4 @@ public class DoubleTapSeekOverlay extends FrameLayout
         seekReverseAnimation.setCallback(seekReverseText);
         seekReverseAnimation.setVisible(true, true);
     }
-
-    /**
-     * Show the seek animation.
-     * also cancels all other seek animations and updates the text shown
-     *
-     * @param forward           are we seeking forward or backwards.
-     * @param animationLengthMs how long the animation is shown, in milliseconds
-     * @param seekAmountS       by how many seconds we are seeking (absolute, only used for ui text)
-     * @param stackSeekAmount   should the seekAmount stack with previous calls?
-     */
-    public void showSeekAnimation(boolean forward, long animationLengthMs, int seekAmountS, boolean stackSeekAmount)
-    {
-        //cancel seek stack being reset
-        delayedHandler.removeMessages(Messages.RESET_SEEK_AMOUNT_STACK);
-
-        //reset seek amount to 0 if seeking in different direction OR stacking is disabled
-        if (forward != lastSeekDirection || !stackSeekAmount)
-        {
-            seekAmountStack = 0;
-        }
-
-        //add current seek amount to seek stack
-        seekAmountStack += seekAmountS;
-        seekAmountS = seekAmountStack;
-
-        //update last seek direction
-        lastSeekDirection = forward;
-
-        //do animation suff
-        if (forward)
-        {
-            //cancel messages that would cancel the seeking animation we want to play
-            delayedHandler.removeMessages(Messages.STOP_SEEK_FORWARD_ANIM);
-
-            //cancel the animation for the reverse direction instantly
-            delayedHandler.sendEmptyMessage(Messages.STOP_SEEK_REVERSE_ANIM);
-
-            //make textview for seeking direction visible and start the animation we want
-            //also update the text in the textview
-            if (seekForwardText != null && seekForwardAnimation != null)
-            {
-                //set text
-                seekForwardText.setText(String.format(getContext().getString(R.string.dtso_seek_duration_label_f), seekAmountS));
-
-                //make visible and start animation
-                seekForwardText.setVisibility(VISIBLE);
-                seekForwardAnimation.start();
-            }
-
-            //cancel the animation after a delay
-            delayedHandler.sendEmptyMessageDelayed(Messages.STOP_SEEK_FORWARD_ANIM, animationLengthMs);
-        }
-        else
-        {
-            //cancel messages that would cancel the seeking animation we want to play
-            delayedHandler.removeMessages(Messages.STOP_SEEK_REVERSE_ANIM);
-
-            //cancel the animation for the reverse direction instantly
-            delayedHandler.sendEmptyMessage(Messages.STOP_SEEK_FORWARD_ANIM);
-
-            //make textview for seeking direction visible and start the animation we want
-            //also update the text in the textview
-            if (seekReverseText != null && seekReverseAnimation != null)
-            {
-                //set text
-                seekReverseText.setText(String.format(getContext().getString(R.string.dtso_seek_duration_label_f), seekAmountS));
-
-                //make visible and start animation
-                seekReverseText.setVisibility(VISIBLE);
-                seekReverseAnimation.start();
-            }
-
-            //cancel the animation after a delay
-            delayedHandler.sendEmptyMessageDelayed(Messages.STOP_SEEK_REVERSE_ANIM, animationLengthMs);
-        }
-    }
-
 }

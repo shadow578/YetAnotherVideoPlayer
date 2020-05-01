@@ -11,6 +11,19 @@
 
         <attr name="icon" format="reference" />
         <attr name="iconMinWidth" format="dimension" />
+    </declare-styleable>
 
+    <!-- Circle Ripple Animation View Attributes -->
+    <declare-styleable name="CircleRippleAnimationView">
+        <attr name="arcColor" format="color"/>
+        <attr name="rippleColor" format="color"/>
+        <attr name="arcSize" format="dimension"/>
+        <attr name="rippleAnimationDuration" format="integer"/>
+    </declare-styleable>
+
+    <!-- Double Tap Seek Overlay -->
+    <declare-styleable name="DoubleTapSeekOverlay">
+        <attr name="enableSeekAmountStacking" format="boolean"/>
+        <attr name="seekAnimationDuration" format="integer"/>
     </declare-styleable>
 </resources>

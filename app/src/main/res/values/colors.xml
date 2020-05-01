@@ -16,7 +16,7 @@
     <!-- specific colors -->
     <!-- ~~ acitvity_launch ~~ -->
     <color name="launch_progress_bar">@color/ic_launcher_background</color>
-    
+
     <!-- ~~ activity_playback ~~ -->
     <!-- background color of info text (Volume: x%) label -->
     <color name="info_text_background">#80000000</color>
@@ -77,4 +77,7 @@
     <color name="cseek_anim_2">#99FFFFFF</color>
     <color name="cseek_anim_3">#FFFFFFFF</color>
 
+    <!-- colors for double- tap ripple animation -->
+    <color name="dtso_ripple_arc">#15EEEEEE</color>
+    <color name="dtso_ripple_circle">#15FFFFFF</color>
 </resources>
