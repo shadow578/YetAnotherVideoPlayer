@@ -299,14 +299,14 @@ public class GesturePlayerControlView extends FrameLayout
                     //double click on right side, seek forward
                     //TODO: add effects?
                     if(seekOverlay != null)
-                        seekOverlay.showSeekAnimation(true, (seekAmount / 1000), 520);
+                        seekOverlay.showSeekAnimation(true,  520, (seekAmount / 1000), true);
                 }
                 else
                 {
                     //double click on left side, seek backwards
                     //TODO: add effects?
                     if(seekOverlay != null)
-                        seekOverlay.showSeekAnimation(false, (seekAmount / 1000), 520);
+                        seekOverlay.showSeekAnimation(false,  520, (seekAmount / 1000), true);
 
                     //invert seek increment for seeking backwards
                     seekAmount *= -1;
