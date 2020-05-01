@@ -26,6 +26,7 @@ import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.util.Util;
 
 import de.shadow578.yetanothervideoplayer.R;
+import de.shadow578.yetanothervideoplayer.feature.controlview.ui.DoubleTapSeekOverlay;
 import de.shadow578.yetanothervideoplayer.feature.swipe.SwipeGestureListener;
 import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
 import de.shadow578.yetanothervideoplayer.util.ConfigUtil;
@@ -59,6 +60,11 @@ public class GesturePlayerControlView extends FrameLayout
      * The TextView in the center of the screen, used to show information
      */
     private TextView infoTextView;
+
+    /**
+     * Seek Overlay for UI Effects while double- tap seeking
+     */
+    private DoubleTapSeekOverlay seekOverlay;
 
     //region ~~ Message Handler (delayHandler) ~~
 
@@ -140,11 +146,10 @@ public class GesturePlayerControlView extends FrameLayout
         //inflate our layout
         inflate(getContext(), R.layout.layout_gesture_player_control_view, this);
 
-        //get player controls in layout
+        //get views
         playerControls = findViewById(R.id.ctl_playercontrols);
-
-        //get info text
         infoTextView = findViewById(R.id.ctl_infotext);
+        seekOverlay = findViewById(R.id.ctl_seekoverlay);
 
         //setup gesture controls
         setupGestures();
@@ -293,11 +298,15 @@ public class GesturePlayerControlView extends FrameLayout
                 {
                     //double click on right side, seek forward
                     //TODO: add effects?
+                    if(seekOverlay != null)
+                        seekOverlay.showSeekAnimation(true, (seekAmount / 1000), 520);
                 }
                 else
                 {
                     //double click on left side, seek backwards
                     //TODO: add effects?
+                    if(seekOverlay != null)
+                        seekOverlay.showSeekAnimation(false, (seekAmount / 1000), 520);
 
                     //invert seek increment for seeking backwards
                     seekAmount *= -1;

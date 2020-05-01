@@ -67,6 +67,10 @@
     <color name="qs_item_icon_active">@color/colorAccent</color>
 
 
+    <!-- ~~ layout_double_tap_seek_overlay -->
+    <!-- text color of seek text (xx Seconds) -->
+    <color name="dtso_seek_text">@color/white</color>
+
     <!-- colors for seek animation -->
     <color name="cseek_anim_0">#00FFFFFF</color>
     <color name="cseek_anim_1">#22FFFFFF</color>

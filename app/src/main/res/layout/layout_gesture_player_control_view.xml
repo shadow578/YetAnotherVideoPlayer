@@ -5,14 +5,23 @@
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <!-- seek overlay -->
+    <de.shadow578.yetanothervideoplayer.feature.controlview.ui.DoubleTapSeekOverlay
+        android:id="@+id/ctl_seekoverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:focusable="false"
+        android:clickable="false"/>
+
     <!-- Info Text (Volume/Brightness) -->
     <TextView
         android:id="@+id/ctl_infotext"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
+        android:focusable="false"
+        android:clickable="false"
         android:background="@color/info_text_background"
-        android:elevation="999dp"
         android:text="Volume: xxx%"
         android:textAllCaps="true"
         android:textColor="@color/info_text_text"

@@ -50,6 +50,9 @@
     <string name="toast_invalid_playback_uri">Invalid Playback URI!</string>
     <string name="toast_press_back_again_to_exit">Press Back again to exit</string>
 
+    <!-- Seek Duration Labels in the DoubleTapSeekOverlay -->
+    <string name="dtso_seek_duration_label_f">%d Seconds</string>
+
     <!-- urls to yavp pages -->
     <string name="yavp_github_url">https://github.com/shadow578/YetAnotherVideoPlayer</string>
     <string name="yavp_new_issue_url">https://github.com/shadow578/YetAnotherVideoPlayer/issues</string>

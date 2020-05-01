@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Rewind Text -->
+    <FrameLayout
+        android:id="@+id/dtso_seek_frw_container"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:clickable="false"
+        android:focusable="false"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/dtso_seek_ffw_container"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/dtso_seek_frw_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:drawablePadding="10dp"
+            android:gravity="center"
+            android:textColor="@color/dtso_seek_text"
+            tools:drawableTop="@drawable/seekr_05"
+            tools:text="10 Seconds" />
+
+    </FrameLayout>
+
+    <!-- Fast- Forward Text -->
+    <FrameLayout
+        android:id="@+id/dtso_seek_ffw_container"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:clickable="false"
+        android:focusable="false"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/dtso_seek_frw_container"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/dtso_seek_ffw_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:drawablePadding="10dp"
+            android:gravity="center"
+            android:textColor="@color/dtso_seek_text"
+            tools:drawableTop="@drawable/seekr_05"
+            tools:text="10 Seconds" />
+    </FrameLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
