@@ -16,13 +16,13 @@ import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.DecelerateInterpolator;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.ui.PlayerControlView;
 import com.google.android.exoplayer2.util.Util;
 
 import de.shadow578.yetanothervideoplayer.R;
@@ -35,18 +35,8 @@ import de.shadow578.yetanothervideoplayer.util.Logging;
  * A PlayerControlView that implements swipe gestures, hide -on- click, and double- tap to seek (with nice UI effects)
  */
 @SuppressWarnings({"unused", "UnusedReturnValue"})
-public class GesturePlayerControlView extends PlayerControlView implements Player.EventListener
+public class GesturePlayerControlView extends FrameLayout
 {
-    /**
-     * Timeout until the controls are automatically hidden
-     */
-    private int controlsAutoHideTimeout = 5000;//ms
-
-    /**
-     * are the controls manually hidden?
-     */
-    private boolean areControlsHidden = false;
-
     /**
      * Should we ignore setVisibility calls?
      * This allows us to prevent the superclass from changing our visibility
@@ -54,9 +44,11 @@ public class GesturePlayerControlView extends PlayerControlView implements Playe
     private boolean ignoreSetVisibility = false;
 
     /**
-     * Root View that holds the (actual) player controls. Child of this view
+     * PlayerControlView that actually contains and controls the player.
+     * It is just a child of this view, so we always have access to the parent view (and thus can use onTouch and TouchListener for gestures)
+     * Is initialized and added in constructor
      */
-    private View playerControlsRoot;
+    private TapToHidePlayerControlView playerControls;
 
     /**
      * The audio manager instance used to adjust media volume by swiping
@@ -137,276 +129,73 @@ public class GesturePlayerControlView extends PlayerControlView implements Playe
 
     public GesturePlayerControlView(Context context, @Nullable AttributeSet attrs, int defStyleAttr)
     {
-        this(context, attrs, defStyleAttr, attrs);
+        this(context, attrs, defStyleAttr, 0);
     }
 
-    public GesturePlayerControlView(Context context, @Nullable AttributeSet attrs, int defStyleAttr, @Nullable AttributeSet playbackAttrs)
+    public GesturePlayerControlView(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes)
     {
-        //do normal playercontrolview stuff
-        super(context, attrs, defStyleAttr, playbackAttrs);
+        //do normal view stuff
+        super(context, attrs, defStyleAttr, defStyleRes);
 
-        //get the controls view (that the superclass just inflated)
-        if (getChildCount() != 1)
-            throw new IllegalStateException("PlayerControlView does not have any children, but should have at least one!");
-
-        //only one child, get it
-        playerControlsRoot = getChildAt(0);
-
-        //inflate layout
+        //inflate our layout
         inflate(getContext(), R.layout.layout_gesture_player_control_view, this);
 
-        //get infotext view
+        //get player controls in layout
+        playerControls = findViewById(R.id.ctl_playercontrols);
+
+        //get info text
         infoTextView = findViewById(R.id.ctl_infotext);
 
-        //set default timeout
-        setControlsAutoHideTimeout(PlayerControlView.DEFAULT_SHOW_TIMEOUT_MS);
-
-        //enable gestures
+        //setup gesture controls
         setupGestures();
     }
     //endregion
 
-    //region SET Interfacing
+    //region Interfacing
 
     /**
      * Set the player this control view is used with
      *
      * @param player the player to use
      */
-    public GesturePlayerControlView setPlayerInstance(Player player)
+    public GesturePlayerControlView setPlayer(Player player)
     {
-        setPlayer(player);
+        playerControls.setPlayer(player);
         return this;
     }
 
     /**
-     * Sets the timeout until the controls are automatically hidden after activated
-     *
-     * @param timeout the timeout to set
+     * @return the player this control view is used with
      */
-    public GesturePlayerControlView setControlsAutoHideTimeout(int timeout)
+    public Player getPlayer()
     {
-        controlsAutoHideTimeout = timeout;
-
-        return this;
+        return playerControls.getPlayer();
     }
 
     /**
-     * Set if the controls are constantly hidden
-     *
-     * @param controlsHidden are controls hidden constantly?
+     * @return the underlying player control view
      */
-    public GesturePlayerControlView setControlsHidden(boolean controlsHidden)
+    public TapToHidePlayerControlView getPlayerControls()
     {
-        areControlsHidden = controlsHidden;
-        if (controlsHidden)
-        {
-            hide();
-        }
-        else
-        {
-            maybeShowControls(false);
-        }
-
-        return this;
-    }
-
-    //endregion
-
-    //region GET Interfacing
-
-    /**
-     * @return the timeout until the controls are automatically hidden after activated
-     */
-    public int getControlsAutoHideTimeout()
-    {
-        return controlsAutoHideTimeout;
+        return playerControls;
     }
 
     /**
-     * @return are controls hidden constantly?
+     * Shows the playback controls.
      */
-    public boolean getControlsHidden()
-    {
-        return areControlsHidden;
-    }
-    //endregion
-
-    //region Overrides for "normal" PlayerControlView
-
-    /**
-     * Set the player this control view is used with
-     *
-     * @param player the player to use
-     */
-    @Override
-    public void setPlayer(@Nullable Player player)
-    {
-        super.setPlayer(player);
-        if (player != null)
-        {
-            player.addListener(this);
-            maybeShowControls(true);
-        }
-    }
-
-    /**
-     * Shows the playback controls. If {@link #getShowTimeoutMs()} is positive then the controls will
-     * be automatically hidden after this duration of time has elapsed without user input.
-     */
-    @Override
     public void show()
     {
-        if (!isVisible())
-        {
-            //first disable changes to visibility since superclass will try and change them
-            ignoreSetVisibility = true;
-
-            //let superclass do sutff
-            super.show();
-
-            //re- enable visibility changes
-            ignoreSetVisibility = false;
-
-            //make actual controls visible
-            playerControlsRoot.setVisibility(VISIBLE);
-        }
+        playerControls.show();
     }
 
     /**
      * Hides the player controls
      */
-    @Override
     public void hide()
     {
-        if (isVisible())
-        {
-            //first we disable changes to our own visibility (superclass will try and set it to GONE)
-            ignoreSetVisibility = true;
-
-            //let superclass do its stuff
-            super.hide();
-
-            //allow visibility changes again
-            ignoreSetVisibility = false;
-
-            //set the actual controls to GONE
-            if (playerControlsRoot != null)
-                playerControlsRoot.setVisibility(GONE);
-        }
+        playerControls.hide();
     }
 
-    /**
-     * @return are the player controls currently visible?
-     */
-    @Override
-    public boolean isVisible()
-    {
-        return playerControlsRoot != null && playerControlsRoot.getVisibility() == VISIBLE;
-    }
-
-    @Override
-    public void setVisibility(int visibility)
-    {
-        if (!ignoreSetVisibility)
-            super.setVisibility(visibility);
-    }
-    //endregion
-
-    //region Controls Visibility
-    @Override
-    public void onPlayerStateChanged(boolean playWhenReady, int playbackState)
-    {
-        maybeShowControls(false);
-    }
-
-    @Override
-    public boolean performClick()
-    {
-        super.performClick();
-        toggleControlsVisibility();
-        return true;
-    }
-
-    /**
-     * toggle the visibility of the controls
-     */
-    private void toggleControlsVisibility()
-    {
-        if (!isVisible())
-        {
-            //enable controls
-            maybeShowControls(true);
-        }
-        else
-        {
-            //hide controls
-            hide();
-        }
-    }
-
-    /**
-     * Show the controls unless they are disabled for some reason
-     *
-     * @param isForced is this a forced show (eg. other factors are IGNORED)?
-     */
-    private void maybeShowControls(boolean isForced)
-    {
-        //show controls if either forced or controls should be always visible
-        //but ONLY if controls are not hidden
-        boolean shouldShowIndefinitely = shouldShowControlsIndefinitely();
-        if (!areControlsHidden && (isForced || shouldShowIndefinitely))
-        {
-            showControls(shouldShowIndefinitely);
-        }
-    }
-
-    /**
-     * @return Should the controls be shown constantly?
-     */
-    private boolean shouldShowControlsIndefinitely()
-    {
-        Player player = getPlayer();
-        if (player == null)
-        {
-            //no player? always show controls!
-            return true;
-        }
-
-        //always show controls when player is IDLE or ENDED
-        int playbackState = player.getPlaybackState();
-        return playbackState == Player.STATE_IDLE
-                || playbackState == Player.STATE_ENDED
-                || !player.getPlayWhenReady();
-    }
-
-    /**
-     * Make the controls visible, but also post a message to hide them again if not showing indefinitely.
-     *
-     * @param showIndefinitely should a message to auto- hide NOT be posted?
-     */
-    private void showControls(boolean showIndefinitely)
-    {
-        //show controls
-        show();
-
-        //remove all previous messages from handler
-        delayHandler.removeCallbacksAndMessages(null);
-
-        //post message to hide if not showing indefinitely
-        if (!showIndefinitely)
-        {
-            delayHandler.postDelayed(new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    //auto- hide
-                    hide();
-                }
-            }, getControlsAutoHideTimeout());
-        }
-    }
     //endregion
 
     //region Swipe Gestures
@@ -436,8 +225,7 @@ public class GesturePlayerControlView extends PlayerControlView implements Playe
         final boolean hardSwipeEnable = ConfigUtil.getConfigBoolean(getContext(), ConfigKeys.KEY_BRIGHTNESS_HARD_SWIPE_EN, R.bool.DEF_BRIGHTNESS_HARD_SWIPE_EN);
 
         //init and set listener
-        setOnTouchListener(new SwipeGestureListener(touchDecayTime, doubleTapDecayTime, swipeFlingThreshold, swipeFlingThreshold, doubleTapMaxDistance, swipeIgnore)
-        {
+        setOnTouchListener(new SwipeGestureListener(touchDecayTime, doubleTapDecayTime, swipeFlingThreshold, swipeFlingThreshold, doubleTapMaxDistance, swipeIgnore){
             @Override
             public void onVerticalSwipe(float deltaY, PointF swipeStart, PointF swipeEnd, PointF firstContact, SizeF screenSize)
             {
@@ -488,7 +276,7 @@ public class GesturePlayerControlView extends PlayerControlView implements Playe
             public void onNoSwipeClick(View view, PointF clickPos, SizeF screenSize)
             {
                 //forward click to player controls
-                performClick();
+                playerControls.performClick();
 
                 //also perform click on original view
                 //super.onNoSwipeClick(view, clickPos, screenSize);
@@ -516,7 +304,7 @@ public class GesturePlayerControlView extends PlayerControlView implements Playe
                 }
 
                 //get and check player for seeking
-                Player player = getPlayer();
+                Player player = playerControls.getPlayer();
                 if (player == null) return;
 
                 //calculate position to seek to
@@ -630,7 +418,7 @@ public class GesturePlayerControlView extends PlayerControlView implements Playe
     public void showInfoText(String text, Object... format)
     {
         //check infotext is not null
-        if(infoTextView == null) return;
+        if (infoTextView == null) return;
 
         //remove all previous messages related to fading out the info text
         delayHandler.removeMessages(Messages.START_FADE_OUT_INFO_TEXT);

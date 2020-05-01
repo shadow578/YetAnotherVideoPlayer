@@ -17,9 +17,7 @@
         android:id="@+id/pb_playerControlView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:elevation="500dp"
-        app:controller_layout_id="@layout/layout_exo_controls"
-        app:use_artwork="true" />
+        android:elevation="500dp"/>
 
     <!-- Buffering Progress Wheels for normal + pip mode -->
     <RelativeLayout

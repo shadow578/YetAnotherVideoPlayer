@@ -329,8 +329,8 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
 
         //set fast-forward and rewind increments
         int seekIncrement = ConfigUtil.getConfigInt(this, ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT);
-        playerControlView.setFastForwardIncrementMs(seekIncrement);
-        playerControlView.setRewindIncrementMs(seekIncrement);
+        playerControlView.getPlayerControls().setFastForwardIncrementMs(seekIncrement);
+        playerControlView.getPlayerControls().setRewindIncrementMs(seekIncrement);
 
         //init screen rotation manager
         screenRotationManager = new ScreenRotationManager();
@@ -1105,7 +1105,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             WindowManager.LayoutParams windowAttributes = getWindow().getAttributes();
 
             //modify screen brightness attribute withing range
-            float persistBrightness = (float) ConfigUtil.getAppConfig(this  ).getInt(ConfigKeys.KEY_PERSIST_BRIGHTNESS, -100) / 100.0f;
+            float persistBrightness = (float) ConfigUtil.getAppConfig(this).getInt(ConfigKeys.KEY_PERSIST_BRIGHTNESS, -100) / 100.0f;
             if (persistBrightness > 0)
             {
                 windowAttributes.screenBrightness = Math.min(Math.max(persistBrightness, 0f), 1f);
@@ -1185,12 +1185,12 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             }
 
             //show controls
-            playerControlView.setControlsHidden(false).show();
+            playerControlView.getPlayerControls().setControlsHidden(false).show();
         }
         else
         {
             //hide controls
-            playerControlView.setControlsHidden(true).hide();
+            playerControlView.getPlayerControls().setControlsHidden(true).hide();
         }
     }
 
