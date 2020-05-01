@@ -87,7 +87,6 @@ public class SwipeGestureListener implements View.OnTouchListener
      */
     private final RectF swipeEdgeIgnore;
 
-
     /**
      * Initialize the Swipe Gesture Listener without ignored pixels on the edges
      *
@@ -186,9 +185,11 @@ public class SwipeGestureListener implements View.OnTouchListener
                         //now call the event
                         onDoubleClick(distanceSq, (System.currentTimeMillis() - lastDoubleTapPointMillis), lastDoubleTapPoint, currentPos, screenSize);
 
-                        //reset the last double tap point recorded
-                        lastDoubleTapPoint = null;
-                        lastDoubleTapPointMillis = 0;
+                        //set last double tap point to the current position
+                        //this way, after one double tap, a second one can follow directly after
+                        //also, set the time of this tap into the future, so the user has more (=double) the time to press after the initial double- tap
+                        lastDoubleTapPoint = currentPos;
+                        lastDoubleTapPointMillis = System.currentTimeMillis() + doubleTapDecayTime;
                         return true;
                     }
                 }
