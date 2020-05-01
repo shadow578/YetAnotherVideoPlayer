@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animation-list xmlns:android="http://schemas.android.com/apk/res/android"
+    android:oneshot="false">
+
+    <item
+        android:drawable="@drawable/seekr_00"
+        android:duration="@integer/cseek_frame_duration" />
+
+    <item
+        android:drawable="@drawable/seekr_01"
+        android:duration="@integer/cseek_frame_duration" />
+
+    <item
+        android:drawable="@drawable/seekr_02"
+        android:duration="@integer/cseek_frame_duration" />
+
+    <item
+        android:drawable="@drawable/seekr_03"
+        android:duration="@integer/cseek_frame_duration" />
+
+    <item
+        android:drawable="@drawable/seekr_04"
+        android:duration="@integer/cseek_frame_duration" />
+
+    <item
+        android:drawable="@drawable/seekr_05"
+        android:duration="@integer/cseek_frame_duration" />
+
+    <item
+        android:drawable="@drawable/seekr_06"
+        android:duration="@integer/cseek_frame_duration" />
+
+    <item
+        android:drawable="@drawable/seekr_07"
+        android:duration="@integer/cseek_frame_duration" />
+
+    <item
+        android:drawable="@drawable/seekr_08"
+        android:duration="@integer/cseek_frame_duration" />
+
+    <item
+        android:drawable="@drawable/seekr_09"
+        android:duration="@integer/cseek_frame_duration" />
+
+    <item
+        android:drawable="@drawable/seekr_10"
+        android:duration="@integer/cseek_frame_duration" />
+
+    <item
+        android:drawable="@drawable/seekr_11"
+        android:duration="@integer/cseek_frame_duration" />
+
+    <item
+        android:drawable="@drawable/seekr_12"
+        android:duration="@integer/cseek_frame_duration" />
+
+    <item
+        android:drawable="@drawable/seekr_13"
+        android:duration="@integer/cseek_frame_duration" />
+
+</animation-list>

@@ -6,4 +6,7 @@
     <!-- minimum time the splash screen (launch activity) is shown -->
     <integer name="min_splash_screen_duration">500</integer>
 
+    <!-- seek animation frame durations -->
+    <integer name="cseek_frame_duration">40</integer>
+
 </resources>
