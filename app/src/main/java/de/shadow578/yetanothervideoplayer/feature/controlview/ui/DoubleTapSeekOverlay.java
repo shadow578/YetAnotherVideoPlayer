@@ -29,7 +29,7 @@ public class DoubleTapSeekOverlay extends FrameLayout
      * After how many milliseconds the seek amount is reset (after a reset is requested)
      */
     @SuppressWarnings("FieldCanBeLocal")
-    private final long SEEK_AMOUNT_RESET_DELAY_MS = 1500;
+    private final long SEEK_AMOUNT_RESET_DELAY_MS = 1000;
 
     /**
      * Default value for seek stacking

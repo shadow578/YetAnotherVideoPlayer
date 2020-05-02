@@ -13,9 +13,6 @@ import android.util.SizeF;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
-import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
@@ -106,13 +103,15 @@ public class GesturePlayerControlView extends FrameLayout
                     int fadeDuration = getResources().getInteger(R.integer.info_text_fade_duration);
 
                     //start fade out animation
-                    Animation fadeOut = new AlphaAnimation(1.0f, 0.0f);
-                    fadeOut.setInterpolator(new DecelerateInterpolator());
-                    fadeOut.setDuration(fadeDuration);
-                    infoTextView.setAnimation(fadeOut);
-
-                    //make invisible after animation
-                    delayHandler.sendEmptyMessageDelayed(Messages.SET_INFO_TEXT_INVISIBLE, fadeDuration);
+                    infoTextView.animate().alpha(0f).setDuration(fadeDuration).withEndAction(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            //make invisible after animation
+                            delayHandler.sendEmptyMessage(Messages.SET_INFO_TEXT_INVISIBLE);
+                        }
+                    });
                     break;
                 }
                 case Messages.SET_INFO_TEXT_INVISIBLE:
