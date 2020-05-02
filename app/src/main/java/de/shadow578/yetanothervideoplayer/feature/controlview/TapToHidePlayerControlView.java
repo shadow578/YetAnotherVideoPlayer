@@ -30,7 +30,7 @@ public class TapToHidePlayerControlView extends PlayerControlView implements Pla
     /**
      * Callback for visibility changes and behaviour control
      */
-    private AutoHideCallback callback;
+    private VisibilityChangeCallback callback;
 
     /**
      * Timeout until the controls are automatically hidden, ms
@@ -205,7 +205,7 @@ public class TapToHidePlayerControlView extends PlayerControlView implements Pla
      * @param _callback the callback to set
      * @return own instance, for set chaining
      */
-    public TapToHidePlayerControlView setCallback(AutoHideCallback _callback)
+    public TapToHidePlayerControlView setVisibilityChangeCallback(VisibilityChangeCallback _callback)
     {
         callback = _callback;
         return this;
@@ -329,19 +329,35 @@ public class TapToHidePlayerControlView extends PlayerControlView implements Pla
             postDelayed(autoHideAction, getControlsAutoHideTimeout());
     }
 
+    @Override
+    public void show()
+    {
+        super.show();
+        if (callback != null)
+            callback.onShow();
+    }
+
+    @Override
+    public void hide()
+    {
+        super.hide();
+        if (callback != null)
+            callback.onHide();
+    }
+
     /**
      * Defines callbacks and behaviour controls for the TapToHidePlayerControlView
      */
-    public interface AutoHideCallback
+    public interface VisibilityChangeCallback
     {
         /**
          * Callback when the controls transition from hidden to visible
          */
-        void onControlsVisible();
+        void onShow();
 
         /**
          * Callback when the controls transition from visible to hidden
          */
-        void onControlsHidden();
+        void onHide();
     }
 }

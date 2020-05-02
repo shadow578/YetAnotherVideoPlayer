@@ -10,6 +10,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import de.shadow578.yetanothervideoplayer.R;
 import de.shadow578.yetanothervideoplayer.YAVPApp;
 import de.shadow578.yetanothervideoplayer.feature.controlview.GesturePlayerControlView;
+import de.shadow578.yetanothervideoplayer.feature.controlview.TapToHidePlayerControlView;
 import de.shadow578.yetanothervideoplayer.feature.gl.GLAnime4K;
 import de.shadow578.yetanothervideoplayer.feature.playback.VideoPlaybackService;
 import de.shadow578.yetanothervideoplayer.feature.playback.VideoPlaybackServiceListener;
@@ -331,6 +332,9 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
 
         //add listener for quick access drawer
         quickAccessDrawer.addDrawerListener(new QuickAccessDrawerListener());
+
+        //add listener for player controls visibility
+        playerControlView.getPlayerControls().setVisibilityChangeCallback(new PlayerControlsVisibilityListener());
 
         //set fast-forward and rewind increments
         int seekIncrement = ConfigUtil.getConfigInt(this, ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT);
@@ -1617,6 +1621,30 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             //re- enable auto- hide on player controls
             //call showControls() to ensure the controls don't instantly disappear
             playerControlView.getPlayerControls().setAllowAutoHideControls(true).showControls(false);
+        }
+    }
+
+    /**
+     * Listener for player controls, that listens for visibility changes and locks / unlocks the quick access drawer accordingly
+     */
+    private class PlayerControlsVisibilityListener implements TapToHidePlayerControlView.VisibilityChangeCallback
+    {
+        /**
+         * Callback when the controls transition from hidden to visible
+         */
+        public void onShow()
+        {
+            //controls are visible, unlock drawer
+            quickAccessDrawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+        }
+
+        /**
+         * Callback when the controls transition from visible to hidden
+         */
+        public void onHide()
+        {
+            //controls are not visible, lock drawers closed
+            quickAccessDrawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
         }
     }
 }
