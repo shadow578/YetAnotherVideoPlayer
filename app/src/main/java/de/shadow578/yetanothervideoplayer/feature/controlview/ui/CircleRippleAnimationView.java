@@ -12,6 +12,7 @@ import android.graphics.PointF;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.View;
+import android.view.ViewPropertyAnimator;
 
 import androidx.annotation.ColorInt;
 import androidx.annotation.Nullable;
@@ -54,6 +55,21 @@ public class CircleRippleAnimationView extends View implements ValueAnimator.Ani
      * Default animation duration, ms
      */
     private final int DEFAULT_ANIMATION_DURATION = 800;
+
+    /**
+     * default value: should the ripple circle and arc be faded out before going invisible?
+     */
+    private final boolean DEFAULT_ENABLE_FADE_OUT = true;
+
+    /**
+     * Default duration of the fade- out animation, ms
+     */
+    private final int DEFAULT_FADE_OUT_DURATION = 150;
+
+    /**
+     * the currently active fade- out animation
+     */
+    private ViewPropertyAnimator currentFadeAnimation;
     //endregion
 
     //region Variables
@@ -107,6 +123,16 @@ public class CircleRippleAnimationView extends View implements ValueAnimator.Ani
      * the position of the ripple circles origin
      */
     private PointF rippleOrigin = new PointF(0f, 0f);
+
+    /**
+     * should the ripple circle and arc be faded out before going invisible?
+     */
+    private boolean enableFadeOut = DEFAULT_ENABLE_FADE_OUT;
+
+    /**
+     * duration of the fade- out animation, ms
+     */
+    private long fadeOutDuration = DEFAULT_FADE_OUT_DURATION;
 
     //endregion
 
@@ -179,6 +205,8 @@ public class CircleRippleAnimationView extends View implements ValueAnimator.Ani
         setRippleColor(a.getColor(R.styleable.CircleRippleAnimationView_rippleColor, DEFAULT_RIPPLE_COLOR));
         setArcSize(a.getDimensionPixelSize(R.styleable.CircleRippleAnimationView_arcSize, DEFAULT_ARC_SIZE));
         setRippleAnimationDuration(a.getInteger(R.styleable.CircleRippleAnimationView_rippleAnimationDuration, DEFAULT_ANIMATION_DURATION));
+        setEnableFadeOut(a.getBoolean(R.styleable.CircleRippleAnimationView_enableRippleFadeAnimation, DEFAULT_ENABLE_FADE_OUT));
+        setFadeOutDuration(a.getInteger(R.styleable.CircleRippleAnimationView_rippleFadeAnimationDuration, DEFAULT_FADE_OUT_DURATION));
 
         //we're finished, recycle attribute array
         a.recycle();
@@ -298,6 +326,46 @@ public class CircleRippleAnimationView extends View implements ValueAnimator.Ani
     }
 
     /**
+     * set if the view is faded out with a animation before going invisible
+     * @param enable enable fade- out animation?
+     * @return own instance, for set chaining
+     */
+    public CircleRippleAnimationView setEnableFadeOut(boolean enable)
+    {
+        enableFadeOut = enable;
+        return this;
+    }
+
+    /**
+     *
+     * @return is the fade- out animation enabled?
+     */
+    public boolean getEnableFadeOut()
+    {
+        return enableFadeOut;
+    }
+
+    /**
+     * set the duration of the fade- out animation that plays if {@link CircleRippleAnimationView#getEnableFadeOut()} is true
+     * @param duration the duration of the animation, in ms
+     * @return own instance, for set chaining
+     */
+    public CircleRippleAnimationView setFadeOutDuration(long duration)
+    {
+        fadeOutDuration = duration;
+        return this;
+    }
+
+    /**
+     *
+     * @return the duration of the fade- out animation, in ms
+     */
+    public long getFadeOutDuration()
+    {
+        return fadeOutDuration;
+    }
+
+    /**
      * Set the ripple origin and start the animation
      *
      * @param rippelOrigin the new origin of the animated ripple
@@ -313,6 +381,13 @@ public class CircleRippleAnimationView extends View implements ValueAnimator.Ani
      */
     public void startAnimation()
     {
+        //cancel any fade- out animation first
+        if (currentFadeAnimation != null)
+        {
+            currentFadeAnimation.cancel();
+            setAlpha(1f);
+        }
+
         //make self visible
         setVisibility(VISIBLE);
 
@@ -335,6 +410,13 @@ public class CircleRippleAnimationView extends View implements ValueAnimator.Ani
     @Override
     public void onAnimationStart(Animator animator)
     {
+        //make sure there is NO fade- out animation playing
+        if (currentFadeAnimation != null)
+        {
+            currentFadeAnimation.cancel();
+            setAlpha(1f);
+        }
+
         //make sure we're visible
         setVisibility(VISIBLE);
     }
@@ -342,8 +424,27 @@ public class CircleRippleAnimationView extends View implements ValueAnimator.Ani
     @Override
     public void onAnimationEnd(Animator animator)
     {
-        //make self invisible
-        setVisibility(GONE);
+        if (enableFadeOut)
+        {
+            //fade out, then go invisible
+            currentFadeAnimation = animate().alpha(0f).setDuration(fadeOutDuration).withEndAction(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    //make self fully invisible
+                    setVisibility(GONE);
+
+                    //reset alpha for the next time
+                    setAlpha(1f);
+                }
+            });
+        }
+        else
+        {
+            //go invisible instantly
+            setVisibility(GONE);
+        }
     }
 
     @Override

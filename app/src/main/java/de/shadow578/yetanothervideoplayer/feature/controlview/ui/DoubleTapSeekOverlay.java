@@ -21,12 +21,14 @@ import de.shadow578.yetanothervideoplayer.util.Logging;
  * View that contains handles animations for double- tap seeking.
  * Just put this view in your layout with width & height set to match_parent and call the appropriate functions to play the animations - it's that simple!
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "UnusedReturnValue"})
 public class DoubleTapSeekOverlay extends FrameLayout
 {
+    //region Constants
     /**
      * After how many milliseconds the seek amount is reset (after a reset is requested)
      */
+    @SuppressWarnings("FieldCanBeLocal")
     private final long SEEK_AMOUNT_RESET_DELAY_MS = 1500;
 
     /**
@@ -38,6 +40,17 @@ public class DoubleTapSeekOverlay extends FrameLayout
      * Default animation duration, in ms
      */
     private final int DEFAULT_ANIMATION_DURATION = 750;
+
+    /**
+     * Default value for enableFadeOut for seek textviews
+     */
+    private final boolean DEFAULT_ENABLE_FADE_ANIMATION = true;
+
+    /**
+     * Default duration for the fade- out of the seek textviews, in ms
+     */
+    private final int DEFAULT_FADE_DURATION = 150;
+    //endregion
 
     //region Variables
     //region Views
@@ -83,6 +96,16 @@ public class DoubleTapSeekOverlay extends FrameLayout
      * can be overridden by showSeekAnimation's parameter
      */
     private boolean defStackSeekAmount = DEFAULT_ENABLE_SEEK_AMOUNT_STACKING;
+
+    /**
+     * should the seek text views be faded before being made invisible?
+     */
+    private boolean enableFadeOutTexts = DEFAULT_ENABLE_FADE_ANIMATION;
+
+    /**
+     * duration for fading out the seek text views before going invisible
+     */
+    private long textFadeOutDuration = DEFAULT_FADE_DURATION;
     //endregion
 
     //region Message Handler
@@ -93,19 +116,31 @@ public class DoubleTapSeekOverlay extends FrameLayout
     private static final class Messages
     {
         /**
-         * Message to stop the forward seeking animation and hide the textview for forward seeking
+         * Message to start fading out the textview for forward seeking.
+         * After the fade- out is finished, STOP_SEEK_FORWARD_ANIM is called
          */
-        private static final int STOP_SEEK_FORWARD_ANIM = 0;
+        private static final int FADE_SEEK_FORWARD_ANIM = 0;
 
         /**
-         * Message to stop the reverse seeking animation and hide the textview for reverse seeking
+         * Message to start fading out the textview for reverse seeking.
+         * After the fade- out is finished, STOP_SEEK_REVERSE_ANIM is called
          */
-        private static final int STOP_SEEK_REVERSE_ANIM = 1;
+        private static final int FADE_SEEK_REVERSE_ANIM = 1;
+
+        /**
+         * Message to stop the forward seeking animation and hide the textview for forward seeking (instantly, without animation)
+         */
+        private static final int STOP_SEEK_FORWARD_ANIM = 2;
+
+        /**
+         * Message to stop the reverse seeking animation and hide the textview for reverse seeking (instantly, without animation)
+         */
+        private static final int STOP_SEEK_REVERSE_ANIM = 3;
 
         /**
          * Message to reset the seek amount stack
          */
-        private static final int RESET_SEEK_AMOUNT_STACK = 2;
+        private static final int RESET_SEEK_AMOUNT_STACK = 4;
     }
 
     /**
@@ -118,6 +153,34 @@ public class DoubleTapSeekOverlay extends FrameLayout
         {
             switch (msg.what)
             {
+                case Messages.FADE_SEEK_FORWARD_ANIM:
+                {
+                    //start fade out animation
+                    seekForwardText.animate().alpha(0f).setDuration(textFadeOutDuration).withEndAction(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            //make invisible after animation
+                            delayedHandler.sendEmptyMessage(Messages.STOP_SEEK_FORWARD_ANIM);
+                        }
+                    });
+                    break;
+                }
+                case Messages.FADE_SEEK_REVERSE_ANIM:
+                {
+                    //start fade out animation
+                    seekReverseText.animate().alpha(0f).setDuration(textFadeOutDuration).withEndAction(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            //make invisible after animation
+                            delayedHandler.sendEmptyMessage(Messages.STOP_SEEK_REVERSE_ANIM);
+                        }
+                    });
+                    break;
+                }
                 case Messages.STOP_SEEK_FORWARD_ANIM:
                 {
                     //stop the animation and reset it to frame 0
@@ -127,9 +190,14 @@ public class DoubleTapSeekOverlay extends FrameLayout
                         seekForwardAnimation.selectDrawable(0);
                     }
 
-                    //hide the forward seeking text
                     if (seekForwardText != null)
+                    {
+                        //hide the forward seeking text
                         seekForwardText.setVisibility(GONE);
+
+                        //reset alpha after animation
+                        seekForwardText.setAlpha(1f);
+                    }
 
                     //reset seek amount if last seek direction was forward
                     if (lastSeekDirection)
@@ -145,9 +213,14 @@ public class DoubleTapSeekOverlay extends FrameLayout
                         seekReverseAnimation.selectDrawable(0);
                     }
 
-                    //hide the reverse seeking text
                     if (seekReverseText != null)
+                    {
+                        //hide the reverse seeking text
                         seekReverseText.setVisibility(GONE);
+
+                        //reset alpha after animation
+                        seekReverseText.setAlpha(1f);
+                    }
 
                     //reset seek amount if last seek direction was backwards
                     if (!lastSeekDirection)
@@ -226,6 +299,8 @@ public class DoubleTapSeekOverlay extends FrameLayout
         //set values
         setAnimationDuration(a.getInteger(R.styleable.DoubleTapSeekOverlay_seekAnimationDuration, DEFAULT_ANIMATION_DURATION));
         setStackSeekAmount(a.getBoolean(R.styleable.DoubleTapSeekOverlay_enableSeekAmountStacking, DEFAULT_ENABLE_SEEK_AMOUNT_STACKING));
+        setEnableFadeOutTextViews(a.getBoolean(R.styleable.CircleRippleAnimationView_enableRippleFadeAnimation, DEFAULT_ENABLE_FADE_ANIMATION));
+        setFadeOutDuration(a.getInteger(R.styleable.CircleRippleAnimationView_rippleFadeAnimationDuration, DEFAULT_FADE_DURATION));
 
         //we're finished, recycle attribute array
         a.recycle();
@@ -274,6 +349,46 @@ public class DoubleTapSeekOverlay extends FrameLayout
         return defStackSeekAmount;
     }
 
+    /**
+     * set if the textviews are faded out with a animation before going invisible
+     *
+     * @param enable enable fade- out animation?
+     * @return own instance, for set chaining
+     */
+    public DoubleTapSeekOverlay setEnableFadeOutTextViews(boolean enable)
+    {
+        enableFadeOutTexts = enable;
+        return this;
+    }
+
+    /**
+     * @return is the fade- out animation for the textviews enabled?
+     */
+    public boolean getEnableFadeOutTextViews()
+    {
+        return enableFadeOutTexts;
+    }
+
+    /**
+     * set the duration of the fade- out animation for the textvies, that plays if {@link DoubleTapSeekOverlay#getEnableFadeOutTextViews()} is true
+     *
+     * @param duration the duration of the animation, in ms
+     * @return own instance, for set chaining
+     */
+    public DoubleTapSeekOverlay setFadeOutDuration(long duration)
+    {
+        textFadeOutDuration = duration;
+        return this;
+    }
+
+    /**
+     * @return the duration of the fade- out animation for the textviews, in ms
+     */
+    public long getFadeOutDuration()
+    {
+        return textFadeOutDuration;
+    }
+
     //endregion
 
     /**
@@ -319,6 +434,7 @@ public class DoubleTapSeekOverlay extends FrameLayout
         {
             //cancel messages that would cancel the seeking animation we want to play
             delayedHandler.removeMessages(Messages.STOP_SEEK_FORWARD_ANIM);
+            delayedHandler.removeMessages(Messages.FADE_SEEK_FORWARD_ANIM);
 
             //cancel the animation for the reverse direction instantly
             delayedHandler.sendEmptyMessage(Messages.STOP_SEEK_REVERSE_ANIM);
@@ -336,12 +452,13 @@ public class DoubleTapSeekOverlay extends FrameLayout
             }
 
             //cancel the animation after a delay
-            delayedHandler.sendEmptyMessageDelayed(Messages.STOP_SEEK_FORWARD_ANIM, animationDurationMs);
+            stopSeekForward(animationDurationMs);
         }
         else
         {
             //cancel messages that would cancel the seeking animation we want to play
             delayedHandler.removeMessages(Messages.STOP_SEEK_REVERSE_ANIM);
+            delayedHandler.removeMessages(Messages.FADE_SEEK_REVERSE_ANIM);
 
             //cancel the animation for the reverse direction instantly
             delayedHandler.sendEmptyMessage(Messages.STOP_SEEK_FORWARD_ANIM);
@@ -359,7 +476,7 @@ public class DoubleTapSeekOverlay extends FrameLayout
             }
 
             //cancel the animation after a delay
-            delayedHandler.sendEmptyMessageDelayed(Messages.STOP_SEEK_REVERSE_ANIM, animationDurationMs);
+            stopSeekReverse(animationDurationMs);
         }
     }
 
@@ -390,5 +507,41 @@ public class DoubleTapSeekOverlay extends FrameLayout
         seekReverseText.setCompoundDrawablesRelativeWithIntrinsicBounds(null, seekReverseAnimation, null, null);
         seekReverseAnimation.setCallback(seekReverseText);
         seekReverseAnimation.setVisible(true, true);
+    }
+
+    /**
+     * Stop the seek forward animation
+     * This either sends Message STOP_SEEK_FORWARD_ANIM or FADE_SEEK_FORWARD_ANIM, depending on configuration of the view
+     *
+     * @param stopDelay by how much the stop of the seek should by delayed by, in ms (<= 0: instantly)
+     */
+    private void stopSeekForward(long stopDelay)
+    {
+        if (stopDelay <= 0)
+        {
+            delayedHandler.sendEmptyMessage(enableFadeOutTexts ? Messages.FADE_SEEK_FORWARD_ANIM : Messages.STOP_SEEK_FORWARD_ANIM);
+        }
+        else
+        {
+            delayedHandler.sendEmptyMessageDelayed(enableFadeOutTexts ? Messages.FADE_SEEK_FORWARD_ANIM : Messages.STOP_SEEK_FORWARD_ANIM, stopDelay);
+        }
+    }
+
+    /**
+     * Stop the seek reverse animation
+     * This either sends Message STOP_SEEK_REVERSE_ANIM or FADE_SEEK_REVERSE_ANIM, depending on configuration of the view
+     *
+     * @param stopDelay by how much the stop of the seek should by delayed by, in ms (<= 0: instantly)
+     */
+    private void stopSeekReverse(long stopDelay)
+    {
+        if (stopDelay <= 0)
+        {
+            delayedHandler.sendEmptyMessage(enableFadeOutTexts ? Messages.FADE_SEEK_REVERSE_ANIM : Messages.STOP_SEEK_REVERSE_ANIM);
+        }
+        else
+        {
+            delayedHandler.sendEmptyMessageDelayed(enableFadeOutTexts ? Messages.FADE_SEEK_REVERSE_ANIM : Messages.STOP_SEEK_REVERSE_ANIM, stopDelay);
+        }
     }
 }

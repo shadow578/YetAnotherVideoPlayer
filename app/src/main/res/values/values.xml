@@ -12,5 +12,7 @@
     <!-- animation duration for double- tap animations (ms) -->
     <integer name="double_tap_seek_anim_duration_overlay">650</integer>
     <integer name="double_tap_seek_anim_duration_ripple">650</integer>
+    <bool name="double_tap_seek_enable_fade_animation_combine">true</bool>
+    <integer name="double_tap_seek_fade_duration_combine">150</integer>
 
 </resources>

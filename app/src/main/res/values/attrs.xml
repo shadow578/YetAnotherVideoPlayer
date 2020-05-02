@@ -19,11 +19,15 @@
         <attr name="rippleColor" format="color"/>
         <attr name="arcSize" format="dimension"/>
         <attr name="rippleAnimationDuration" format="integer"/>
+        <attr name="enableRippleFadeAnimation" format="boolean"/>
+        <attr name="rippleFadeAnimationDuration" format="integer"/>
     </declare-styleable>
 
     <!-- Double Tap Seek Overlay -->
     <declare-styleable name="DoubleTapSeekOverlay">
         <attr name="enableSeekAmountStacking" format="boolean"/>
         <attr name="seekAnimationDuration" format="integer"/>
+        <attr name="enableTextFadeAnimation" format="boolean"/>
+        <attr name="textFadeAnimationDuration" format="integer"/>
     </declare-styleable>
 </resources>

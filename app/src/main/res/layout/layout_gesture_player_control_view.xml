@@ -15,7 +15,9 @@
         app:rippleAnimationDuration="@integer/double_tap_seek_anim_duration_ripple"
         app:arcColor="@color/dtso_ripple_arc"
         app:arcSize="50dp"
-        app:rippleColor="@color/dtso_ripple_circle" />
+        app:rippleColor="@color/dtso_ripple_circle"
+        app:enableRippleFadeAnimation="@bool/double_tap_seek_enable_fade_animation_combine"
+        app:rippleFadeAnimationDuration="@integer/double_tap_seek_fade_duration_combine"/>
 
     <!-- seek overlay -->
     <de.shadow578.yetanothervideoplayer.feature.controlview.ui.DoubleTapSeekOverlay
@@ -25,7 +27,9 @@
         android:clickable="false"
         android:focusable="false"
         app:seekAnimationDuration="@integer/double_tap_seek_anim_duration_overlay"
-        app:enableSeekAmountStacking="true" />
+        app:enableSeekAmountStacking="true"
+        app:enableTextFadeAnimation="@bool/double_tap_seek_enable_fade_animation_combine"
+        app:textFadeAnimationDuration="@integer/double_tap_seek_fade_duration_combine"/>
 
     <!-- Info Text (Volume/Brightness) -->
     <TextView
