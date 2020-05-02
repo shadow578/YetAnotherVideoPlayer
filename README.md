@@ -1,6 +1,12 @@
 # Yet Another Video Player
-Yet Another Video Player (or YAVP) is a Video Player for Android that is based on Googles [ExoPlayer](https://github.com/google/ExoPlayer). <br/>
-<img src="/ASSETS/screenshot_buckbunny_playui.png?raw=true" width="750">
+Yet Another Video Player (or YAVP) is a Video Player for Android that is based on Googles [ExoPlayer](https://github.com/google/ExoPlayer). 
+<br/><br/>
+<img src="/ASSETS/screenshot_buckbunny_playui.png?raw=true" width="100%">
+<br/>
+<p float="center">
+  <img src="/ASSETS/screenshot_buckbunny_qsdrawer.png" width="49%"/>
+  <img src="/ASSETS/screenshot_buckbunny_fxdrawer.png" width="49%"/>
+</p>
 
 ## Who Is YAVP For?
 First off, YAVP is not meant to compete with any of the big players like __VLC__ or __MX Player__. <br/>
@@ -8,14 +14,15 @@ First off, YAVP is not meant to compete with any of the big players like __VLC__
 With that out of the way, here are some reasons you might want to consider using YAVP: 
 
 * YAVP is fully __Open Source__
-	* The sourcecode of YAVP and all libraries is open source and can be found [here](#used-librarys)
+	* The source code of YAVP and all libraries is open source and can be found [here](#used-librarys)
 * YAVP __will (and cannot)__ spy on your data
-	* See [here](#what-permissions-does-yavp-use) to see what permissions YAVP uses
+	* Take a look [here](#what-permissions-does-yavp-use) to see what permissions YAVP uses
 * YAVP is __completely free and without ads__
+* YAVP does __not__ include any Trackers
 * YAVP will play most __Video and Audio Files and Streams__
 	* For a full list of supported formats, see [here](https://exoplayer.dev/supported-formats.html)
 * __Simple and modern__ User Interface
-	* No flashy lights and thousands of buttons, just a simple and tidy interface
+	* No flashy lights and thousands of buttons, just a simple user interface
 * __Resume where I left__ Features
 	* You can just close the app at any point - it will handle resuming for you later
 * Build and Optimized for watchin __Anime__
@@ -42,6 +49,7 @@ I personally use YAVP to watch Anime. As a result of this, it has some features 
 * __Skip Anime Openings__ with the click of a button
 	* Skip that super annoying opening with YAVP's advanced seeking technology
 * __More to come__
+<!-- TODO: add more features :P -->
 
 ## FAQ
 
@@ -97,10 +105,9 @@ They are disabled by default and are __not__ requested.
 * [__Proximity Sensor__](https://developer.android.com/reference/android/hardware/Sensor#TYPE_PROXIMITY)
 * [__Light Sensor__](https://developer.android.com/reference/android/hardware/Sensor#TYPE_LIGHT)
 
-As you can see, YAVP cannot access any of your private information (for example [__READ_CONTACTS__](https://developer.android.com/reference/android/Manifest.permission#READ_CONTACTS).
+As you can see, YAVP cannot access any of your private information (for example [__READ_CONTACTS__](https://developer.android.com/reference/android/Manifest.permission#READ_CONTACTS)).
 
-## Issues, Feature Requests and Contributing
-Please make sure to read these guidelines. Your issue may be closed without a warning if you don't.
+## Bugs And Feature Requests
 
 #### Bugs
 
@@ -116,6 +123,10 @@ Please make sure to read these guidelines. Your issue may be closed without a wa
 
 * Write a detailed request, explaining what the feature should do and how it should do it
 * Include Screenshots to illustrate your request (if needed)
+<!--       _
+       .__(.)< (ADD MORE DUCKS)
+        \___)   
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
 
 ## Used Librarys
 
