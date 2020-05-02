@@ -17,18 +17,22 @@ import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
-import com.google.android.exoplayer2.LoadControl;
+import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.RenderersFactory;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.metadata.MetadataOutput;
+import com.google.android.exoplayer2.source.TrackGroup;
+import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.trackselection.TrackSelector;
-import com.google.android.exoplayer2.upstream.BandwidthMeter;
+import com.google.android.exoplayer2.trackselection.MappingTrackSelector;
+import com.google.android.exoplayer2.ui.DefaultTrackNameProvider;
+import com.google.android.exoplayer2.ui.TrackNameProvider;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.util.Util;
+
+import java.util.ArrayList;
 
 import de.shadow578.yetanothervideoplayer.util.Logging;
 
@@ -132,6 +136,114 @@ public class VideoPlaybackService extends Service
      * do we still have to seek the media because of the loadMedia() call?
      */
     private boolean isLoadMediaSeekPending = false;
+
+
+
+
+    /**
+     * This is just experimental testing code!! may / may not work, doesn't really do anything yet, but
+     * is useful for testing basic capabilitys / concepts
+     * (This is for a possible TrackSelection Dialog (Quality Selection on Videos), but idk how this all works yet)
+     */
+    //region DEV
+    /**
+     * TODO: DEV
+     */
+    private DefaultTrackSelector trackSelector;
+
+
+    /**
+     * TODO: DEV
+     *
+     * @return
+     */
+    public @Nullable
+    String[] getQualityStrings()
+    {
+        //check valid trackselector first
+        if (trackSelector == null) return null;
+
+        //check player fist
+        if (player == null || player.getVideoFormat() == null) return null;
+
+        //get mapped tracks
+        MappingTrackSelector.MappedTrackInfo trackInfo = trackSelector.getCurrentMappedTrackInfo();
+        if (trackInfo == null) return null;
+
+        //get tracks
+        TrackGroupArray trackGroups = trackInfo.getTrackGroups(0);
+        if (trackGroups == null) return null;
+
+        ArrayList<String> s = new ArrayList<String>();
+        for (int gi = 0; gi < trackGroups.length; gi++)
+        {
+            TrackGroup group = trackGroups.get(gi);
+            if (group == null) continue;
+
+            for (int ti = 0; ti < group.length; ti++)
+            {
+                s.add(getStringFromFormat(group.getFormat(ti), player.getVideoFormat().bitrate));
+            }
+        }
+
+        return s.toArray(new String[0]);
+    }
+
+    /**
+     * TODO: DEV
+     * @param format
+     * @param currentBitrate
+     * @return
+     */
+    private String getStringFromFormat(Format format, long currentBitrate)
+    {
+        final int BITRATE_1080P = 2800000;
+        final int BITRATE_720P = 1600000;
+        final int BITRATE_480P = 700000;
+        final int BITRATE_360P = 530000;
+        final int BITRATE_240P = 400000;
+        final int BITRATE_160P = 300000;
+
+        int bitrate = format.bitrate;
+        boolean isPlaying = currentBitrate == bitrate;
+
+        TrackNameProvider trackNameProvider = new DefaultTrackNameProvider(getResources());
+
+        String qs = "UNKNOWN";
+        if (bitrate <= BITRATE_160P)
+        {
+            qs = "160p";
+        }
+        if (bitrate <= BITRATE_240P)
+        {
+            qs = "240p";
+        }
+        if (bitrate <= BITRATE_360P)
+        {
+            qs = "360p";
+        }
+        if (bitrate <= BITRATE_480P)
+        {
+            qs = "480p";
+        }
+        if (bitrate <= BITRATE_720P)
+        {
+            qs = "720p";
+        }
+        if (bitrate <= BITRATE_1080P)
+        {
+            qs = "1080p";
+        }
+        qs += " (" + trackNameProvider.getTrackName(format) + ") ";
+        if (isPlaying)
+            qs += " [PLAYING]";
+
+        return qs;
+    }
+    //endregion
+
+
+
 
     //region Service Interface
 
@@ -384,10 +496,10 @@ public class VideoPlaybackService extends Service
     private void initializePlayer()
     {
         //prepare track selector and stuff for the player
-        TrackSelector trackSelector = new DefaultTrackSelector(new AdaptiveTrackSelection.Factory());
-        RenderersFactory renderersFactory = new DefaultRenderersFactory(this);
-        LoadControl loadControl = new DefaultLoadControl();
-        BandwidthMeter bandwidthMeter = new DefaultBandwidthMeter.Builder(this).build();
+        trackSelector = new DefaultTrackSelector(new AdaptiveTrackSelection.Factory());
+        DefaultRenderersFactory renderersFactory = new DefaultRenderersFactory(this);
+        DefaultLoadControl loadControl = new DefaultLoadControl();
+        DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter.Builder(this).build();
 
         //build the player instance
         player = ExoPlayerFactory.newSimpleInstance(this, renderersFactory, trackSelector, loadControl, null, bandwidthMeter);

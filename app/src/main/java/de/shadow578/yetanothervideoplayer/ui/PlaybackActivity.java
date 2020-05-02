@@ -33,6 +33,7 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.graphics.drawable.Icon;
 import android.media.AudioManager;
 import android.net.Uri;
@@ -47,6 +48,7 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -693,6 +695,44 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             {
                 //open quick settings
                 quickAccessDrawer.openDrawer(GravityCompat.END);
+                break;
+            }
+
+            //TODO: DEV quality
+            case R.id.qs_btn_dev_quality:
+            {
+                if (playbackService == null) return;
+
+                final String[] qs = playbackService.getQualityStrings();
+
+                if (qs == null)
+                {
+                    Toast.makeText(this, "No quality string available!", Toast.LENGTH_LONG).show();
+                }
+                else
+                {
+
+                    LinearLayout container = new LinearLayout(this);
+                    container.setOrientation(LinearLayout.VERTICAL);
+                    container.setBackgroundColor(Color.WHITE);
+                    container.setClickable(true);
+                    container.setOnClickListener(new View.OnClickListener()
+                    {
+                        @Override
+                        public void onClick(View view)
+                        {
+                            view.setVisibility(View.GONE);
+                        }
+                    });
+                    addContentView(container, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+
+                    for (String q : qs)
+                    {
+                        TextView tv = new TextView(this);
+                        tv.setText(q);
+                        container.addView(tv);
+                    }
+                }
                 break;
             }
         }
