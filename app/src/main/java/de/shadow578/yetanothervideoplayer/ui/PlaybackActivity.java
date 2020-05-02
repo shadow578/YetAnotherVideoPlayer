@@ -34,6 +34,7 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.drawable.Icon;
 import android.media.AudioManager;
 import android.net.Uri;
@@ -404,6 +405,43 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
 
         //get auto play when launching
         playbackPlayWhenReady = ConfigUtil.getConfigBoolean(this, ConfigKeys.KEY_AUTO_PLAY, R.bool.DEF_AUTO_PLAY);
+    }
+
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig)
+    {
+        super.onConfigurationChanged(newConfig);
+        updateFullscreen();
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus)
+    {
+        super.onWindowFocusChanged(hasFocus);
+        updateFullscreen();
+    }
+
+    /**
+     * Update System UI visibility for fullscreen mode
+     */
+    private void updateFullscreen()
+    {
+        if (hasWindowFocus() && isLandscapeOrientation())
+        {
+            //enter fullscreen if in landscape orientation and with focus
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        }
+        else
+        {
+            //reset fullscreen when exiting landscape
+            getWindow().getDecorView().setSystemUiVisibility(0);
+        }
     }
 
     @SuppressWarnings("SwitchStatementWithTooFewBranches")
@@ -1273,6 +1311,14 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
+    }
+
+    /**
+     * @return is the activity in landscape orientation?
+     */
+    private boolean isLandscapeOrientation()
+    {
+        return getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
     }
     //endregion
 
