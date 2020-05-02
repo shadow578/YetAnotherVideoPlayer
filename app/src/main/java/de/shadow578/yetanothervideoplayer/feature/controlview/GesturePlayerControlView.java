@@ -119,6 +119,9 @@ public class GesturePlayerControlView extends FrameLayout
                     //set invisible + clear animation
                     infoTextView.setVisibility(View.INVISIBLE);
                     infoTextView.setAnimation(null);
+
+                    //reset alpha
+                    infoTextView.setAlpha(1f);
                     break;
                 }
             }
