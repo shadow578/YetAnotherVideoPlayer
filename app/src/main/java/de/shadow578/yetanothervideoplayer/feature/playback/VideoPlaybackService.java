@@ -17,16 +17,12 @@ import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
-import com.google.android.exoplayer2.LoadControl;
 import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.RenderersFactory;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.metadata.MetadataOutput;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.trackselection.TrackSelector;
-import com.google.android.exoplayer2.upstream.BandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.util.Util;
 
@@ -35,6 +31,7 @@ import de.shadow578.yetanothervideoplayer.util.Logging;
 /**
  * Service that plays a video file or stream using ExoPlayer
  */
+@SuppressWarnings("unused")
 public class VideoPlaybackService extends Service
 {
     /**
@@ -112,6 +109,17 @@ public class VideoPlaybackService extends Service
     private Uri currentMediaUri = null;
 
     /**
+     * Track selector used by the explayer instance in this service
+     */
+    private DefaultTrackSelector trackSelector;
+
+    /**
+     * The Bandwidth meter used by the exoplayer instance in this service
+     */
+    private DefaultBandwidthMeter bandwidthMeter;
+
+
+    /**
      * has the player been initialized yet?
      */
     private boolean isPlayerInitialized = false;
@@ -141,7 +149,6 @@ public class VideoPlaybackService extends Service
      *
      * @param mediaUri the uri of the media to load
      */
-    @SuppressWarnings("unused")
     public void loadMedia(@NonNull Uri mediaUri)
     {
         loadMedia(mediaUri, false, 0);
@@ -154,7 +161,6 @@ public class VideoPlaybackService extends Service
      * @param mediaUri      the uri of the media to load
      * @param playWhenReady should playback start as soon as media is ready?
      */
-    @SuppressWarnings("unused")
     public void loadMedia(@NonNull Uri mediaUri, boolean playWhenReady)
     {
         loadMedia(mediaUri, playWhenReady, 0);
@@ -225,7 +231,6 @@ public class VideoPlaybackService extends Service
     /**
      * @return the uri the currently loaded media is loaded from
      */
-    @SuppressWarnings("unused")
     public Uri getCurrentMediaUri()
     {
         return currentMediaUri;
@@ -253,6 +258,24 @@ public class VideoPlaybackService extends Service
     SimpleExoPlayer getPlayerInstance()
     {
         return player;
+    }
+
+    /**
+     * @return the track selector used by teh underlying player instance
+     */
+    public @Nullable
+    DefaultTrackSelector getTrackSelector()
+    {
+        return trackSelector;
+    }
+
+    /**
+     * @return the bandwidth meter used by the underlying player instance
+     */
+    public @Nullable
+    DefaultBandwidthMeter getBandwidthMeter()
+    {
+        return bandwidthMeter;
     }
 
     /**
@@ -384,10 +407,10 @@ public class VideoPlaybackService extends Service
     private void initializePlayer()
     {
         //prepare track selector and stuff for the player
-        TrackSelector trackSelector = new DefaultTrackSelector(new AdaptiveTrackSelection.Factory());
-        RenderersFactory renderersFactory = new DefaultRenderersFactory(this);
-        LoadControl loadControl = new DefaultLoadControl();
-        BandwidthMeter bandwidthMeter = new DefaultBandwidthMeter.Builder(this).build();
+        trackSelector = new DefaultTrackSelector(new AdaptiveTrackSelection.Factory());
+        bandwidthMeter = new DefaultBandwidthMeter.Builder(this).build();
+        DefaultRenderersFactory renderersFactory = new DefaultRenderersFactory(this);
+        DefaultLoadControl loadControl = new DefaultLoadControl();
 
         //build the player instance
         player = ExoPlayerFactory.newSimpleInstance(this, renderersFactory, trackSelector, loadControl, null, bandwidthMeter);
