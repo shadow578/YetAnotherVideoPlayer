@@ -152,6 +152,14 @@
             android:textAllCaps="false" />
 
         <Button
+            android:id="@+id/vtest_btn_dash_3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="videoTest_OnClick"
+            android:text="Stream DASH Video (ITEC - Buck Bunny)"
+            android:textAllCaps="false" />
+
+        <Button
             android:id="@+id/vtest_btn_dash_and_subs"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

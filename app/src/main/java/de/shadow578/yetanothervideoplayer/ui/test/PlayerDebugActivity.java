@@ -145,6 +145,13 @@ public class PlayerDebugActivity extends AppCompatActivity implements CompoundBu
                 title = "Elephants Dream";
                 break;
             }
+            case R.id.vtest_btn_dash_3:
+            {
+                //ITEC Sample: Big Buck Bunny (on demand, adaptive)
+                uri = "http://ftp.itec.aau.at/datasets/DASHDataset2014/BigBuckBunny/15sec/BigBuckBunny_15s_onDemand_2014_05_09.mpd";
+                title = "Big Buck Bunny";
+                break;
+            }
             case R.id.vtest_btn_dash_and_subs:
             {
                 //DASH + TTML subtitles
