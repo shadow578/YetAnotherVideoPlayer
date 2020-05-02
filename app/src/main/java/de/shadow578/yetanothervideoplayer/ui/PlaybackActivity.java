@@ -329,6 +329,9 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         playButton = findViewById(R.id.exo_play);
         videoInfoTextView = findViewById(R.id.qs_txt_video_info);
 
+        //add listener for quick access drawer
+        quickAccessDrawer.addDrawerListener(new QuickAccessDrawerListener());
+
         //set fast-forward and rewind increments
         int seekIncrement = ConfigUtil.getConfigInt(this, ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT);
         playerControlView.getPlayerControls().setFastForwardIncrementMs(seekIncrement);
@@ -639,8 +642,11 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                         .setAllowMultipleOverrides(false)
                         .setShowDisableOption(false);
 
-                //build and show dialog
+                //build dialog and show
                 selectionDialogBuilder.build().show();
+
+                //hide player controls
+                playerControlView.getPlayerControls().hide();
 
                 //hide drawers
                 quickAccessDrawer.closeDrawers();
@@ -652,7 +658,10 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                 JumpToFragment jumpTo = new JumpToFragment();
                 jumpTo.show(getSupportFragmentManager(), playbackService.getPlayerInstance());
 
-                //hide quick settings and effect drawers
+                //hide player controls
+                playerControlView.getPlayerControls().hide();
+
+                //hide drawers
                 quickAccessDrawer.closeDrawers();
                 break;
             }
@@ -1578,6 +1587,36 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         public void onNewMetadata(Metadata metadata)
         {
 
+        }
+    }
+
+    /**
+     * Listener for the quick access drawer
+     */
+    private class QuickAccessDrawerListener extends DrawerLayout.SimpleDrawerListener
+    {
+        @Override
+        public void onDrawerOpened(View drawerView)
+        {
+            //keep playback controls forced open while any drawer is open
+            //check player controls are ok to use
+            if (playerControlView == null || playerControlView.getPlayerControls() == null) return;
+
+            //disable auto- hide on player controls
+            //and show the controls to make sure they are visible
+            playerControlView.getPlayerControls().setAllowAutoHideControls(false).show();
+        }
+
+        @Override
+        public void onDrawerClosed(View drawerView)
+        {
+            //as soon as drawer is closed, allow auto- hide of playback controls
+            //check player controls are ok to use
+            if (playerControlView == null || playerControlView.getPlayerControls() == null) return;
+
+            //re- enable auto- hide on player controls
+            //call showControls() to ensure the controls don't instantly disappear
+            playerControlView.getPlayerControls().setAllowAutoHideControls(true).showControls(false);
         }
     }
 }

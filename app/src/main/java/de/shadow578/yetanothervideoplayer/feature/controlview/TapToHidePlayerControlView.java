@@ -1,6 +1,7 @@
 package de.shadow578.yetanothervideoplayer.feature.controlview;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.util.AttributeSet;
 
 import androidx.annotation.Nullable;
@@ -8,27 +9,48 @@ import androidx.annotation.Nullable;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.ui.PlayerControlView;
 
+import de.shadow578.yetanothervideoplayer.R;
+
 /**
  * A PlayerControlView that implements "tap to hide"
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "UnusedReturnValue"})
 public class TapToHidePlayerControlView extends PlayerControlView implements Player.EventListener
 {
+    /**
+     * Default timeout until the controls are automatically hidden, ms
+     */
+    private final int DEFAULT_AUTO_HIDE_TIMEOUT = 5000;
 
     /**
-     * Action to hide the controls
+     * Action for automatically hiding the controls
      */
-    private final Runnable hideAction;
+    private final Runnable autoHideAction;
 
     /**
-     * Timeout until the controls are automatically hidden
+     * Callback for visibility changes and behaviour control
      */
-    private int controlsAutoHideTimeout = 5000;//ms
+    private AutoHideCallback callback;
+
+    /**
+     * Timeout until the controls are automatically hidden, ms
+     */
+    private int controlsAutoHideTimeout = DEFAULT_AUTO_HIDE_TIMEOUT;
 
     /**
      * are the controls manually hidden?
      */
     private boolean areControlsHidden = false;
+
+    /**
+     * Are we allowed to auto- hide the controls?
+     */
+    private boolean allowAutoHideControls = true;
+
+    /**
+     * is a controls auto- hide pending (because the autoHideAction was called when we weren't allowed to auto- hide them?)
+     */
+    private boolean pendingAutoHideControls = false;
 
     //region Constructors
     public TapToHidePlayerControlView(Context context)
@@ -51,18 +73,55 @@ public class TapToHidePlayerControlView extends PlayerControlView implements Pla
         //no normal init
         super(context, attrs, defStyleAttr, playbackAttrs);
 
+        //disable default show timeout
+        setShowTimeoutMs(0);
+
         //set default auto- hide timeout
         setControlsAutoHideTimeout(PlayerControlView.DEFAULT_SHOW_TIMEOUT_MS);
 
         //set action for hiding
-        hideAction = new Runnable()
+        autoHideAction = new Runnable()
         {
             @Override
             public void run()
             {
-                hide();
+                if (allowAutoHideControls)
+                {
+                    //allowed to hide, do so
+                    hide();
+                    pendingAutoHideControls = false;
+                }
+                else
+                {
+                    //not allowed, set pending flag
+                    pendingAutoHideControls = true;
+                }
             }
         };
+
+        //apply styleables
+        applyStyleAttributes(context, attrs);
+    }
+
+    /**
+     * Applies styleable values from the attribute set
+     *
+     * @param context the current context
+     * @param attrs   the attribute set of the view
+     */
+    private void applyStyleAttributes(Context context, AttributeSet attrs)
+    {
+        //check we have valid context and attributes
+        if (context == null || attrs == null) return;
+
+        //get style attributes
+        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.TapToHidePlayerControlView);
+
+        //set values
+        setControlsAutoHideTimeout(a.getInteger(R.styleable.TapToHidePlayerControlView_autoHideTimeout, DEFAULT_AUTO_HIDE_TIMEOUT));
+
+        //we're finished, recycle attribute array
+        a.recycle();
     }
     //endregion
 
@@ -110,6 +169,45 @@ public class TapToHidePlayerControlView extends PlayerControlView implements Pla
             maybeShowControls(false);
         }
 
+        return this;
+    }
+
+    /**
+     * set if the controls are allowed to auto- hide
+     *
+     * @param autoHide auto- hide controls?
+     * @return own instance, for set chaining
+     */
+    public TapToHidePlayerControlView setAllowAutoHideControls(boolean autoHide)
+    {
+        //set value
+        allowAutoHideControls = autoHide;
+
+        //if we are allowed to hide again AND we have a pending auto- hide, call auto hide action
+        if (autoHide && pendingAutoHideControls)
+        {
+            autoHideAction.run();
+        }
+        return this;
+    }
+
+    /**
+     * @return are the controls allowed to auto- hide?
+     */
+    public boolean getAllowAutoHideControls()
+    {
+        return allowAutoHideControls;
+    }
+
+    /**
+     * Set the callback for visibility changes and control
+     *
+     * @param _callback the callback to set
+     * @return own instance, for set chaining
+     */
+    public TapToHidePlayerControlView setCallback(AutoHideCallback _callback)
+    {
+        callback = _callback;
         return this;
     }
 
@@ -218,16 +316,32 @@ public class TapToHidePlayerControlView extends PlayerControlView implements Pla
      *
      * @param showIndefinitely should a message to auto- hide NOT be posted?
      */
-    private void showControls(boolean showIndefinitely)
+    public void showControls(boolean showIndefinitely)
     {
         //show controls
         show();
 
         //remove all previous hide requests
-        removeCallbacks(hideAction);
+        removeCallbacks(autoHideAction);
 
         //post callback to hide controls automatically (after a timeout)
         if (!showIndefinitely)
-            postDelayed(hideAction, getControlsAutoHideTimeout());
+            postDelayed(autoHideAction, getControlsAutoHideTimeout());
+    }
+
+    /**
+     * Defines callbacks and behaviour controls for the TapToHidePlayerControlView
+     */
+    public interface AutoHideCallback
+    {
+        /**
+         * Callback when the controls transition from hidden to visible
+         */
+        void onControlsVisible();
+
+        /**
+         * Callback when the controls transition from visible to hidden
+         */
+        void onControlsHidden();
     }
 }

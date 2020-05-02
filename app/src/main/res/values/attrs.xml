@@ -30,4 +30,9 @@
         <attr name="enableTextFadeAnimation" format="boolean"/>
         <attr name="textFadeAnimationDuration" format="integer"/>
     </declare-styleable>
+
+    <!-- TapToHide Player Control View -->
+    <declare-styleable name="TapToHidePlayerControlView">
+        <attr name="autoHideTimeout" format="integer"/>
+    </declare-styleable>
 </resources>
