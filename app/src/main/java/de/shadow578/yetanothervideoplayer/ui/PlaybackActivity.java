@@ -54,6 +54,8 @@ import com.daasuu.epf.EPlayerView;
 import com.daasuu.epf.PlayerScaleType;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.metadata.Metadata;
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+import com.google.android.exoplayer2.ui.TrackSelectionDialogBuilder;
 import com.google.android.exoplayer2.util.Util;
 import com.pnikosis.materialishprogress.ProgressWheel;
 
@@ -619,7 +621,29 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             //region ~~ Player Quick Settings ~~
             case R.id.qs_btn_quality:
             {
-                //quality choose
+                //show quality chooser dialog
+                //first check that the playback service is ok and the player is valid
+                if (!playbackServiceConnection.isConnected || playbackService == null || !playbackService.getIsPlayerValid())
+                {
+                    //playback service or player is invalid!
+                    return;
+                }
+
+                //get track selector from service
+                DefaultTrackSelector trackSelector = playbackService.getTrackSelector();
+                if (trackSelector == null) return;
+
+                //build the track selection dialog
+                TrackSelectionDialogBuilder selectionDialogBuilder = new TrackSelectionDialogBuilder(this, "", trackSelector, 0)
+                        .setAllowAdaptiveSelections(false)
+                        .setAllowMultipleOverrides(false)
+                        .setShowDisableOption(false);
+
+                //build and show dialog
+                selectionDialogBuilder.build().show();
+
+                //hide drawers
+                quickAccessDrawer.closeDrawers();
                 break;
             }
             case R.id.qs_btn_jump_to:
@@ -678,6 +702,9 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                 startActivity(new Intent(this, AppSettingsActivity.class));
                 break;
             }
+            //endregion
+
+            //region ~~ Player Effect Settings ~~
             case R.id.qs_btn_a4k_tgl:
             {
                 //toggle anime4k on/off
