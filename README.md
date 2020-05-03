@@ -57,6 +57,11 @@ I personally use YAVP to watch Anime. As a result of this, it has some features 
 Simply open any Video file (for example in the Gallery app). Android will ask you what Video Player you want to use. Simply select YAVP and the video will start playing.
 Additionally, you can share the video. In the Share menu, there will be a entry called __Play with YAVP.__
 
+#### When I Open YAVP, It Only Opens A Windows With Many Buttons?
+YAVP currently does __not__ have a builtin media browser. As such, you have to use a external app to get the video playing. See [here](#how-do-i-play-videos-using-yavp).
+What you are seeing is a debugging activity. It allows me to quickly start playback of a video for testing.
+As soon as there is a media browser, this will be moved somewhere else.
+
 #### A App Forces Me To Use VLC For Videos
 Take a look at [NotVLC](https://github.com/shadow578/NotVLC).
 
@@ -99,12 +104,6 @@ These are all permissions that YAVP uses:
 	* To play local videos
 	* This permission is actually disabled by default and is only requested when needed.
 	
-There are also some permissions only used by features still in developement.<br/>
-They are disabled by default and are __not__ requested.
-* [__CAMERA__](https://developer.android.com/reference/android/Manifest.permission#CAMERA)
-* [__Proximity Sensor__](https://developer.android.com/reference/android/hardware/Sensor#TYPE_PROXIMITY)
-* [__Light Sensor__](https://developer.android.com/reference/android/hardware/Sensor#TYPE_LIGHT)
-
 As you can see, YAVP cannot access any of your private information (for example [__READ_CONTACTS__](https://developer.android.com/reference/android/Manifest.permission#READ_CONTACTS)).
 
 ## Bugs And Feature Requests
