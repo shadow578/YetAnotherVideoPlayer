@@ -14,6 +14,7 @@ import android.widget.Switch;
 import de.shadow578.yetanothervideoplayer.R;
 import de.shadow578.yetanothervideoplayer.ui.AppSettingsActivity;
 import de.shadow578.yetanothervideoplayer.ui.LaunchActivity;
+import de.shadow578.yetanothervideoplayer.ui.mediapicker.MediaPickerActivity;
 import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
 import de.shadow578.yetanothervideoplayer.util.Logging;
 
@@ -170,6 +171,12 @@ public class PlayerDebugActivity extends AppCompatActivity implements CompoundBu
             {
                 //open settings
                 startActivity(new Intent(this, AppSettingsActivity.class));
+                return;
+            }
+            case R.id.vtest_btn_media_picker:
+            {
+                //open media picker
+                startActivity(new Intent(this, MediaPickerActivity.class));
                 return;
             }
             case R.id.vtest_btn_mp4:

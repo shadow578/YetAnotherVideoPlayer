@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="de.shadow578.yetanothervideoplayer">
-
     <!-- To adjust Media Volume by swiping -->
-    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
-
-    <!-- To Stream Video -->
-    <uses-permission android:name="android.permission.INTERNET" />
-
-    <!-- To Play local files -->
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" /> <!-- To Stream Video -->
+    <uses-permission android:name="android.permission.INTERNET" /> <!-- To Play local files -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
@@ -20,14 +15,12 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
+        <activity android:name=".ui.mediapicker.MediaPickerActivity"></activity>
         <!-- ^^allow traffic over http, since not all streams will be via https -->
-
         <!-- Settings Activity -->
         <activity
             android:name=".ui.AppSettingsActivity"
-            android:label="@string/settings_root_title" />
-
-        <!-- Video Test Activity for Debugging -->
+            android:label="@string/settings_root_title" /> <!-- Video Test Activity for Debugging -->
         <activity
             android:name=".ui.test.PlayerDebugActivity"
             android:label="@string/app_name">
@@ -36,9 +29,7 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-
-        <!-- Playback Activity (only started internally using LaunchActivity -->
+        </activity> <!-- Playback Activity (only started internally using LaunchActivity -->
         <activity
             android:name=".ui.PlaybackActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
@@ -230,15 +221,12 @@
                 <data android:mimeType="audio/3gpp2" />
                 <data android:mimeType="application/3gpp2" />
             </intent-filter>
-        </activity>
-
-        <!-- the crash screen -->
+        </activity> <!-- the crash screen -->
         <activity
             android:name=".ui.CrashScreenActivity"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.SplashActivity" />
-
-        <!-- video playback service -->
+            android:theme="@style/AppTheme.SplashActivity" /> <!-- video playback service -->
         <service android:name=".feature.playback.VideoPlaybackService" />
     </application>
+
 </manifest>
