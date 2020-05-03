@@ -172,12 +172,6 @@ public class PlayerDebugActivity extends AppCompatActivity implements CompoundBu
                 startActivity(new Intent(this, AppSettingsActivity.class));
                 return;
             }
-            case R.id.vtest_btn_auto_pause_debug:
-            {
-                //open auto pause debug activity
-                startActivity(new Intent(this, AutoPauseDebugActivity.class));
-                return;
-            }
             case R.id.vtest_btn_mp4:
             default:
             {

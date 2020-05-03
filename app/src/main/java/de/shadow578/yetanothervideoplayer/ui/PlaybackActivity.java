@@ -125,11 +125,6 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
      */
     private ControlQuickSettingsButton anime4kQSButton;
 
-    /**
-     * the TextView in the shader qs drawer that contains info about the current video (resolution, ...)
-     */
-    private TextView videoInfoTextView;
-
     //endregion
 
     /**
@@ -329,7 +324,6 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         bufferingIndicatorNormal = findViewById(R.id.pb_playerBufferingWheel_normal);
         bufferingIndicatorPip = findViewById(R.id.pb_playerBufferingWheel_pipmode);
         playButton = findViewById(R.id.exo_play);
-        videoInfoTextView = findViewById(R.id.qs_txt_video_info);
 
         //add listener for quick access drawer
         quickAccessDrawer.addDrawerListener(new QuickAccessDrawerListener());
@@ -357,14 +351,6 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
 
         //get audio manager for persistent volume
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-
-        //setup auto- pause manager
-        //autoPauseManager = new AutomaticPauseManager(this);
-        //if (!autoPauseManager.initialize())
-        //{
-        //    Logging.logW("Initialize of autoPauseManager failed!");
-        //    autoPauseManager = null;
-        //}
 
         //set this activity as a crash handler so we can save the playback position on crashes
         Application app = getApplication();
@@ -491,9 +477,6 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
 
         //load the media
         //playbackService.loadMedia(playbackUri, playWhenReady, playbackStartPosition);
-
-        //update autoPauseManager
-        //if (autoPauseManager != null) autoPauseManager.activate();
     }
 
     @Override
@@ -504,9 +487,6 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
 
         //restore volume and brightness
         restorePersistentValues(true);
-
-        //update autoPauseManager
-        //if (autoPauseManager != null) autoPauseManager.activate();
     }
 
     @Override
@@ -517,9 +497,6 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
 
         //save volume and brightness
         savePersistentValues(true);
-
-        //update autoPauseManager
-        //if (autoPauseManager != null) autoPauseManager.deactivate();
     }
 
     @Override
@@ -540,9 +517,6 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
 
         //cancel everything on the handler
         delayHandler.removeCallbacksAndMessages(null);
-
-        //update autoPauseManager
-        //if (autoPauseManager != null) autoPauseManager.deactivate();
     }
 
     @Override
