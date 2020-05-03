@@ -5,6 +5,8 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -12,20 +14,26 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.util.Log;
+import android.util.TypedValue;
 import android.view.ViewGroup;
-
-import java.util.ArrayList;
-import java.util.HashSet;
 
 import de.shadow578.yetanothervideoplayer.R;
 import de.shadow578.yetanothervideoplayer.ui.LaunchActivity;
 import de.shadow578.yetanothervideoplayer.ui.mediapicker.views.MediaPreviewView;
 import de.shadow578.yetanothervideoplayer.util.Logging;
 
-public class MediaPickerActivity extends AppCompatActivity implements MediaPreviewView.MediaPreviewClickListener
-{
+import static android.provider.MediaStore.Video.Media.*;
 
+public class MediaPickerActivity extends AppCompatActivity
+{
+    /**
+     * The height of a media preview, in dp
+     */
+    private final float PREVIEW_HEIGHT_DP = 100;
+
+    /**
+     * Container View that the media previews are added to
+     */
     private ViewGroup mediaPreviewContainer;
 
     @Override
@@ -33,18 +41,12 @@ public class MediaPickerActivity extends AppCompatActivity implements MediaPrevi
     {
         //do normal stuff
         super.onCreate(savedInstanceState);
-
-        //inflate content
         setContentView(R.layout.activity_media_picker);
 
         //get views
         mediaPreviewContainer = findViewById(R.id.mp_preview_container);
-    }
 
-    @Override
-    protected void onStart()
-    {
-        super.onStart();
+
 
         //request media permissions
         if (!checkAndRequestPermission(Manifest.permission.READ_EXTERNAL_STORAGE, 0))
@@ -54,43 +56,114 @@ public class MediaPickerActivity extends AppCompatActivity implements MediaPrevi
         populateMediaPreview();
     }
 
-
+    /**
+     * Populates the mediaPreviewContainer with a preview for each video on the device
+     */
     private void populateMediaPreview()
     {
         Logging.logE("Start pop");
 
-        //get cursor for all videos on the device
-        try (Cursor mediaCursor = getContentResolver().query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, new String[]{MediaStore.Video.VideoColumns.DATA, MediaStore.Video.Media.DISPLAY_NAME, MediaStore.Video.VideoColumns._ID}, null, null, null))
+        //get the content resolver for this activity
+        ContentResolver resolver = getContentResolver();
+        if (resolver == null)
         {
-            //move cursor to first entry
+            Logging.logE("getContentResolver() returned null! abort population the media browser!");
+            return;
+        }
+
+        //get cursor for all videos on the device
+        try (Cursor mediaCursor = resolver.query(EXTERNAL_CONTENT_URI, new String[]
+                {
+                        DATA,
+                        DISPLAY_NAME,
+                        _ID
+                }, null, null, null))
+        {
+            //check the cursor is valid
+            if (mediaCursor == null)
+            {
+                Logging.logE("mediaCursor was null! abort populating the media browser!");
+                return;
+            }
+
+            //move cursor to the first entry
             mediaCursor.moveToFirst();
 
+            //TODO: don't add all entries at once, add them as we scroll down (reduce loading times)
             //add all entries
             do
             {
-                //get media uri and title
-                String uri = mediaCursor.getString(mediaCursor.getColumnIndex(MediaStore.Video.Media.DATA));
-                String title = mediaCursor.getString(mediaCursor.getColumnIndex(MediaStore.Video.Media.DISPLAY_NAME));
+                //get and check media title
+                final String mediaTitle = mediaCursor.getString(mediaCursor.getColumnIndex(DISPLAY_NAME));
 
-                //get thumbnail
-                long id = mediaCursor.getLong(mediaCursor.getColumnIndex(MediaStore.Video.Media._ID));
-                Bitmap thumbnail = MediaStore.Video.Thumbnails.getThumbnail(getContentResolver(), id, MediaStore.Video.Thumbnails.MINI_KIND, null);
+                //get media uri
+                final String mediaUriStr = mediaCursor.getString(mediaCursor.getColumnIndex(DATA));
+                if (mediaUriStr == null) continue;
 
+                final Uri mediaUri = Uri.parse(mediaUriStr);
 
-                //create new preview
-                MediaPreviewView previewView = new MediaPreviewView(this);
-                mediaPreviewContainer.addView(previewView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+                // get thumbnail
+                final long mediaId = mediaCursor.getLong(mediaCursor.getColumnIndex(_ID));
+                final Bitmap mediaThumbnail = MediaStore.Video.Thumbnails.getThumbnail(resolver, mediaId, MediaStore.Video.Thumbnails.MINI_KIND, null);
 
-                //set media data of preview
-                previewView.setMedia(Uri.parse(uri), title, thumbnail);
+                //check that both title and uri are valid
+                if (mediaTitle == null || mediaUri == null) continue;
 
-                //set click listener
-                previewView.setClickListener(this);
+                //create the preview view and set title
+                MediaPreviewView preview = new MediaPreviewView(this)
+                        .setTitle(mediaTitle);
+
+                //set thumbnail
+                if (mediaThumbnail != null)
+                {
+                    //normally add thumbnail to preview
+                    preview.setThumbnail(mediaThumbnail);
+                }
+                else
+                {
+                    //try to load thumbnail from the media uri
+                    //if that fails, skip this element
+                    if (!preview.setThumbnailFromMediaUri(mediaUri))
+                    {
+                        Logging.logW("Failed to add Thumbnail for media element using media uri! skipping element...");
+                        continue;
+                    }
+                }
+
+                //set the onClick listener for the preview to start playing
+                preview.setClickListener(new MediaPreviewView.MediaPreviewClickListener()
+                {
+                    @Override
+                    public void onPreviewClicked(MediaPreviewView preview)
+                    {
+                        startPlayingMedia(mediaUri, mediaTitle);
+                    }
+                });
+
+                //set layoutparams of preview
+                preview.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) dpToPx(PREVIEW_HEIGHT_DP, this)));
+
+                //add preview to container
+                mediaPreviewContainer.addView(preview);
             }
             while (mediaCursor.moveToNext());
         }
 
         Logging.logE("end pop");
+    }
+
+    //region Util
+
+    /**
+     * Convert from density- independent pixels (dp) to device- specific pixels (px)
+     *
+     * @param dp      the dp to convert
+     * @param context the context to convert in
+     * @return the corresponding px
+     */
+    protected float dpToPx(float dp, Context context)
+    {
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.getResources().getDisplayMetrics());
     }
 
     /**
@@ -116,17 +189,19 @@ public class MediaPickerActivity extends AppCompatActivity implements MediaPrevi
         }
     }
 
-    boolean once = false;
-
-    @Override
-    public void onPreviewClicked(MediaPreviewView preview, Uri mediaUri)
+    /**
+     * Start to play the given media file
+     *
+     * @param mediaUri the media file to play
+     * @param title    the title of the file
+     */
+    private void startPlayingMedia(Uri mediaUri, String title)
     {
-        if (once) return;
-        once = true;
-
         Intent playIntent = new Intent(this, LaunchActivity.class);
         playIntent.setData(mediaUri);
-        playIntent.putExtra(Intent.EXTRA_TITLE, "DEV_MEDIA_PICKER");
+        if (title != null)
+            playIntent.putExtra(Intent.EXTRA_TITLE, title);
         startActivity(playIntent);
     }
+    //endregion
 }
