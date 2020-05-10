@@ -469,8 +469,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         Logging.logD("onStart of PlaybackActivity called.");
 
         //create and bind video playback service
-        playbackServiceConnection = new VideoServiceConnection();
-        bindService(new Intent(this, VideoPlaybackService.class), playbackServiceConnection, Context.BIND_AUTO_CREATE);
+        connectPlaybackService();
 
         //get pref for play when ready
         //boolean playWhenReady = getPrefBool(ConfigKeys.KEY_AUTO_PLAY, R.bool.DEF_AUTO_PLAY);
@@ -526,6 +525,23 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
 
         //stop the playback service when the app is stopped
         stopService(new Intent(this, VideoPlaybackService.class));
+    }
+
+    /**
+     * connects the playback service.
+     */
+    private void connectPlaybackService()
+    {
+        //initialize intent and connector
+        playbackServiceConnection = new VideoServiceConnection();
+        Intent serviceIntent = new Intent(this, VideoPlaybackService.class);
+
+        //enable soundFX
+        //TODO: dont always enabled soundFX
+        serviceIntent.putExtra(VideoPlaybackService.EXTRA_ENABLE_SOUNDFX, true);
+
+        //bind the service, create as needed
+        bindService(serviceIntent, playbackServiceConnection, Context.BIND_AUTO_CREATE);
     }
 
     /**

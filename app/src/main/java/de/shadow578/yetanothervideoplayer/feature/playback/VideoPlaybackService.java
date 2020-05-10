@@ -19,6 +19,7 @@ import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.audio.AudioProcessor;
 import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.metadata.MetadataOutput;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
@@ -26,6 +27,7 @@ import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.util.Util;
 
+import de.shadow578.yetanothervideoplayer.feature.soundfx.SoundFxAudioProcessor;
 import de.shadow578.yetanothervideoplayer.util.Logging;
 
 /**
@@ -34,6 +36,11 @@ import de.shadow578.yetanothervideoplayer.util.Logging;
 @SuppressWarnings("unused")
 public class VideoPlaybackService extends Service
 {
+    /**
+     * Extra to indicate that soundFX should be enabled for this playback service
+     */
+    public static final String EXTRA_ENABLE_SOUNDFX = "enableSoundFx";
+
     /**
      * Allows a Activity (or whatever) to get information about a VideoPlaybackService instance
      */
@@ -62,11 +69,14 @@ public class VideoPlaybackService extends Service
     {
         Logging.logD("VideoPlaybackService.onBind()");
 
+        //get initialization parameters from intent
+        boolean enableSoundFx = intent.getBooleanExtra(EXTRA_ENABLE_SOUNDFX, false);
+
         //create the media factory
         mediaFactory = new UniversalMediaSourceFactory(this, Util.getUserAgent(this, getPackageName()));
 
         //initialize the player
-        initializePlayer();
+        initializePlayer(enableSoundFx);
 
         //create a new binder
         return new VideoServiceBinder();
@@ -118,6 +128,11 @@ public class VideoPlaybackService extends Service
      */
     private DefaultBandwidthMeter bandwidthMeter;
 
+    /**
+     * The Sound Processor for soundFX.
+     * only initialized when service is created with EXTRA_ENABLE_SOUNDFX = true. Otherwise null
+     */
+    private SoundFxAudioProcessor soundFxProcessor = null;
 
     /**
      * has the player been initialized yet?
@@ -286,6 +301,52 @@ public class VideoPlaybackService extends Service
         return isPlayerValid();
     }
 
+    /**
+     * add a sound effect to the soundfx pipeline.
+     * This only works if {@link #isSoundFxEnabled()} returns true
+     *
+     * @param fx the sound effect to add
+     */
+    public void addSoundFx(SoundFxAudioProcessor.SoundFx fx)
+    {
+        //check soundfx is enabled
+        if (!isSoundFxEnabled())
+            throw new IllegalStateException("Cannot add SoundFx: SoundFX is disabled for this service instance!");
+
+        //check fx to add is not null
+        if (fx == null) throw new IllegalArgumentException("SoundFx to add cannot be null!");
+
+        //add effect to sound processor
+        soundFxProcessor.addEffect(fx);
+    }
+
+    /**
+     * remove a sound effect from the soundfx pipeline.
+     * This only works if {@link #isSoundFxEnabled()} returns true
+     *
+     * @param fx the sound effect to remove
+     */
+    public void removeSoundFx(SoundFxAudioProcessor.SoundFx fx)
+    {
+        //check soundfx is enabled
+        if (!isSoundFxEnabled())
+            throw new IllegalStateException("Cannot remove SoundFx: SoundFX is disabled for this service instance!");
+
+        //check fx to remove is not null
+        if (fx == null) throw new IllegalArgumentException("SoundFx to remove cannot be null!");
+
+        //remove effect to sound processor
+        soundFxProcessor.removeEffect(fx);
+    }
+
+    /**
+     * @return is soundFX enabled for this service?
+     */
+    public boolean isSoundFxEnabled()
+    {
+        return soundFxProcessor != null;
+    }
+
     //region Playback Controls
 
     /**
@@ -403,14 +464,31 @@ public class VideoPlaybackService extends Service
 
     /**
      * Initializes the ExoPlayer and registers listeners
+     *
+     * @param enableSoundFx should soundFX be enabled?
      */
-    private void initializePlayer()
+    private void initializePlayer(final boolean enableSoundFx)
     {
         //prepare track selector and stuff for the player
         trackSelector = new DefaultTrackSelector(new AdaptiveTrackSelection.Factory());
         bandwidthMeter = new DefaultBandwidthMeter.Builder(this).build();
-        DefaultRenderersFactory renderersFactory = new DefaultRenderersFactory(this);
         DefaultLoadControl loadControl = new DefaultLoadControl();
+        DefaultRenderersFactory renderersFactory = new DefaultRenderersFactory(this)
+        {
+            @Override
+            protected AudioProcessor[] buildAudioProcessors()
+            {
+                if (enableSoundFx)
+                {
+                    soundFxProcessor = new SoundFxAudioProcessor();
+                    return new AudioProcessor[]{soundFxProcessor};
+                }
+                else
+                {
+                    return super.buildAudioProcessors();
+                }
+            }
+        };
 
         //build the player instance
         player = ExoPlayerFactory.newSimpleInstance(this, renderersFactory, trackSelector, loadControl, null, bandwidthMeter);
