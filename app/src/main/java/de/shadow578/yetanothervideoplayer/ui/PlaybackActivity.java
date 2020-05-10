@@ -14,6 +14,7 @@ import de.shadow578.yetanothervideoplayer.feature.controlview.TapToHidePlayerCon
 import de.shadow578.yetanothervideoplayer.feature.gl.GLAnime4K;
 import de.shadow578.yetanothervideoplayer.feature.playback.VideoPlaybackService;
 import de.shadow578.yetanothervideoplayer.feature.playback.VideoPlaybackServiceListener;
+import de.shadow578.yetanothervideoplayer.feature.soundfx.fx.SoundNormalizerFx;
 import de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton;
 import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
 import de.shadow578.yetanothervideoplayer.util.ConfigUtil;
@@ -125,6 +126,11 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
      */
     private ControlQuickSettingsButton anime4kQSButton;
 
+    /**
+     * The Normalize Sound FX Quick Settings button
+     */
+    private ControlQuickSettingsButton normalizeSoundQSButton;
+
     //endregion
 
     /**
@@ -177,6 +183,11 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
      * Set to null if filter is inactive
      */
     private GLAnime4K anime4KFilter;
+
+    /**
+     * The SoundFX filter instance that allows to normalize audio level
+     */
+    private SoundNormalizerFx normalizeSoundFx;
 
     /**
      * the position playback should start at
@@ -324,6 +335,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         bufferingIndicatorNormal = findViewById(R.id.pb_playerBufferingWheel_normal);
         bufferingIndicatorPip = findViewById(R.id.pb_playerBufferingWheel_pipmode);
         playButton = findViewById(R.id.exo_play);
+        normalizeSoundQSButton = findViewById(R.id.qs_btn_normalize_audio_tgl);
 
         //add listener for quick access drawer
         quickAccessDrawer.addDrawerListener(new QuickAccessDrawerListener());
@@ -755,6 +767,15 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                 anime4kQSButton.setIconTint(getIsAnime4kEnabled() ? getColor(R.color.qs_item_icon_active) : getColor(R.color.qs_item_icon_default));
                 break;
             }
+            case R.id.qs_btn_normalize_audio_tgl:
+            {
+                //toggle audio normalizer on/off
+                setSoundNormalizerEnabled(!getIsSoundNormalizerEnabled());
+
+                //update button
+                normalizeSoundQSButton.setIconTint(getIsSoundNormalizerEnabled() ? getColor(R.color.qs_item_icon_active) : getColor(R.color.qs_item_icon_default));
+                break;
+            }
             //endregion
 
             case R.id.pb_quick_settings:
@@ -1078,6 +1099,38 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     private boolean getIsAnime4kEnabled()
     {
         return anime4KFilter != null;
+    }
+
+    /**
+     * Enable or disable the sound normalizer
+     *
+     * @param soundNormalizerEnabled enable sound normalizer?
+     */
+    private void setSoundNormalizerEnabled(boolean soundNormalizerEnabled)
+    {
+        //abort if soundFX is not enabled
+        if (playbackService == null || !playbackService.isSoundFxEnabled()) return;
+
+        //create and add instance if needed
+        if (normalizeSoundFx == null)
+        {
+            //create instance
+            normalizeSoundFx = new SoundNormalizerFx();
+
+            //add to pipeline
+            playbackService.addSoundFx(normalizeSoundFx);
+        }
+
+        //set enabled in fx
+        normalizeSoundFx.setEnabled(soundNormalizerEnabled);
+    }
+
+    /**
+     * @return is the sound normalizer fx enabled?
+     */
+    private boolean getIsSoundNormalizerEnabled()
+    {
+        return normalizeSoundFx != null && normalizeSoundFx.isEnabled();
     }
 
     /**

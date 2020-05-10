@@ -39,6 +39,12 @@
                     app:icon="@drawable/ic_a4k_black_48dp"
                     app:text="@string/qs_anime4k" />
 
+                <!-- Normalize Audio button -->
+                <de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton
+                    android:id="@+id/qs_btn_normalize_audio_tgl"
+                    style="@style/QuickSettingsButton"
+                    app:icon="@drawable/ic_placeholder_black_48dp"
+                    app:text="Normalize Audio" />
             </LinearLayout>
 
             <LinearLayout
