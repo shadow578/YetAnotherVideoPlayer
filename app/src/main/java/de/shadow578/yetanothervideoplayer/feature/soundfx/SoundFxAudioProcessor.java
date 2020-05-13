@@ -5,6 +5,7 @@ import com.google.android.exoplayer2.audio.BaseAudioProcessor;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
+import de.shadow578.yetanothervideoplayer.feature.soundfx.fx.TestSoundFx;
 import de.shadow578.yetanothervideoplayer.util.Logging;
 
 /**
@@ -42,7 +43,7 @@ public class SoundFxAudioProcessor extends BaseAudioProcessor
     public SoundFxAudioProcessor()
     {
         //TODO: for testing: TestSoundFx
-        //addEffect(new TestSoundFx());
+        addEffect(new TestSoundFx());
     }
 
     //region Interfacing

@@ -3,7 +3,6 @@ NOTES.md
 A/
 app/release/
 
-
 # Built application files
 *.apk
 *.ap_
@@ -18,6 +17,7 @@ app/release/
 bin/
 gen/
 out/
+.cxx/
 
 # Gradle files
 .gradle/

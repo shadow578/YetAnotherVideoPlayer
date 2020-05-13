@@ -1,0 +1,3 @@
+[submodule "app/src/main/cpp/kissfft"]
+	path = app/src/main/cpp/kissfft
+	url = https://github.com/mborgerding/kissfft.git

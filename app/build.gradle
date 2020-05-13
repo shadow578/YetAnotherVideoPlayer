@@ -9,6 +9,12 @@ android {
         targetSdkVersion 29
         versionCode gitVersioner.versionCode
         versionName gitVersioner.versionName
+
+        externalNativeBuild {
+            cmake {
+                cppFlags ""
+            }
+        }
     }
     buildTypes {
         release {
@@ -18,6 +24,11 @@ android {
     }
     compileOptions {
         targetCompatibility JavaVersion.VERSION_1_8
+    }
+    externalNativeBuild {
+        cmake {
+         path "CMakeLists.txt"
+        }
     }
 
     tasks.withType(JavaCompile) {
