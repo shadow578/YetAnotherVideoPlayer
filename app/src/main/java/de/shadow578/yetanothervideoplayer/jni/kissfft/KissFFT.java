@@ -6,6 +6,8 @@ import de.shadow578.yetanothervideoplayer.util.Logging;
  * JNI Wrapper for Kiss FFT
  * see src/main/cpp/kiss_fft_jni.cpp for the native code
  */
+//TODO: redo this class -> creating a second instance will probably crash the native part since that just overwrites internal buffers
+//make initFFT return a pointer to kiss_fft_cfg, and all other functions use that pointer as a parameter
 public class KissFFT
 {
     //region JNI

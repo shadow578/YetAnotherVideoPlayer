@@ -15,6 +15,7 @@ import de.shadow578.yetanothervideoplayer.feature.gl.GLAnime4K;
 import de.shadow578.yetanothervideoplayer.feature.playback.VideoPlaybackService;
 import de.shadow578.yetanothervideoplayer.feature.playback.VideoPlaybackServiceListener;
 import de.shadow578.yetanothervideoplayer.feature.soundfx.fx.SoundNormalizerFx;
+import de.shadow578.yetanothervideoplayer.feature.soundfx.fx.VirtualSurroundFx;
 import de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton;
 import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
 import de.shadow578.yetanothervideoplayer.util.ConfigUtil;
@@ -770,10 +771,12 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             case R.id.qs_btn_normalize_audio_tgl:
             {
                 //toggle audio normalizer on/off
-                setSoundNormalizerEnabled(!getIsSoundNormalizerEnabled());
+                //setSoundNormalizerEnabled(!getIsSoundNormalizerEnabled());
+                VirtualSurroundFx.enable = !VirtualSurroundFx.enable;
 
                 //update button
-                normalizeSoundQSButton.setIconTint(getIsSoundNormalizerEnabled() ? getColor(R.color.qs_item_icon_active) : getColor(R.color.qs_item_icon_default));
+                //normalizeSoundQSButton.setIconTint(getIsSoundNormalizerEnabled() ? getColor(R.color.qs_item_icon_active) : getColor(R.color.qs_item_icon_default));
+                normalizeSoundQSButton.setIconTint(VirtualSurroundFx.enable ? getColor(R.color.qs_item_icon_active) : getColor(R.color.qs_item_icon_default));
                 break;
             }
             //endregion
