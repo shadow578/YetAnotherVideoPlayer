@@ -9,8 +9,6 @@ import android.os.Build;
 import android.provider.MediaStore;
 import android.util.AttributeSet;
 import android.util.Size;
-import android.view.MotionEvent;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -26,7 +24,7 @@ import de.shadow578.yetanothervideoplayer.util.Logging;
 /**
  * A View that previews a media element. Is clickable
  */
-public class MediaPreviewView extends LinearLayout implements View.OnTouchListener
+public class MediaPreviewView extends LinearLayout //implements View.OnTouchListener
 {
     //region Variables
     //region Views
@@ -43,10 +41,6 @@ public class MediaPreviewView extends LinearLayout implements View.OnTouchListen
 
     //endregion
 
-    /**
-     * Click Listener for this view
-     */
-    private MediaPreviewClickListener onClickListener;
 
     //endregion
 
@@ -78,8 +72,10 @@ public class MediaPreviewView extends LinearLayout implements View.OnTouchListen
         thumbnailView = findViewById(R.id.mpv_thumbnail);
         titleView = findViewById(R.id.mpv_media_title);
 
-        //set self as touch listener (to act as a button)
-        setOnTouchListener(this);
+        //make self clickable
+        setClickable(true);
+        setFocusable(true);
+
     }
     //endregion
 
@@ -169,37 +165,5 @@ public class MediaPreviewView extends LinearLayout implements View.OnTouchListen
         return this;
     }
 
-    /**
-     * Set this views click listener
-     *
-     * @param listener the listener to set, null to reset
-     */
-    public void setClickListener(MediaPreviewClickListener listener)
-    {
-        onClickListener = listener;
-    }
-
     //endregion
-
-    @Override
-    public boolean onTouch(View view, MotionEvent motionEvent)
-    {
-        if (onClickListener != null && motionEvent.getAction() == MotionEvent.ACTION_DOWN)
-            onClickListener.onPreviewClicked(this);
-
-        return true;
-    }
-
-    /**
-     * A listener that listens for clicks on a mediaPreviewView
-     */
-    public interface MediaPreviewClickListener
-    {
-        /**
-         * The preview view was clicked
-         *
-         * @param preview the MediaPreviewView that was clicked
-         */
-        void onPreviewClicked(MediaPreviewView preview);
-    }
 }
