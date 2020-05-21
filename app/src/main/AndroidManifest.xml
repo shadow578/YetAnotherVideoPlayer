@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="de.shadow578.yetanothervideoplayer">
+
     <!-- To adjust Media Volume by swiping -->
-    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" /> <!-- To Stream Video -->
-    <uses-permission android:name="android.permission.INTERNET" /> <!-- To Play local files -->
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+
+    <!-- To Stream Video -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- To Play local files + media picker -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
@@ -13,7 +18,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme"
+        android:theme="@style/AppTheme.Light"
         android:usesCleartextTraffic="true">
         <!-- ^^allow traffic over http, since not all streams will be via https -->
 
@@ -36,20 +41,23 @@
             </intent-filter>
         </activity>
 
+        <!-- the crash screen -->
+        <activity
+            android:name=".ui.CrashScreenActivity"
+            android:label="@string/app_name" />
+
         <!-- Playback Activity (only started internally using LaunchActivity -->
         <activity
             android:name=".ui.PlaybackActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
             android:label="@string/app_name"
             android:resizeableActivity="true"
-            android:supportsPictureInPicture="true"
-            android:theme="@style/AppTheme.PlaybackActivity" />
+            android:supportsPictureInPicture="true" />
 
         <!-- Launch Activity (Splash Screen -->
         <activity
             android:name=".ui.LaunchActivity"
-            android:label="@string/app_name"
-            android:theme="@style/AppTheme.SplashActivity">
+            android:label="@string/app_name">
 
             <!-- share with yavp -->
             <intent-filter android:label="@string/app_open_with">
@@ -232,14 +240,7 @@
             </intent-filter>
         </activity>
 
-        <!-- the crash screen -->
-        <activity
-            android:name=".ui.CrashScreenActivity"
-            android:label="@string/app_name"
-            android:theme="@style/AppTheme.SplashActivity" />
-
         <!-- video playback service -->
         <service android:name=".feature.playback.VideoPlaybackService" />
     </application>
-
 </manifest>

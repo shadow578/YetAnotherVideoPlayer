@@ -27,7 +27,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:gravity="center"
-            android:text="@string/crash_ac_text_error"
+            android:text="@string/crash_text_error"
             android:textSize="20sp"
             android:textStyle="bold" />
 
@@ -37,14 +37,14 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:onClick="crashac_OnClick"
-            android:text="@string/crash_ac_resume_playback" />
+            android:text="@string/crash_resume_playback" />
 
         <Button
             android:id="@+id/crashac_btn_close_app"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:onClick="crashac_OnClick"
-            android:text="@string/crash_ac_exit_app" />
+            android:text="@string/crash_exit_app" />
 
         <ScrollView
             android:layout_width="wrap_content"

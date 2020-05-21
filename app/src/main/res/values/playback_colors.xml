@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- background color of info text (Volume: x%) label -->
+    <color name="info_text_background">@color/app_dark_curtain_3</color>
+
+    <!-- text color of info text (Volume: x%) label -->
+    <color name="info_text_text">@color/app_text_light</color>
+
+    <!-- color of buffering state spinner (indeterminate circular progress bar) -->
+    <color name="player_buffering_progress">@color/app_text_light</color>
+
+    <!-- start color of the player controls background vignette, used to darken the video while showing the controls-->
+    <color name="player_vignette_start">@color/app_dark_curtain_1</color>
+
+    <!-- start color of the player controls background vignette, used to darken the video while showing the controls-->
+    <color name="player_vignette_end">@color/app_dark_curtain_2</color>
+
+    <!-- background color of the player view -->
+    <color name="player_background">@color/app_background_inverse</color>
+
+
+    <!-- text color of the playback progress / duration labels -->
+    <color name="player_controls_progress_labels_text">@color/app_text_light</color>
+
+    <!-- text color of the playback title label -->
+    <color name="player_controls_title_text">@color/app_text_light</color>
+
+    <!-- color of the top buttons in layout_exo_controls (cast/settings) -->
+    <color name="player_controls_top_buttons">@color/app_text_light</color>
+
+    <!-- color tint of the center buttons in layout_exo_controls (play/pause/fast forward/reverse) -->
+    <color name="player_controls_center_buttons">@color/app_button_inactive</color>
+
+    <!-- color tint of the screen rotation buttons in layout_exo_controls (lock_landscape/lock_portrait/auto) -->
+    <color name="player_controls_screen_rotation_buttons">@color/app_text_light</color>
+
+
+    <!-- general background of quick settings panel -->
+    <color name="quick_settings_background">@color/app_dark_curtain_0</color>
+
+    <!-- background of quick setting items -->
+    <color name="quick_settings_item_background">@color/app_dark_curtain_1</color>
+
+    <!-- color of quick setting item text -->
+    <color name="quick_settings_item_text">@color/app_text_light</color>
+
+    <!-- default (not- active) icon tint of quick settings icons -->
+    <color name="quick_settings_item_tint_default">@color/app_button_inactive</color>
+
+    <!-- active icon tint of quick settings icons -->
+    <color name="quick_settings_item_tint_active">@color/app_button_active</color>
+</resources>

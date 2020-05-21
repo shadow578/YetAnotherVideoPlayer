@@ -16,7 +16,6 @@
         android:layout_alignParentTop="true"
         android:layout_marginHorizontal="5dp"
         android:layout_marginTop="5dp"
-        android:background="@color/transparent"
         android:orientation="vertical">
 
         <!-- stream title -->
@@ -27,7 +26,7 @@
             android:gravity="left"
             android:text="Video Title that could actually be really long, so we should add some sort of text wrapping here or whatever idk"
             android:textAllCaps="false"
-            android:textColor="@color/player_title_text"
+            android:textColor="@color/player_controls_title_text"
             android:textSize="18sp"
             android:textStyle="bold"
             android:visibility="visible"
@@ -47,7 +46,7 @@
                 android:id="@+id/pb_quick_settings"
                 style="@style/AppButton.PlayerQuickSettings"
                 android:layout_height="match_parent"
-                android:contentDescription="@string/pb_controls_player_quick_settings"
+                android:contentDescription="@string/playback_player_quick_settings"
                 android:onClick="playback_OnClick" />
 
         </LinearLayout>
@@ -99,7 +98,7 @@
             android:includeFontPadding="false"
             android:paddingLeft="4dp"
             android:paddingRight="4dp"
-            android:textColor="@color/player_progress_labels_text"
+            android:textColor="@color/player_controls_progress_labels_text"
             android:textSize="14sp"
             android:textStyle="bold" />
 
@@ -119,7 +118,7 @@
             android:includeFontPadding="false"
             android:paddingLeft="4dp"
             android:paddingRight="4dp"
-            android:textColor="@color/player_progress_labels_text"
+            android:textColor="@color/player_controls_progress_labels_text"
             android:textSize="14sp"
             android:textStyle="bold" />
 
@@ -132,7 +131,7 @@
             <ImageButton
                 android:id="@+id/pb_screen_rotation_portrait"
                 style="@style/AppButton.ScreenLockPortrait"
-                android:contentDescription="@string/pb_controls_screen_lock_portrait"
+                android:contentDescription="@string/playback_screen_lock_portrait"
                 android:onClick="playback_OnClick"
                 android:visibility="invisible" />
 
@@ -140,7 +139,7 @@
             <ImageButton
                 android:id="@+id/pb_screen_rotation_landscape"
                 style="@style/AppButton.ScreenLockLandscape"
-                android:contentDescription="@string/pb_controls_screen_lock_landscape"
+                android:contentDescription="@string/playback_screen_lock_landscape"
                 android:onClick="playback_OnClick"
                 android:visibility="invisible" />
 
@@ -148,7 +147,7 @@
             <ImageButton
                 android:id="@+id/pb_screen_rotation_auto"
                 style="@style/AppButton.ScreenAuto"
-                android:contentDescription="@string/pb_controls_screen_auto"
+                android:contentDescription="@string/playback_screen_auto"
                 android:onClick="playback_OnClick"
                 android:visibility="visible" />
         </RelativeLayout>

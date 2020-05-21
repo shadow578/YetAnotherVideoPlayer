@@ -313,7 +313,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         //set layout
-        setContentView(R.layout.activity_playback);
+        setContentView(R.layout.playback_activity);
 
         //get views
         playerViewPlaceholder = findViewById(R.id.pb_playerViewPlaceholder);
@@ -697,7 +697,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                 playbackService.setLooping(!playbackService.getLooping());
 
                 //update ui
-                btnRepeatMode.setIconTint(playbackService.getLooping() ? getColor(R.color.qs_item_icon_active) : getColor(R.color.qs_item_icon_default));
+                btnRepeatMode.setIconTint(playbackService.getLooping() ? getColor(R.color.quick_settings_item_tint_active) : getColor(R.color.quick_settings_item_tint_default));
                 break;
             }
             case R.id.qs_btn_cast:
@@ -736,7 +736,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                 setAnime4kEnabled(!getIsAnime4kEnabled());
 
                 //update button
-                anime4kQSButton.setIconTint(getIsAnime4kEnabled() ? getColor(R.color.qs_item_icon_active) : getColor(R.color.qs_item_icon_default));
+                anime4kQSButton.setIconTint(getIsAnime4kEnabled() ? getColor(R.color.quick_settings_item_tint_active) : getColor(R.color.quick_settings_item_tint_default));
                 break;
             }
             //endregion
@@ -922,7 +922,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
 
         //add buttons:
         //reverse button
-        actions.add(createPipAction(PIPConstants.REQUEST_REWIND, R.drawable.ic_fast_rewind_black_48dp, R.string.pip_title_f_rewind, R.string.exo_controls_rewind_description));
+        actions.add(createPipAction(PIPConstants.REQUEST_REWIND, R.drawable.ic_fast_rewind_black_48dp, R.string.pip_title_rewind, R.string.exo_controls_rewind_description));
 
         //region ~~Play/Pause/Replay Button ~~
         if (isPlaybackEnded)
@@ -947,7 +947,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         //endregion
 
         //fast- forward button
-        actions.add(createPipAction(PIPConstants.REQUEST_FAST_FORWARD, R.drawable.ic_fast_forward_black_48dp, R.string.pip_title_f_forward, R.string.exo_controls_fastforward_description));
+        actions.add(createPipAction(PIPConstants.REQUEST_FAST_FORWARD, R.drawable.ic_fast_forward_black_48dp, R.string.pip_title_forward, R.string.exo_controls_fastforward_description));
 
         //built the pip params
         PictureInPictureParams params = new PictureInPictureParams.Builder().setActions(actions).build();

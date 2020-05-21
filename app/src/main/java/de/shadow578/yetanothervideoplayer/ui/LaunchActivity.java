@@ -33,7 +33,7 @@ public class LaunchActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_launch);
+        setContentView(R.layout.lauch_activity);
         Logging.logD("Launch Activity onCreate was called.");
 
         //get app prefs

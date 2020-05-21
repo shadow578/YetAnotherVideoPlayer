@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Seek Duration Labels in the DoubleTapSeekOverlay -->
+    <string name="double_tap_seek_seek_duration_label">%d Seconds</string>
+</resources>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- text color of seek text (xx Seconds) -->
+    <color name="dtso_seek_text">@color/app_text_light</color>
+
+    <!-- colors for seek animation -->
+    <color name="cseek_anim_0">#00FFFFFF</color>
+    <color name="cseek_anim_1">#22FFFFFF</color>
+    <color name="cseek_anim_2">#99FFFFFF</color>
+    <color name="cseek_anim_3">#FFFFFFFF</color>
+
+    <!-- colors for double- tap ripple animation -->
+    <color name="dtso_ripple_arc">#15EEEEEE</color>
+    <color name="dtso_ripple_circle">#15FFFFFF</color>
+</resources>

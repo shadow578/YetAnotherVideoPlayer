@@ -77,7 +77,7 @@ public class ControlQuickSettingsButton extends LinearLayout
     private void init(Context context)
     {
         //inflate layout xml
-        rootView = inflate(context, R.layout.component_quick_settings_button, this);
+        rootView = inflate(context, R.layout.playback_quick_settings_button_layout, this);
 
         //get sub- views
         textView = rootView.findViewById(R.id.comp_qs_button_text);

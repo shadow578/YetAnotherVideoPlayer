@@ -10,9 +10,9 @@
         android:id="@+id/pb_playbackRootView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/black">
+        android:background="@color/player_background">
 
-        <include layout="@layout/layout_playback_main" />
+        <include layout="@layout/playback_main_layout" />
     </RelativeLayout>
 
     <!-- right drawer = quick settings-->
@@ -21,7 +21,7 @@
         android:layout_height="match_parent"
         android:layout_gravity="end">
 
-        <include layout="@layout/layout_playback_quick_settings"
+        <include layout="@layout/playback_quick_settings_drawer_layout"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_centerInParent="true"/>
@@ -33,7 +33,7 @@
         android:layout_height="match_parent"
         android:layout_gravity="start">
 
-        <include layout="@layout/layout_playback_shader_settings"
+        <include layout="@layout/playback_shader_drawer_layout"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_centerInParent="true"/>

@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:layout_marginTop="20dp"
     android:layout_marginBottom="20dp"
-    android:background="@color/qs_background">
+    android:background="@color/quick_settings_background">
 
     <!-- scroll view is required to allow scrolling of settings on smaller screens (that cant fit all settings at once) -->
     <ScrollView
@@ -37,7 +37,7 @@
                     android:id="@+id/qs_btn_a4k_tgl"
                     style="@style/QuickSettingsButton"
                     app:icon="@drawable/ic_a4k_black_48dp"
-                    app:text="@string/qs_anime4k" />
+                    app:text="@string/quick_settings_anime4k" />
 
             </LinearLayout>
 

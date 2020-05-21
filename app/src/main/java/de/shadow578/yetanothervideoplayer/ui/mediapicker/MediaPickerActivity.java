@@ -36,6 +36,7 @@ public class MediaPickerActivity extends AppCompatActivity implements BottomNavi
         //set this activity as navigation listener
         bottomNav.setOnNavigationItemSelectedListener(this);
 
+        //TODO: we need READ_EXTERNAL_STORAGE permissions before doing this, get them first ;)
         //show media chooser fragment for VIDEO by default
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.mediapicker_content_container, new DeviceMediaChooserFragment(MediaEntry.MediaKind.VIDEO))

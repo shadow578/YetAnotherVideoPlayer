@@ -1,26 +1,10 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light">
+    <style name="AppTheme.Light" parent="Theme.AppCompat.Light">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
-    </style>
-
-    <!-- Playback Activity theme -->
-    <style name="AppTheme.PlaybackActivity">
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
-    </style>
-
-    <!-- Splash Screen (Launch) Activity theme -->
-    <style name="AppTheme.SplashActivity">
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
-    </style>
-
-    <!-- Crash Activity theme -->
-    <style name="AppTheme.CrashActivity">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
@@ -36,49 +20,49 @@
     <!-- Play button in layout_exo_controls (video controls) -->
     <style name="AppButton.PlayButton">
         <item name="android:src">@drawable/ic_play_arrow_black_48dp</item>
-        <item name="android:tint">@color/player_center_buttons</item>
+        <item name="android:tint">@color/player_controls_center_buttons</item>
     </style>
 
     <!-- Pause button in layout_exo_controls (video controls) -->
     <style name="AppButton.PauseButton">
         <item name="android:src">@drawable/ic_pause_black_48dp</item>
-        <item name="android:tint">@color/player_center_buttons</item>
+        <item name="android:tint">@color/player_controls_center_buttons</item>
     </style>
 
     <!-- Fast Forward button in layout_exo_controls (video controls) -->
     <style name="AppButton.FastForwardButton">
         <item name="android:src">@drawable/ic_fast_forward_black_48dp</item>
-        <item name="android:tint">@color/player_center_buttons</item>
+        <item name="android:tint">@color/player_controls_center_buttons</item>
     </style>
 
     <!-- Fast Rewind button in layout_exo_controls (video controls) -->
     <style name="AppButton.FastRewindButton">
         <item name="android:src">@drawable/ic_fast_rewind_black_48dp</item>
-        <item name="android:tint">@color/player_center_buttons</item>
+        <item name="android:tint">@color/player_controls_center_buttons</item>
     </style>
 
     <!-- lock screen to portrait button in layout_exo_controls (video controls) -->
     <style name="AppButton.ScreenLockPortrait">
         <item name="android:src">@drawable/ic_screen_lock_portrait_black_48dp</item>
-        <item name="android:tint">@color/player_screen_rotation_buttons</item>
+        <item name="android:tint">@color/player_controls_screen_rotation_buttons</item>
     </style>
 
     <!-- lock screen to landscape button in layout_exo_controls (video controls) -->
     <style name="AppButton.ScreenLockLandscape">
         <item name="android:src">@drawable/ic_screen_lock_landscape_black_48dp</item>
-        <item name="android:tint">@color/player_screen_rotation_buttons</item>
+        <item name="android:tint">@color/player_controls_screen_rotation_buttons</item>
     </style>
 
     <!-- auto- rotate button in layout_exo_controls (video controls) -->
     <style name="AppButton.ScreenAuto">
         <item name="android:src">@drawable/ic_screen_rotation_black_48dp</item>
-        <item name="android:tint">@color/player_screen_rotation_buttons</item>
+        <item name="android:tint">@color/player_controls_screen_rotation_buttons</item>
     </style>
 
     <!-- player settings button in layout_exo_controls (top buttons) -->
     <style name="AppButton.PlayerQuickSettings">
         <item name="android:src">@drawable/ic_more_vert_black_48dp</item>
-        <item name="android:tint">@color/player_top_buttons</item>
+        <item name="android:tint">@color/player_controls_top_buttons</item>
     </style>
 
     <!-- shared style of all Quick Settings buttons -->
@@ -89,9 +73,9 @@
         <item name="android:layout_marginBottom">2dp</item>
         <item name="android:onClick">playback_OnClick</item>
         <item name="iconMinWidth">5dp</item>
-        <item name="backgroundTint">@color/qs_item_background</item>
-        <item name="iconTint">@color/qs_item_icon_default</item>
-        <item name="textColor">@color/qs_item_text</item>
+        <item name="backgroundTint">@color/quick_settings_item_background</item>
+        <item name="iconTint">@color/quick_settings_item_tint_default</item>
+        <item name="textColor">@color/quick_settings_item_text</item>
         <item name="textIconPadding">10dp</item>
     </style>
 </resources>

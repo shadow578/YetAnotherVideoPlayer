@@ -52,6 +52,6 @@
         android:id="@+id/ctl_playercontrols"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:controller_layout_id="@layout/layout_exo_controls"
+        app:controller_layout_id="@layout/playback_exoplayer_controls_layout"
         app:use_artwork="true" />
 </RelativeLayout>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- color of the progress bar on the launcher activity -->
+    <color name="launch_progress_bar">@color/ic_launcher_background</color>
+</resources>

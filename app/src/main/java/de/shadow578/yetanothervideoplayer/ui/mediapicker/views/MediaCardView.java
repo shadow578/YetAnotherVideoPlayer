@@ -61,7 +61,7 @@ public class MediaCardView extends CardView
 
     public MediaCardView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr)
     {
-        //do normal cardview suff
+        //do normal cardview stuff
         super(context, attrs, defStyleAttr);
 
         //inflate layout
