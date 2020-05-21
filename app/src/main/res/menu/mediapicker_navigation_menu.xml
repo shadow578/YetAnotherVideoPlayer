@@ -3,18 +3,18 @@
     <item
         android:id="@+id/mediapicker_navigation_target_videos"
         android:enabled="true"
-        android:icon="@drawable/ic_placeholder_black_24dp"
-        android:title="VIDEOS" />
+        android:icon="@drawable/ic_video_library_black_24dp"
+        android:title="@string/mediapicker_nav_videos" />
 
     <item
         android:id="@+id/mediapicker_navigation_target_music"
         android:enabled="true"
-        android:icon="@drawable/ic_placeholder_black_24dp"
-        android:title="MUSIC" />
+        android:icon="@drawable/ic_library_music_black_24dp"
+        android:title="@string/mediapicker_nav_music" />
 
     <item
-        android:id="@+id/mediapicker_navigation_target_about"
+        android:id="@+id/mediapicker_navigation_target_more"
         android:enabled="true"
-        android:icon="@drawable/ic_placeholder_black_24dp"
-        android:title="ABOUT" />
+        android:icon="@drawable/ic_more_horiz_black_24dp"
+        android:title="@string/mediapicker_nav_more" />
 </menu>

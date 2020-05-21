@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- bottom navigation strings -->
+    <string name="mediapicker_nav_videos">Videos</string>
+    <string name="mediapicker_nav_music">Music</string>
+    <string name="mediapicker_nav_more">More</string>
+
+</resources>
