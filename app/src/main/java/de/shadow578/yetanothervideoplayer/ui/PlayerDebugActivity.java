@@ -179,7 +179,9 @@ public class PlayerDebugActivity extends AppCompatActivity implements CompoundBu
             case R.id.vtest_btn_media_picker:
             {
                 //open media picker
-                startActivity(new Intent(this, MediaPickerActivity.class));
+                Intent mediaPickerIntent = new Intent(this, LaunchActivity.class);
+                mediaPickerIntent.setAction(Intent.ACTION_MAIN);
+                startActivity(mediaPickerIntent);
                 return;
             }
             case R.id.vtest_btn_mp4:
@@ -211,6 +213,7 @@ public class PlayerDebugActivity extends AppCompatActivity implements CompoundBu
         {
             //directly open activity
             playIntent = new Intent(this, LaunchActivity.class);
+            playIntent.setAction(Intent.ACTION_VIEW);
         }
         else
         {

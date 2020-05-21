@@ -241,6 +241,7 @@ public class DeviceMediaChooserFragment extends Fragment implements RecyclerMedi
 
         //launch player activity
         Intent playbackIntent = new Intent(getContext(), LaunchActivity.class);
+        playbackIntent.setAction(Intent.ACTION_VIEW);
         playbackIntent.setData(cardMedia.getUri());
         playbackIntent.putExtra(Intent.EXTRA_TITLE, cardMedia.getTitle());
         startActivity(playbackIntent);

@@ -23,7 +23,9 @@
         <!-- ^^allow traffic over http, since not all streams will be via https -->
 
         <!-- Media Picker / future main -->
-        <activity android:name=".ui.mediapicker.MediaPickerActivity"/>
+        <activity
+            android:name=".ui.mediapicker.MediaPickerActivity"
+            android:label="@string/app_name"/>
 
         <!-- Settings Activity -->
         <activity
@@ -31,15 +33,7 @@
             android:label="@string/settings_root_title" />
 
         <!-- Video Test Activity for Debugging -->
-        <activity
-            android:name=".ui.PlayerDebugActivity"
-            android:label="@string/app_name">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+        <activity android:name=".ui.PlayerDebugActivity" android:exported="true" />
 
         <!-- the crash screen -->
         <activity
@@ -58,6 +52,12 @@
         <activity
             android:name=".ui.LaunchActivity"
             android:label="@string/app_name">
+
+            <!-- launch media picker -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
 
             <!-- share with yavp -->
             <intent-filter android:label="@string/app_open_with">

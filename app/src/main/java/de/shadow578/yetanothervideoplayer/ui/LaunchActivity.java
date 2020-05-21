@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
 
 import de.shadow578.yetanothervideoplayer.R;
+import de.shadow578.yetanothervideoplayer.ui.mediapicker.MediaPickerActivity;
 import de.shadow578.yetanothervideoplayer.ui.playback.PlaybackActivity;
 import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
 import de.shadow578.yetanothervideoplayer.util.Logging;
@@ -20,6 +21,12 @@ import java.util.Locale;
 
 public class LaunchActivity extends AppCompatActivity
 {
+    /**
+     * Intent Extra for the Launcher activity to skip launch delays, eg. use min_splash_screen_duration of 0 ms
+     * (boolean extra)
+     */
+    public static final String EXTRA_LAUNCH_NO_DELAY = "launchNoDelay";
+
     /**
      * The Shared prefs of this app
      */
@@ -39,9 +46,29 @@ public class LaunchActivity extends AppCompatActivity
 
         //get app prefs
         appPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+    }
 
+    @Override
+    protected void onStart()
+    {
+        super.onStart();
+        continueTo();
+    }
+
+    /**
+     * Continue to launch the appropriate activity based on what is given in this activitys launch intent
+     */
+    private void continueTo()
+    {
         //get splash screen duration
         int minSplashDuration = getResources().getInteger(R.integer.min_splash_screen_duration);
+
+        //get intent that was used to create the activity
+        final Intent launchIntent = getIntent();
+        if (launchIntent.getBooleanExtra(EXTRA_LAUNCH_NO_DELAY, false))
+        {
+            minSplashDuration = 0;
+        }
 
         //post event to start playback activity delayed
         splashHandler.postDelayed(new Runnable()
@@ -49,19 +76,51 @@ public class LaunchActivity extends AppCompatActivity
             @Override
             public void run()
             {
-                //launch the playback activity
-                if (launchPlayback(getIntent()))
+                //check if the intent is ACTION_MAIN (called from launcher) or has no data (cannot play if we have no data ;))
+                String action = launchIntent.getAction();
+                if (action != null
+                        && (action.equals(Intent.ACTION_VIEW) || action.equals(Intent.ACTION_SEND))
+                        && launchIntent.getData() != null)
                 {
-                    //launched ok, close this activity as soon as playback activity closes
-                    finish();
+                    //our target is playback (have data and ACTION_VIEW or ACTION_SEND)
+                    continueToPlayback();
                 }
                 else
                 {
-                    //launch failed, show error
-                    Toast.makeText(getApplicationContext(), "Could not launch Playback Activity!", Toast.LENGTH_LONG).show();
+                    //our target is the media picker (ACTION_MAIN or no data)
+                    continueToMediaPicker();
                 }
             }
         }, minSplashDuration);
+    }
+
+    /**
+     * Continue to the media picker activity (Action.MAIN + Action.VIEW without data)
+     */
+    private void continueToMediaPicker()
+    {
+        //launch media picker
+        Intent pickerIntent = new Intent(this, MediaPickerActivity.class);
+        startActivity(pickerIntent);
+        finish();
+    }
+
+    /**
+     * Continue to the playback activity (Action.SEND and Action.VIEW)
+     */
+    private void continueToPlayback()
+    {
+        //launch the playback activity
+        if (launchPlayback(getIntent()))
+        {
+            //launched ok, close this activity as soon as playback activity closes
+            finish();
+        }
+        else
+        {
+            //launch failed, show error
+            Toast.makeText(getApplicationContext(), "Could not launch Playback Activity!", Toast.LENGTH_LONG).show();
+        }
     }
 
     /**
