@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/mediapicker_navigation_target_videos"
+        android:enabled="true"
+        android:icon="@drawable/ic_placeholder_black_48dp"
+        android:title="VIDEOS" />
+
+    <item
+        android:id="@+id/mediapicker_navigation_target_music"
+        android:enabled="true"
+        android:icon="@drawable/ic_placeholder_black_48dp"
+        android:title="MUSIC" />
+
+    <item
+        android:id="@+id/mediapicker_navigation_target_about"
+        android:enabled="true"
+        android:icon="@drawable/ic_placeholder_black_48dp"
+        android:title="ABOUT" />
+</menu>

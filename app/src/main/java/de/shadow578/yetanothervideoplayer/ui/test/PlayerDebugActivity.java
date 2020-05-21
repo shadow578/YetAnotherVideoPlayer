@@ -40,6 +40,9 @@ public class PlayerDebugActivity extends AppCompatActivity implements CompoundBu
         //add listeners to enable / disable switches on the fly
         swOpenDirect.setOnCheckedChangeListener(this);
         swInsertTitles.setOnCheckedChangeListener(this);
+
+        //TODO: forward to MediaPicker
+        startActivity(new Intent(this, MediaPickerActivity.class));
     }
 
     /**

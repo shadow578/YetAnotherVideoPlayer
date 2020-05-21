@@ -15,12 +15,17 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
-        <activity android:name=".ui.mediapicker.MediaPickerActivity"></activity>
         <!-- ^^allow traffic over http, since not all streams will be via https -->
+
+        <!-- Media Picker / future main -->
+        <activity android:name=".ui.mediapicker.MediaPickerActivity"/>
+
         <!-- Settings Activity -->
         <activity
             android:name=".ui.AppSettingsActivity"
-            android:label="@string/settings_root_title" /> <!-- Video Test Activity for Debugging -->
+            android:label="@string/settings_root_title" />
+
+        <!-- Video Test Activity for Debugging -->
         <activity
             android:name=".ui.test.PlayerDebugActivity"
             android:label="@string/app_name">
@@ -29,14 +34,18 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity> <!-- Playback Activity (only started internally using LaunchActivity -->
+        </activity>
+
+        <!-- Playback Activity (only started internally using LaunchActivity -->
         <activity
             android:name=".ui.PlaybackActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
             android:label="@string/app_name"
             android:resizeableActivity="true"
             android:supportsPictureInPicture="true"
-            android:theme="@style/AppTheme.PlaybackActivity" /> <!-- Launch Activity (Splash Screen -->
+            android:theme="@style/AppTheme.PlaybackActivity" />
+
+        <!-- Launch Activity (Splash Screen -->
         <activity
             android:name=".ui.LaunchActivity"
             android:label="@string/app_name"
@@ -221,11 +230,15 @@
                 <data android:mimeType="audio/3gpp2" />
                 <data android:mimeType="application/3gpp2" />
             </intent-filter>
-        </activity> <!-- the crash screen -->
+        </activity>
+
+        <!-- the crash screen -->
         <activity
             android:name=".ui.CrashScreenActivity"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.SplashActivity" /> <!-- video playback service -->
+            android:theme="@style/AppTheme.SplashActivity" />
+
+        <!-- video playback service -->
         <service android:name=".feature.playback.VideoPlaybackService" />
     </application>
 
