@@ -29,7 +29,7 @@
                 android:id="@+id/qs_btn_cast"
                 style="@style/QuickSettingsButton"
                 android:visibility="gone"
-                app:icon="@drawable/ic_cast_black_48dp"
+                app:icon="@drawable/ic_cast_black_24dp"
                 app:text="@string/quick_settings_cast"
                 tools:visibility="visible"/>
 
@@ -37,7 +37,7 @@
             <de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton
                 android:id="@+id/qs_btn_pip"
                 style="@style/QuickSettingsButton"
-                app:icon="@drawable/ic_picture_in_picture_black_48dp"
+                app:icon="@drawable/ic_picture_in_picture_black_24dp"
                 app:text="@string/quick_settings_picture_in_picture"
                 tools:visibility="visible"/>
 
@@ -45,7 +45,7 @@
             <de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton
                 android:id="@+id/qs_btn_quality"
                 style="@style/QuickSettingsButton"
-                app:icon="@drawable/ic_high_quality_black_48dp"
+                app:icon="@drawable/ic_high_quality_black_24dp"
                 app:text="@string/quick_settings_quality"
                 tools:visibility="visible"/>
 
@@ -54,7 +54,7 @@
                 android:id="@+id/qs_btn_captions"
                 style="@style/QuickSettingsButton"
                 android:visibility="gone"
-                app:icon="@drawable/ic_closed_caption_black_48dp"
+                app:icon="@drawable/ic_closed_caption_black_24dp"
                 app:text="@string/quick_settings_subs"
                 tools:visibility="visible"/>
 
@@ -70,7 +70,7 @@
             <de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton
                 android:id="@+id/qs_btn_repeat_tgl"
                 style="@style/QuickSettingsButton"
-                app:icon="@drawable/ic_repeat_black_48dp"
+                app:icon="@drawable/ic_repeat_black_24dp"
                 app:text="@string/quick_settings_loop"
                 tools:visibility="visible"/>
 
@@ -78,7 +78,7 @@
             <de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton
                 android:id="@+id/qs_btn_skip_intro"
                 style="@style/QuickSettingsButton"
-                app:icon="@drawable/ic_fast_forward_black_48dp"
+                app:icon="@drawable/ic_fast_forward_black_24dp"
                 app:text="@string/quick_settings_skip_intro"
                 tools:visibility="visible"/>
 
@@ -86,7 +86,7 @@
             <de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton
                 android:id="@+id/qs_btn_app_settings"
                 style="@style/QuickSettingsButton"
-                app:icon="@drawable/ic_settings_black_48dp"
+                app:icon="@drawable/ic_settings_black_24dp"
                 app:text="@string/quick_settings_app_settings"
                 tools:visibility="visible"/>
         </LinearLayout>

@@ -14,7 +14,6 @@ import de.shadow578.yetanothervideoplayer.util.Logging;
 
 public class MediaPickerActivity extends AppCompatActivity implements BottomNavigationView.OnNavigationItemSelectedListener
 {
-
     //region Views
 
     /**

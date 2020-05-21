@@ -186,7 +186,7 @@ public class RecyclerMediaEntryAdapter extends RecyclerView.Adapter<RecyclerMedi
             }
 
             //clear thumbnail first
-            mediaCard.setMediaThumbnail(context.getDrawable(R.drawable.ic_placeholder_black_48dp));
+            mediaCard.setMediaThumbnail(context.getDrawable(R.drawable.ic_placeholder_black_24dp));
 
             //set thumbnail
             AsyncLoadThumbnailTask.Parameters params = new AsyncLoadThumbnailTask.Parameters(context, entry, mediaCard);
