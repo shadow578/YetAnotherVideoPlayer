@@ -3,7 +3,7 @@
     android:id="@+id/pb_quick_settings_drawer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.PlaybackActivity">
+    tools:context=".ui.playback.PlaybackActivity">
 
     <!-- main screen = main playback view = video-->
     <RelativeLayout

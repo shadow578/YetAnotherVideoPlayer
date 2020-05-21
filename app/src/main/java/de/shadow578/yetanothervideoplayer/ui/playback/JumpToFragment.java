@@ -1,10 +1,10 @@
-package de.shadow578.yetanothervideoplayer.ui;
+package de.shadow578.yetanothervideoplayer.ui.playback;
 
 import androidx.fragment.app.FragmentManager;
 
 import com.google.android.exoplayer2.Player;
 
-import de.shadow578.yetanothervideoplayer.ui.components.TimeDurationPickerDialogFragmentX;
+import de.shadow578.yetanothervideoplayer.ui.playback.views.TimeDurationPickerDialogFragmentX;
 import de.shadow578.yetanothervideoplayer.util.Logging;
 import mobi.upod.timedurationpicker.TimeDurationPicker;
 

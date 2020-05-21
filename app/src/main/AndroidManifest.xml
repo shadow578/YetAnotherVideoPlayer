@@ -32,7 +32,7 @@
 
         <!-- Video Test Activity for Debugging -->
         <activity
-            android:name=".ui.test.PlayerDebugActivity"
+            android:name=".ui.PlayerDebugActivity"
             android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -48,7 +48,7 @@
 
         <!-- Playback Activity (only started internally using LaunchActivity -->
         <activity
-            android:name=".ui.PlaybackActivity"
+            android:name=".ui.playback.PlaybackActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
             android:label="@string/app_name"
             android:resizeableActivity="true"

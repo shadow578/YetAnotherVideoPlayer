@@ -1,4 +1,4 @@
-package de.shadow578.yetanothervideoplayer.ui.components;
+package de.shadow578.yetanothervideoplayer.ui.playback.views;
 
 import android.content.Context;
 import android.content.res.TypedArray;

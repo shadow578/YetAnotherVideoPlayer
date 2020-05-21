@@ -25,7 +25,7 @@
             android:orientation="vertical">
 
             <!-- Cast -->
-            <de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton
+            <de.shadow578.yetanothervideoplayer.ui.playback.views.ControlQuickSettingsButton
                 android:id="@+id/qs_btn_cast"
                 style="@style/QuickSettingsButton"
                 android:visibility="gone"
@@ -34,7 +34,7 @@
                 tools:visibility="visible"/>
 
             <!-- picture in picture -->
-            <de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton
+            <de.shadow578.yetanothervideoplayer.ui.playback.views.ControlQuickSettingsButton
                 android:id="@+id/qs_btn_pip"
                 style="@style/QuickSettingsButton"
                 app:icon="@drawable/ic_picture_in_picture_black_24dp"
@@ -42,7 +42,7 @@
                 tools:visibility="visible"/>
 
             <!-- Quality -->
-            <de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton
+            <de.shadow578.yetanothervideoplayer.ui.playback.views.ControlQuickSettingsButton
                 android:id="@+id/qs_btn_quality"
                 style="@style/QuickSettingsButton"
                 app:icon="@drawable/ic_high_quality_black_24dp"
@@ -50,7 +50,7 @@
                 tools:visibility="visible"/>
 
             <!-- captions -->
-            <de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton
+            <de.shadow578.yetanothervideoplayer.ui.playback.views.ControlQuickSettingsButton
                 android:id="@+id/qs_btn_captions"
                 style="@style/QuickSettingsButton"
                 android:visibility="gone"
@@ -59,7 +59,7 @@
                 tools:visibility="visible"/>
 
             <!-- Jump to -->
-            <de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton
+            <de.shadow578.yetanothervideoplayer.ui.playback.views.ControlQuickSettingsButton
                 android:id="@+id/qs_btn_jump_to"
                 style="@style/QuickSettingsButton"
                 app:icon="@drawable/ic_jump_to_black_48dp"
@@ -67,7 +67,7 @@
                 tools:visibility="visible"/>
 
             <!-- repeat toggle -->
-            <de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton
+            <de.shadow578.yetanothervideoplayer.ui.playback.views.ControlQuickSettingsButton
                 android:id="@+id/qs_btn_repeat_tgl"
                 style="@style/QuickSettingsButton"
                 app:icon="@drawable/ic_repeat_black_24dp"
@@ -75,7 +75,7 @@
                 tools:visibility="visible"/>
 
             <!-- skip intro -->
-            <de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton
+            <de.shadow578.yetanothervideoplayer.ui.playback.views.ControlQuickSettingsButton
                 android:id="@+id/qs_btn_skip_intro"
                 style="@style/QuickSettingsButton"
                 app:icon="@drawable/ic_fast_forward_black_24dp"
@@ -83,7 +83,7 @@
                 tools:visibility="visible"/>
 
             <!-- settings -->
-            <de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton
+            <de.shadow578.yetanothervideoplayer.ui.playback.views.ControlQuickSettingsButton
                 android:id="@+id/qs_btn_app_settings"
                 style="@style/QuickSettingsButton"
                 app:icon="@drawable/ic_settings_black_24dp"

@@ -1,4 +1,4 @@
-package de.shadow578.yetanothervideoplayer.ui.test;
+package de.shadow578.yetanothervideoplayer.ui;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;

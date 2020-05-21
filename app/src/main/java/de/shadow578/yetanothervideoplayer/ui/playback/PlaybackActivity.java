@@ -1,4 +1,4 @@
-package de.shadow578.yetanothervideoplayer.ui;
+package de.shadow578.yetanothervideoplayer.ui.playback;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,7 +14,8 @@ import de.shadow578.yetanothervideoplayer.feature.controlview.TapToHidePlayerCon
 import de.shadow578.yetanothervideoplayer.feature.gl.GLAnime4K;
 import de.shadow578.yetanothervideoplayer.feature.playback.VideoPlaybackService;
 import de.shadow578.yetanothervideoplayer.feature.playback.VideoPlaybackServiceListener;
-import de.shadow578.yetanothervideoplayer.ui.components.ControlQuickSettingsButton;
+import de.shadow578.yetanothervideoplayer.ui.AppSettingsActivity;
+import de.shadow578.yetanothervideoplayer.ui.playback.views.ControlQuickSettingsButton;
 import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
 import de.shadow578.yetanothervideoplayer.util.ConfigUtil;
 import de.shadow578.yetanothervideoplayer.util.Logging;
