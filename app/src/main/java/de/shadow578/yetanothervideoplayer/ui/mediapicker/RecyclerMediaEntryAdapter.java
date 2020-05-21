@@ -1,15 +1,21 @@
 package de.shadow578.yetanothervideoplayer.ui.mediapicker;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.media.MediaMetadataRetriever;
+import android.net.Uri;
+import android.os.AsyncTask;
+import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.io.IOException;
 import java.util.List;
 
 import de.shadow578.yetanothervideoplayer.R;
@@ -22,25 +28,48 @@ import de.shadow578.yetanothervideoplayer.util.Logging;
 public class RecyclerMediaEntryAdapter extends RecyclerView.Adapter<RecyclerMediaEntryAdapter.MediaCardViewHolder>
 {
     /**
+     * Click listener for clicks on {@link MediaCardView}s created by the {@link RecyclerMediaEntryAdapter}
+     */
+    public interface CardClickListener
+    {
+        /**
+         * Called when the media card was clicked
+         *
+         * @param cardMedia the media entry of the card
+         */
+        void onMediaCardClicked(MediaEntry cardMedia);
+    }
+
+    /**
      * Context this adapter is in
      */
+    @NonNull
     private final Context context;
 
     /**
      * the media entries this adapter will show
      */
+    @NonNull
     private final List<MediaEntry> mediaEntries;
+
+    /**
+     * Click listener for clicks on media cards
+     */
+    @Nullable
+    private final CardClickListener clickListener;
 
     /**
      * Create a new media entry adapter for a recylcer view
      *
-     * @param context      the context ot work in
-     * @param mediaEntries the media entries to adapt
+     * @param context       the context ot work in
+     * @param mediaEntries  the media entries to adapt
+     * @param clickListener the click listener that is called when a media card is clicked
      */
-    RecyclerMediaEntryAdapter(@NonNull Context context, @NonNull List<MediaEntry> mediaEntries)
+    RecyclerMediaEntryAdapter(@NonNull Context context, @NonNull List<MediaEntry> mediaEntries, @Nullable CardClickListener clickListener)
     {
         this.context = context;
         this.mediaEntries = mediaEntries;
+        this.clickListener = clickListener;
     }
 
     /**
@@ -74,7 +103,19 @@ public class RecyclerMediaEntryAdapter extends RecyclerView.Adapter<RecyclerMedi
         }
 
         //set view data from entry
-        viewHolder.setFromMediaEntry(context, mediaEntries.get(index));
+        final MediaEntry entry = mediaEntries.get(index);
+        viewHolder.setFromMediaEntry(context, entry);
+
+        //set click listener of card
+        viewHolder.mediaCard.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                if (clickListener != null)
+                    clickListener.onMediaCardClicked(entry);
+            }
+        });
     }
 
     /**
@@ -100,20 +141,14 @@ public class RecyclerMediaEntryAdapter extends RecyclerView.Adapter<RecyclerMedi
          */
         static MediaCardViewHolder createBlankCard(@NonNull Context ctx, @NonNull ViewGroup parent)
         {
-            //inflate the entrys layout from xml
+            //inflate the entries layout from xml
             View view = LayoutInflater.from(ctx).inflate(R.layout.mediapicker_recycler_entry_layout, parent, false);
 
             //find media card in view
-            MediaCardView cardView = view.findViewById(R.id.mediapicker_reclyer_entry_card);
+            MediaCardView cardView = view.findViewById(R.id.mediapicker_recycler_entry_card);
 
             //create a new view holder
             return new MediaCardViewHolder(view, cardView);
-
-            //create new view instance
-            //MediaCardView view = new MediaCardView(ctx);
-            //parent.addView(view);
-            //view.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-            //return new MediaCardViewHolder(view);
         }
 
         /**
@@ -150,13 +185,120 @@ public class RecyclerMediaEntryAdapter extends RecyclerView.Adapter<RecyclerMedi
                 mediaCard.setShowMediaResolution(false);
             }
 
-            //get the thumbnail
-            MediaMetadataRetriever metadataRetriever = new MediaMetadataRetriever();
-            metadataRetriever.setDataSource(context, entry.getUri());
-            Bitmap frame = metadataRetriever.getFrameAtTime();
-            if (frame != null)
+            //clear thumbnail first
+            mediaCard.setMediaThumbnail((Bitmap) null);
+
+            //set thumbnail
+            AsyncLoadThumbnailTask.Parameters params = new AsyncLoadThumbnailTask.Parameters(context, entry, mediaCard);
+            new AsyncLoadThumbnailTask().execute(params);
+        }
+
+        /**
+         * Async task for loading thumbnails for media cards
+         */
+        private static class AsyncLoadThumbnailTask extends AsyncTask<AsyncLoadThumbnailTask.Parameters, String, Bitmap>
+        {
+            /**
+             * Task Parameters for the {@link AsyncLoadThumbnailTask}
+             */
+            private static class Parameters
             {
-                mediaCard.setMediaThumbnail(frame);
+                @NonNull
+                private final Context context;
+
+                @NonNull
+                private final MediaEntry entry;
+
+                @NonNull
+                private final MediaCardView mediaCard;
+
+                Parameters(@NonNull Context context, @NonNull MediaEntry entry, @NonNull MediaCardView mediaCard)
+                {
+                    this.context = context;
+                    this.entry = entry;
+                    this.mediaCard = mediaCard;
+                }
+            }
+
+            /**
+             * own task parameters
+             */
+            private Parameters params;
+
+            @Override
+            protected Bitmap doInBackground(Parameters... parameters)
+            {
+                params = parameters[0];
+
+                //use already loaded thumbnail
+                if (params.entry.getThumbnail() != null)
+                {
+                    return params.entry.getThumbnail();
+                }
+                else
+                {
+                    return loadThumbnail(params.context, params.entry);
+                }
+            }
+
+            @Override
+            protected void onPostExecute(Bitmap thumbnail)
+            {
+                if (thumbnail != null)
+                {
+                    params.mediaCard.setMediaThumbnail(thumbnail);
+                    params.entry.setThumbnail(thumbnail);
+                }
+            }
+
+            /**
+             * Load the thumbnail for the media entry
+             *
+             * @param context the context to load the thumbnail with
+             * @param entry   the media entry to load the thumbnail for
+             * @return the thumbnail that was loaded, or null if no thumbnail could be loaded
+             */
+            @Nullable
+            private Bitmap loadThumbnail(@NonNull Context context, @NonNull MediaEntry entry)
+            {
+                //get thumbnail
+                Bitmap thumbnail = null;
+
+                //try to get thumbnail from MediaStore
+                try (Cursor thumbCursor = MediaStore.Images.Thumbnails.queryMiniThumbnails(context.getContentResolver(), entry.getUri(), MediaStore.Images.Thumbnails.MINI_KIND, null))
+                {
+                    //check cursor is ok
+                    if (thumbCursor != null && thumbCursor.getCount() > 0)
+                    {
+                        //move to first entry
+                        thumbCursor.moveToFirst();
+
+                        //get thumbnail uri
+                        String thumbUri = thumbCursor.getString(thumbCursor.getColumnIndex(MediaStore.Images.Thumbnails.DATA));
+
+                        if (thumbUri != null)
+                        {
+                            //load thumbnail as bitmap
+                            thumbnail = MediaStore.Images.Media.getBitmap(context.getContentResolver(), Uri.parse(thumbUri));
+                        }
+
+                    }
+                }
+                catch (IOException e)
+                {
+                    //thumbnail from MediaStore failed :(
+                    Logging.logW("failed to load thumbnail for %s from MediaStore! Will fall back to MediaMetadataResolver...", entry.toString());
+                }
+
+                //fallback to MediaMetadataRetriever for getting a thumbnail
+                if (thumbnail == null)
+                {
+                    MediaMetadataRetriever metadataRetriever = new MediaMetadataRetriever();
+                    metadataRetriever.setDataSource(context, entry.getUri());
+                    thumbnail = metadataRetriever.getFrameAtTime();
+                }
+
+                return thumbnail;
             }
         }
     }

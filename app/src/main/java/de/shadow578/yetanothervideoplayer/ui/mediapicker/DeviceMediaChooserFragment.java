@@ -3,14 +3,13 @@ package de.shadow578.yetanothervideoplayer.ui.mediapicker;
 import android.Manifest;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.CancellationSignal;
 import android.provider.MediaStore;
-import android.util.Size;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,16 +22,16 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import de.shadow578.yetanothervideoplayer.R;
+import de.shadow578.yetanothervideoplayer.ui.LaunchActivity;
 import de.shadow578.yetanothervideoplayer.util.Logging;
 
 /**
  * Fragment that shows {@link de.shadow578.yetanothervideoplayer.ui.mediapicker.views.MediaCardView} for each media element on the device that matches the MediaKind given.
  * Make sure that your app has {@link Manifest.permission#READ_EXTERNAL_STORAGE} before you use this fragment
  */
-public class DeviceMediaChooserFragment extends Fragment
+public class DeviceMediaChooserFragment extends Fragment implements RecyclerMediaEntryAdapter.CardClickListener
 {
     //region Variables
     /**
@@ -75,17 +74,33 @@ public class DeviceMediaChooserFragment extends Fragment
         Logging.logD("onCreateView()");
         View rootView = inflater.inflate(R.layout.mediapicker_fragment_device_media_chooser, container, false);
 
+        //find views
+        RecyclerView mediaCardsRecycler = rootView.findViewById(R.id.mediapicker_media_previews_list);
+        View noMediaInfo = rootView.findViewById(R.id.mediapicker_no_media_container);
+
         //setup adapter for recycler view
         Context ctx = getContext();
-        if (ctx != null && mediaEntries != null && mediaEntries.size() > 0)
+        if (ctx != null && mediaCardsRecycler != null && noMediaInfo != null)
         {
-            //create adapter
-            RecyclerMediaEntryAdapter adapter = new RecyclerMediaEntryAdapter(ctx, mediaEntries);
+            if (mediaEntries != null && mediaEntries.size() > 0)
+            {
+                //have media, init recycler and make it visible & no media warning invisible
+                mediaCardsRecycler.setVisibility(View.VISIBLE);
+                noMediaInfo.setVisibility(View.GONE);
 
-            //setup recycler view for media previews
-            RecyclerView mediaCardsView = rootView.findViewById(R.id.mediapicker_media_previews_list);
-            mediaCardsView.setLayoutManager(new LinearLayoutManager(ctx));
-            mediaCardsView.setAdapter(adapter);
+                //create adapter
+                RecyclerMediaEntryAdapter adapter = new RecyclerMediaEntryAdapter(ctx, mediaEntries, this);
+
+                //setup recycler view for media previews
+                mediaCardsRecycler.setLayoutManager(new LinearLayoutManager(ctx));
+                mediaCardsRecycler.setAdapter(adapter);
+            }
+            else
+            {
+                //no media, show that warning
+                mediaCardsRecycler.setVisibility(View.GONE);
+                noMediaInfo.setVisibility(View.VISIBLE);
+            }
         }
 
         //return the root view normally
@@ -124,11 +139,6 @@ public class DeviceMediaChooserFragment extends Fragment
                     //add media to list
                     addMediaToList(videoCursor, mediaEntries, MediaEntry.MediaKind.VIDEO);
                 }
-                else
-                {
-                    //oh no! there is no videos on this device!
-                    Logging.logE("NO VIDEOS!");
-                }
             }
         }
 
@@ -147,21 +157,10 @@ public class DeviceMediaChooserFragment extends Fragment
                     //add media to list
                     addMediaToList(audioCursor, mediaEntries, MediaEntry.MediaKind.MUSIC);
                 }
-                else
-                {
-                    //uh- oh! we have no audio on this device!
-                    Logging.logE("NO MUSIC!");
-                }
             }
         }
 
-        //TODO: add media multiple times to make list longer
-        Random rnd = new Random();
-        while (mediaEntries.size() < 20)
-        {
-            mediaEntries.add(mediaEntries.get(rnd.nextInt(mediaEntries.size())));
-        }
-
+        //finish up
         Logging.logD("initializeMediaEntries() found %d media entries", mediaEntries.size());
     }
 
@@ -187,25 +186,59 @@ public class DeviceMediaChooserFragment extends Fragment
             String uriStr = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA));
             String title = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME));
 
+            //skip if title is empty
+            if (title == null || title.isEmpty()) continue;
+
             //parse uri
             Uri uri = Uri.parse(uriStr);
 
+            //skip if invalid uri
+            if (uri == null) continue;
+
             //get extra metadata for media
             metadataRetriever.setDataSource(getContext(), uri);
-            int duration = Integer.parseInt(metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)) / 1000;//ms to s
-            Size vidSize = null;
-            if (mediaKind == MediaEntry.MediaKind.VIDEO)
+            String durationStr = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+            int duration = -1;
+            if (durationStr != null && !durationStr.isEmpty())
             {
-                //for resolution, we just take some random frame of the video and get it's resolution
-                Bitmap randomFrame = metadataRetriever.getFrameAtTime();
-                vidSize = new Size(randomFrame.getWidth(), randomFrame.getHeight());
+                duration = Integer.parseInt(durationStr) / 1000;//ms to s
             }
 
+            //skip if duration not available
+            if (duration <= 0) continue;
+
+            //TODO: get resolution in a different way, this is way too slow
+            //Size vidSize = null;
+            //if (mediaKind == MediaEntry.MediaKind.VIDEO)
+            //{
+            //    //for resolution, we just take some random frame of the video and get it's resolution
+            //    Bitmap randomFrame = metadataRetriever.getFrameAtTime();
+            //    if (randomFrame != null)
+            //        vidSize = new Size(randomFrame.getWidth(), randomFrame.getHeight());
+            //}
+
             //create and add media entry
-            MediaEntry entry = new MediaEntry(mediaKind, uri, title, duration, vidSize);
+            MediaEntry entry = new MediaEntry(mediaKind, uri, title, duration, null);
             mediaList.add(entry);
             Logging.logD("add MediaEntry %s; list size: %d", entry.toString(), mediaList.size());
         }
         while (cursor.moveToNext());
+    }
+
+    /**
+     * Called when the media card was clicked
+     *
+     * @param cardMedia the media entry of the card
+     */
+    @Override
+    public void onMediaCardClicked(MediaEntry cardMedia)
+    {
+        Logging.logE("Card clicked: %s", cardMedia.toString());
+
+        //launch player activity
+        Intent playbackIntent = new Intent(getContext(), LaunchActivity.class);
+        playbackIntent.setData(cardMedia.getUri());
+        playbackIntent.putExtra(Intent.EXTRA_TITLE, cardMedia.getTitle());
+        startActivity(playbackIntent);
     }
 }

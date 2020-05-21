@@ -1,5 +1,6 @@
 package de.shadow578.yetanothervideoplayer.ui.mediapicker;
 
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.util.Size;
 
@@ -53,7 +54,13 @@ public class MediaEntry
     @Nullable
     private final Size videoResolution;
 
-    public MediaEntry(@NonNull MediaKind kind, @NonNull Uri uri, @NonNull String title, int duration, @Nullable Size videoResolution)
+    /**
+     * Thumbnail of the media. May be loaded at a later time
+     */
+    @Nullable
+    private Bitmap thumbnail;
+
+    MediaEntry(@NonNull MediaKind kind, @NonNull Uri uri, @NonNull String title, int duration, @Nullable Size videoResolution)
     {
         this.kind = kind;
         this.uri = uri;
@@ -63,7 +70,7 @@ public class MediaEntry
     }
 
     @NonNull
-    public MediaKind getKind()
+    MediaKind getKind()
     {
         return kind;
     }
@@ -86,9 +93,20 @@ public class MediaEntry
     }
 
     @Nullable
-    public Size getVideoResolution()
+    Size getVideoResolution()
     {
         return videoResolution;
+    }
+
+    @Nullable
+    Bitmap getThumbnail()
+    {
+        return thumbnail;
+    }
+
+    void setThumbnail(@Nullable Bitmap thumbnail)
+    {
+        this.thumbnail = thumbnail;
     }
 
     @NonNull

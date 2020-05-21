@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <de.shadow578.yetanothervideoplayer.ui.mediapicker.views.MediaCardView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/mediapicker_reclyer_entry_card"
+    android:id="@+id/mediapicker_recycler_entry_card"
     android:layout_width="match_parent"
-    android:layout_height="300dp"
+    android:layout_height="250dp"
     android:layout_marginLeft="2dp"
     android:layout_marginTop="5dp"
     android:layout_marginRight="2dp"
     android:layout_marginBottom="5dp" />
-
