@@ -3,8 +3,8 @@ package de.shadow578.yetanothervideoplayer.ui.mediapicker;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.media.MediaMetadataRetriever;
-import android.media.ThumbnailUtils;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
+import de.shadow578.yetanothervideoplayer.R;
 import de.shadow578.yetanothervideoplayer.ui.mediapicker.views.MediaCardView;
 import de.shadow578.yetanothervideoplayer.util.Logging;
 
@@ -32,10 +33,11 @@ public class RecyclerMediaEntryAdapter extends RecyclerView.Adapter<RecyclerMedi
 
     /**
      * Create a new media entry adapter for a recylcer view
-     * @param context the context ot work in
+     *
+     * @param context      the context ot work in
      * @param mediaEntries the media entries to adapt
      */
-    public RecyclerMediaEntryAdapter(@NonNull Context context, @NonNull List<MediaEntry> mediaEntries)
+    RecyclerMediaEntryAdapter(@NonNull Context context, @NonNull List<MediaEntry> mediaEntries)
     {
         this.context = context;
         this.mediaEntries = mediaEntries;
@@ -98,11 +100,20 @@ public class RecyclerMediaEntryAdapter extends RecyclerView.Adapter<RecyclerMedi
          */
         static MediaCardViewHolder createBlankCard(@NonNull Context ctx, @NonNull ViewGroup parent)
         {
+            //inflate the entrys layout from xml
+            View view = LayoutInflater.from(ctx).inflate(R.layout.mediapicker_recycler_entry_layout, parent, false);
+
+            //find media card in view
+            MediaCardView cardView = view.findViewById(R.id.mediapicker_reclyer_entry_card);
+
+            //create a new view holder
+            return new MediaCardViewHolder(view, cardView);
+
             //create new view instance
-            MediaCardView view = new MediaCardView(ctx);
+            //MediaCardView view = new MediaCardView(ctx);
             //parent.addView(view);
-            view.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-            return new MediaCardViewHolder(view);
+            //view.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            //return new MediaCardViewHolder(view);
         }
 
         /**
@@ -110,10 +121,10 @@ public class RecyclerMediaEntryAdapter extends RecyclerView.Adapter<RecyclerMedi
          */
         private final MediaCardView mediaCard;
 
-        MediaCardViewHolder(@NonNull MediaCardView view)
+        MediaCardViewHolder(@NonNull View view, @NonNull MediaCardView card)
         {
             super(view);
-            mediaCard = view;
+            mediaCard = card;
         }
 
         /**

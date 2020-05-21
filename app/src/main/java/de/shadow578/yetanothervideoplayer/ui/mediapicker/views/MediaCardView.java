@@ -19,6 +19,7 @@ import de.shadow578.yetanothervideoplayer.R;
  * CardView for Media Previews
  * Shows Thumbnail, Title, Playback Duration and Video Resolution to the user.
  */
+@SuppressWarnings({"UnusedReturnValue", "unused"})
 public class MediaCardView extends CardView
 {
 
