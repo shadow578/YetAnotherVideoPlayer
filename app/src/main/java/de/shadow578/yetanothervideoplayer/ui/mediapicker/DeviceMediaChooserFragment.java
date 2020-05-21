@@ -91,6 +91,17 @@ public class DeviceMediaChooserFragment extends Fragment implements RecyclerMedi
                 //create adapter
                 RecyclerMediaEntryAdapter adapter = new RecyclerMediaEntryAdapter(ctx, mediaEntries, this);
 
+                //set default thumbnail according to media type
+                switch (mediaKind)
+                {
+                    case VIDEO:
+                        adapter.setPlaceholderThumbnail(ctx.getDrawable(R.drawable.ic_terrain_black_24dp));
+                        break;
+                    case MUSIC:
+                        adapter.setPlaceholderThumbnail(ctx.getDrawable(R.drawable.ic_music_note_black_24dp));
+                        break;
+                }
+
                 //setup recycler view for media previews
                 mediaCardsRecycler.setLayoutManager(new LinearLayoutManager(ctx));
                 mediaCardsRecycler.setAdapter(adapter);

@@ -3,6 +3,7 @@ package de.shadow578.yetanothervideoplayer.ui.mediapicker;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -59,6 +60,12 @@ public class RecyclerMediaEntryAdapter extends RecyclerView.Adapter<RecyclerMedi
     private final CardClickListener clickListener;
 
     /**
+     * default thumbnail to use when no actual thumbnail was found
+     */
+    @Nullable
+    private Drawable placeholderThumbnail;
+
+    /**
      * Create a new media entry adapter for a recylcer view
      *
      * @param context       the context ot work in
@@ -104,7 +111,7 @@ public class RecyclerMediaEntryAdapter extends RecyclerView.Adapter<RecyclerMedi
 
         //set view data from entry
         final MediaEntry entry = mediaEntries.get(index);
-        viewHolder.setFromMediaEntry(context, entry);
+        viewHolder.setFromMediaEntry(context, entry, placeholderThumbnail);
 
         //set click listener of card
         viewHolder.mediaCard.setOnClickListener(new View.OnClickListener()
@@ -116,6 +123,16 @@ public class RecyclerMediaEntryAdapter extends RecyclerView.Adapter<RecyclerMedi
                     clickListener.onMediaCardClicked(entry);
             }
         });
+    }
+
+    /**
+     * Sets the placeholder thumbnail
+     *
+     * @param placeholderThumbnail the placeholder thumbnail to use
+     */
+    void setPlaceholderThumbnail(@Nullable Drawable placeholderThumbnail)
+    {
+        this.placeholderThumbnail = placeholderThumbnail;
     }
 
     /**
@@ -165,10 +182,11 @@ public class RecyclerMediaEntryAdapter extends RecyclerView.Adapter<RecyclerMedi
         /**
          * Set the values shown in the wrapped media card from a media entry
          *
-         * @param context the context to use for extracting a thumbnail
-         * @param entry   the media entry that provides the values to be shown
+         * @param context              the context to use for extracting a thumbnail
+         * @param entry                the media entry that provides the values to be shown
+         * @param placeholderThumbnail the default (placeholder) thumbnail to use until (or if no) real thumbnail was loaded. null just shows a blank thumbnail by default or while loading
          */
-        void setFromMediaEntry(@NonNull Context context, @NonNull MediaEntry entry)
+        void setFromMediaEntry(@NonNull Context context, @NonNull MediaEntry entry, @Nullable Drawable placeholderThumbnail)
         {
             //set the title and duration
             mediaCard.setMediaTitle(entry.getTitle());
@@ -186,7 +204,7 @@ public class RecyclerMediaEntryAdapter extends RecyclerView.Adapter<RecyclerMedi
             }
 
             //clear thumbnail first
-            mediaCard.setMediaThumbnail(context.getDrawable(R.drawable.ic_placeholder_black_24dp));
+            mediaCard.setMediaThumbnail(placeholderThumbnail);
 
             //set thumbnail
             AsyncLoadThumbnailTask.Parameters params = new AsyncLoadThumbnailTask.Parameters(context, entry, mediaCard);

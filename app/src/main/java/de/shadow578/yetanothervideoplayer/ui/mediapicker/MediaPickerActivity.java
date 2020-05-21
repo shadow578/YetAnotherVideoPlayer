@@ -61,10 +61,10 @@ public class MediaPickerActivity extends AppCompatActivity implements BottomNavi
                 contentFragment = new DeviceMediaChooserFragment(MediaEntry.MediaKind.MUSIC);
                 break;
             }
-            case R.id.mediapicker_navigation_target_about:
+            case R.id.mediapicker_navigation_target_more:
             {
-                //show about page
-                //TODO: about fragment
+                //show "more" page
+                //TODO: more fragment with access to settings, update check, ...
                 break;
             }
         }
