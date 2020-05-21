@@ -184,10 +184,7 @@ public class DeviceMediaChooserFragment extends Fragment implements RecyclerMedi
         {
             //get basic info (data(=uri), title (=display_name)
             String uriStr = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA));
-            String title = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME));
-
-            //skip if title is empty
-            if (title == null || title.isEmpty()) continue;
+            String dispName = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME));
 
             //parse uri
             Uri uri = Uri.parse(uriStr);
@@ -206,6 +203,13 @@ public class DeviceMediaChooserFragment extends Fragment implements RecyclerMedi
 
             //skip if duration not available
             if (duration <= 0) continue;
+
+            //extract title from metadata
+            String title = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+            if (title == null || title.isEmpty())
+            {
+                title = dispName;
+            }
 
             //TODO: get resolution in a different way, this is way too slow
             //Size vidSize = null;

@@ -186,7 +186,7 @@ public class RecyclerMediaEntryAdapter extends RecyclerView.Adapter<RecyclerMedi
             }
 
             //clear thumbnail first
-            mediaCard.setMediaThumbnail((Bitmap) null);
+            mediaCard.setMediaThumbnail(context.getDrawable(R.drawable.ic_placeholder_black_48dp));
 
             //set thumbnail
             AsyncLoadThumbnailTask.Parameters params = new AsyncLoadThumbnailTask.Parameters(context, entry, mediaCard);
@@ -293,6 +293,7 @@ public class RecyclerMediaEntryAdapter extends RecyclerView.Adapter<RecyclerMedi
                 //fallback to MediaMetadataRetriever for getting a thumbnail
                 if (thumbnail == null)
                 {
+                    Logging.logD("Fallback to MediaMetadataRetriever for retrieving thumbnail for %s", entry.toString());
                     MediaMetadataRetriever metadataRetriever = new MediaMetadataRetriever();
                     metadataRetriever.setDataSource(context, entry.getUri());
                     thumbnail = metadataRetriever.getFrameAtTime();
