@@ -59,6 +59,12 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
+                <!-- open debugging activity (only on debug builds) -->
+                <Button
+                    android:id="@+id/more_btn_debug"
+                    style="@style/MoreActionButton"
+                    android:drawableStart="@drawable/ic_placeholder_black_24dp"
+                    android:text="@string/more_open_debug" />
 
                 <!-- check for updates -->
                 <Button

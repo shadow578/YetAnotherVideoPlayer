@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -13,8 +14,10 @@ import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.fragment.app.Fragment;
 
+import de.shadow578.yetanothervideoplayer.BuildConfig;
 import de.shadow578.yetanothervideoplayer.R;
 import de.shadow578.yetanothervideoplayer.ui.AppSettingsActivity;
+import de.shadow578.yetanothervideoplayer.ui.PlayerDebugActivity;
 import de.shadow578.yetanothervideoplayer.util.Logging;
 
 /**
@@ -36,6 +39,11 @@ public class AppMoreFragment extends Fragment implements View.OnClickListener
         rootView.findViewById(R.id.more_btn_about).setOnClickListener(this);
         rootView.findViewById(R.id.more_btn_help).setOnClickListener(this);
 
+        //register click listener for "debug yavp" button and hide the button if not a debug build
+        final Button debugButton = rootView.findViewById(R.id.more_btn_debug);
+        debugButton.setOnClickListener(this);
+        debugButton.setVisibility(BuildConfig.DEBUG ? View.VISIBLE : View.GONE);
+
         //return inflated view
         return rootView;
     }
@@ -51,10 +59,16 @@ public class AppMoreFragment extends Fragment implements View.OnClickListener
         Logging.logD("moreFragment_onClick()");
         switch (view.getId())
         {
+            case R.id.more_btn_debug:
+            {
+                //debug yavp button was clicked
+                startActivity(new Intent(getContext(), PlayerDebugActivity.class));
+                break;
+            }
             case R.id.more_btn_update_check:
             {
                 //update check button was clicked
-                Toast.makeText(getContext(), "Checking for Updates...",Toast.LENGTH_LONG).show();
+                Toast.makeText(getContext(), "Checking for Updates...", Toast.LENGTH_LONG).show();
                 //TODO: add update check
                 break;
             }
@@ -98,7 +112,7 @@ public class AppMoreFragment extends Fragment implements View.OnClickListener
     {
         //get link as uri
         Uri linkUri = Uri.parse(getString(linkRes));
-        if(linkUri == null)
+        if (linkUri == null)
             throw new IllegalArgumentException("Link ResID was not found or is no valid url!");
 
         //open link in default browser
