@@ -10,7 +10,7 @@
 
     <!-- background colors of the app -->
     <color name="app_background_base">#FFFFFF</color>
-    <color name="app_background_elevated">#FAFAFA</color>
+    <color name="app_background_elevated">#F5F5F5</color>
     <color name="app_background_inverse">#000000</color>
 
     <!-- light text color (white on black) -->

@@ -4,9 +4,9 @@
     android:id="@+id/mediapicker_recycler_entry_card"
     android:layout_width="match_parent"
     android:layout_height="240dp"
-    android:layout_marginLeft="2dp"
+    android:layout_marginLeft="5dp"
     android:layout_marginTop="5dp"
-    android:layout_marginRight="2dp"
+    android:layout_marginRight="5dp"
     android:layout_marginBottom="5dp"
     app:cardBackgroundColor="@color/mediacardview_card_background"
     app:cardCornerRadius="@dimen/mediacardview_card_corner_radius"/>

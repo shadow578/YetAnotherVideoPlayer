@@ -10,7 +10,7 @@ import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import de.shadow578.yetanothervideoplayer.R;
-import de.shadow578.yetanothervideoplayer.ui.mediapicker.chooser.DeviceMediaChooserFragment;
+import de.shadow578.yetanothervideoplayer.ui.mediapicker.chooser.MediaChooserFragment;
 import de.shadow578.yetanothervideoplayer.ui.mediapicker.chooser.MediaEntry;
 import de.shadow578.yetanothervideoplayer.util.Logging;
 
@@ -40,7 +40,7 @@ public class MediaPickerActivity extends AppCompatActivity implements BottomNavi
         //TODO: we need READ_EXTERNAL_STORAGE permissions before doing this, get them first ;)
         //show media chooser fragment for VIDEO by default
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.mediapicker_content_container, new DeviceMediaChooserFragment(MediaEntry.MediaKind.VIDEO))
+                .replace(R.id.mediapicker_content_container, new MediaChooserFragment(MediaEntry.MediaKind.VIDEO))
                 .commit();
     }
 
@@ -54,13 +54,13 @@ public class MediaPickerActivity extends AppCompatActivity implements BottomNavi
             case R.id.mediapicker_navigation_target_videos:
             {
                 //show a media chooser fragment for VIDEO
-                contentFragment = new DeviceMediaChooserFragment(MediaEntry.MediaKind.VIDEO);
+                contentFragment = new MediaChooserFragment(MediaEntry.MediaKind.VIDEO);
                 break;
             }
             case R.id.mediapicker_navigation_target_music:
             {
                 //show a media chooser fragment for MUSIC
-                contentFragment = new DeviceMediaChooserFragment(MediaEntry.MediaKind.MUSIC);
+                contentFragment = new MediaChooserFragment(MediaEntry.MediaKind.MUSIC);
                 break;
             }
             case R.id.mediapicker_navigation_target_more:

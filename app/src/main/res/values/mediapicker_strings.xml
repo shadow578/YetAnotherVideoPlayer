@@ -5,4 +5,9 @@
     <string name="mediapicker_nav_music">Music</string>
     <string name="mediapicker_nav_more">More</string>
 
+    <!-- media chooser fragment -->
+    <string name="mediapicker_no_media">No media found!</string>
+    <string name="mediapicker_frag_no_permissions">YAVP needs permissions to list your media</string>
+    <string name="mediapicker_frag_no_permissions_btn">Request Permissions</string>
+
 </resources>

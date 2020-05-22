@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
@@ -13,9 +14,11 @@ import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -29,29 +32,70 @@ import de.shadow578.yetanothervideoplayer.util.Logging;
 
 /**
  * Fragment that shows {@link de.shadow578.yetanothervideoplayer.ui.mediapicker.views.MediaCardView} for each media element on the device that matches the MediaKind given.
- * Make sure that your app has {@link Manifest.permission#READ_EXTERNAL_STORAGE} before you use this fragment
+ * You should get {@link Manifest.permission#READ_EXTERNAL_STORAGE} before you use this fragment. If not, a "request permissions" button will be shown.
  */
-public class DeviceMediaChooserFragment extends Fragment implements RecyclerMediaEntryAdapter.CardClickListener
+public class MediaChooserFragment extends Fragment implements RecyclerMediaEntryAdapter.CardClickListener
 {
+    /**
+     * ID for permission request
+     * Request {@link Manifest.permission#READ_EXTERNAL_STORAGE} permissions and reload media in the fragment if the permissions were granted.
+     */
+    private final int ID_REQUEST_EXT_STORAGE_PERMISSIONS_AND_RELOAD_MEDIA = 0;
+
     //region Variables
+    //region Views
+    /**
+     * Recycler view that displays media entries
+     */
+    private RecyclerView mediaCardsRecycler;
+
+    /**
+     * container view for no media info ui elements
+     */
+    private View noMediaInfo;
+
+    /**
+     * container view for no permissions info ui elements
+     */
+    private View noPermissionsInfo;
+
+    /**
+     * button in the no permissions container that is used to request storage permissions
+     */
+    @SuppressWarnings("FieldCanBeLocal")
+    private Button requestPermissionsButton;
+
+    //endregion
+
     /**
      * Type of media this chooser fragment shows
      */
-    private final MediaEntry.MediaKind mediaKind;
+    private MediaEntry.MediaKind mediaKind = MediaEntry.MediaKind.VIDEO;
 
     /**
      * a list of all media on this device that matches the {@link #mediaKind} of this fragment
      */
     private List<MediaEntry> mediaEntries = new ArrayList<>();
-
     //endregion
 
     /**
-     * Create a new DeviceMediaChooserFragment that shows the given kind of media
+     * Create a default config fragment with mediaKind = VIDEO
+     * <p>
+     * This may cause a bug where a music fragment is converted to video IF the fragment is recreated using this constructor.
+     * However, this will probably not happen that often ;)
+     * Solution, if needed, could be to use savedInstanceState
+     */
+    public MediaChooserFragment()
+    {
+        super();
+    }
+
+    /**
+     * Create a new MediaChooserFragment that shows the given kind of media
      *
      * @param mediaKind the media type this chooser shows
      */
-    public DeviceMediaChooserFragment(MediaEntry.MediaKind mediaKind)
+    public MediaChooserFragment(MediaEntry.MediaKind mediaKind)
     {
         this.mediaKind = mediaKind;
     }
@@ -72,50 +116,93 @@ public class DeviceMediaChooserFragment extends Fragment implements RecyclerMedi
     {
         //inflate the fragment
         Logging.logD("onCreateView()");
-        View rootView = inflater.inflate(R.layout.mediapicker_fragment_device_media_chooser, container, false);
+        final View rootView = inflater.inflate(R.layout.mediapicker_fragment_media_chooser, container, false);
 
         //find views
-        RecyclerView mediaCardsRecycler = rootView.findViewById(R.id.mediapicker_media_previews_list);
-        View noMediaInfo = rootView.findViewById(R.id.mediapicker_no_media_container);
+        mediaCardsRecycler = rootView.findViewById(R.id.mediapicker_media_previews_list);
+        noMediaInfo = rootView.findViewById(R.id.mediapicker_no_media_container);
+        noPermissionsInfo = rootView.findViewById(R.id.mediapicker_no_permissions_container);
+        requestPermissionsButton = rootView.findViewById(R.id.mediapicker_request_permissions_btn);
 
-        //setup adapter for recycler view
+        //make all views are ok
         Context ctx = getContext();
-        if (ctx != null && mediaCardsRecycler != null && noMediaInfo != null)
+        if (ctx == null || mediaCardsRecycler == null || noMediaInfo == null || noPermissionsInfo == null || requestPermissionsButton == null)
+            return rootView;
+
+        //set click listener on "request permission" button
+        requestPermissionsButton.setOnClickListener(new View.OnClickListener()
         {
-            if (mediaEntries != null && mediaEntries.size() > 0)
+            @Override
+            public void onClick(View view)
             {
-                //have media, init recycler and make it visible & no media warning invisible
-                mediaCardsRecycler.setVisibility(View.VISIBLE);
-                noMediaInfo.setVisibility(View.GONE);
-
-                //create adapter
-                RecyclerMediaEntryAdapter adapter = new RecyclerMediaEntryAdapter(ctx, mediaEntries, this);
-
-                //set default thumbnail according to media type
-                switch (mediaKind)
-                {
-                    case VIDEO:
-                        adapter.setPlaceholderThumbnail(ctx.getDrawable(R.drawable.ic_terrain_black_24dp));
-                        break;
-                    case MUSIC:
-                        adapter.setPlaceholderThumbnail(ctx.getDrawable(R.drawable.ic_music_note_black_24dp));
-                        break;
-                }
-
-                //setup recycler view for media previews
-                mediaCardsRecycler.setLayoutManager(new LinearLayoutManager(ctx));
-                mediaCardsRecycler.setAdapter(adapter);
+                requestStoragePermissions();
             }
-            else
-            {
-                //no media, show that warning
-                mediaCardsRecycler.setVisibility(View.GONE);
-                noMediaInfo.setVisibility(View.VISIBLE);
-            }
-        }
+        });
+
+        //set visibilities according to state
+        initAndUpdateUI();
 
         //return the root view normally
         return rootView;
+    }
+
+    /**
+     * initializes and updates the UI according to state.
+     */
+    private void initAndUpdateUI()
+    {
+        //get context
+        Context ctx = getContext();
+
+        //make sure all views are ok
+        if (ctx == null || mediaCardsRecycler == null)
+        {
+            Logging.logE("Context or mediaCardsRecylcer is null!");
+            return;
+        }
+
+        //skip if no storage permissions
+        if (storagePermissionsMissing())
+        {
+            Logging.logD("No Storage permissions, show noStoragePermissions info");
+            mediaCardsRecycler.setVisibility(View.GONE);
+            noMediaInfo.setVisibility(View.GONE);
+            noPermissionsInfo.setVisibility(View.VISIBLE);
+            return;
+        }
+
+        //skip if media list is empty
+        if (mediaEntries == null || mediaEntries.size() <= 0)
+        {
+            Logging.logD("No media entries, show noMediaEntries info");
+            mediaCardsRecycler.setVisibility(View.GONE);
+            noMediaInfo.setVisibility(View.VISIBLE);
+            noPermissionsInfo.setVisibility(View.GONE);
+            return;
+        }
+
+        //make recycler visible
+        mediaCardsRecycler.setVisibility(View.VISIBLE);
+        noMediaInfo.setVisibility(View.GONE);
+        noPermissionsInfo.setVisibility(View.GONE);
+
+        //create adapter
+        RecyclerMediaEntryAdapter adapter = new RecyclerMediaEntryAdapter(ctx, mediaEntries, this);
+
+        //set default thumbnail according to media type
+        switch (mediaKind)
+        {
+            case VIDEO:
+                adapter.setPlaceholderThumbnail(ctx.getDrawable(R.drawable.ic_terrain_black_24dp));
+                break;
+            case MUSIC:
+                adapter.setPlaceholderThumbnail(ctx.getDrawable(R.drawable.ic_music_note_black_24dp));
+                break;
+        }
+
+        //setup recycler view for media previews
+        mediaCardsRecycler.setLayoutManager(new LinearLayoutManager(ctx));
+        mediaCardsRecycler.setAdapter(adapter);
     }
 
     /**
@@ -123,6 +210,9 @@ public class DeviceMediaChooserFragment extends Fragment implements RecyclerMedi
      */
     private void initializeMediaEntries()
     {
+        //check we have storage permissions
+        if (storagePermissionsMissing()) return;
+
         //check we have a valid context to work in
         Context context = getContext();
         if (context == null) return;
@@ -256,5 +346,45 @@ public class DeviceMediaChooserFragment extends Fragment implements RecyclerMedi
         playbackIntent.setData(cardMedia.getUri());
         playbackIntent.putExtra(Intent.EXTRA_TITLE, cardMedia.getTitle());
         startActivity(playbackIntent);
+    }
+
+    /**
+     * @return do we have READ_EXTERNAL_STORAGE permissions granted?
+     */
+    private boolean storagePermissionsMissing()
+    {
+        Context ctx = getContext();
+        if (ctx == null) return true;
+        return ContextCompat.checkSelfPermission(ctx, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED;
+    }
+
+    /**
+     * Request {@link Manifest.permission#READ_EXTERNAL_STORAGE} and reload media list if we got the permissions
+     */
+    private void requestStoragePermissions()
+    {
+        //we already have permissions, don't do anything
+        if (!storagePermissionsMissing()) return;
+
+        //request permissions
+        requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, ID_REQUEST_EXT_STORAGE_PERMISSIONS_AND_RELOAD_MEDIA);
+    }
+
+    /**
+     * Callback for when requested permissions were granted.
+     * Used for ID_REQUEST_EXT_STORAGE_PERMISSIONS_AND_RELOAD_MEDIA
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
+    {
+        if (requestCode == ID_REQUEST_EXT_STORAGE_PERMISSIONS_AND_RELOAD_MEDIA && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+        {
+            //have permissions now, reload media
+            //first initialize media entries list
+            initializeMediaEntries();
+
+            //then update ui
+            initAndUpdateUI();
+        }
     }
 }
