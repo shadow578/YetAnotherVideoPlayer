@@ -1,4 +1,4 @@
-package de.shadow578.yetanothervideoplayer.ui.mediapicker;
+package de.shadow578.yetanothervideoplayer.ui.mediapicker.chooser;
 
 import android.Manifest;
 import android.content.ContentResolver;
@@ -51,7 +51,7 @@ public class DeviceMediaChooserFragment extends Fragment implements RecyclerMedi
      *
      * @param mediaKind the media type this chooser shows
      */
-    DeviceMediaChooserFragment(MediaEntry.MediaKind mediaKind)
+    public DeviceMediaChooserFragment(MediaEntry.MediaKind mediaKind)
     {
         this.mediaKind = mediaKind;
     }

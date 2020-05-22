@@ -78,4 +78,16 @@
         <item name="textColor">@color/quick_settings_item_text</item>
         <item name="textIconPadding">10dp</item>
     </style>
+
+    <!-- shared style of all buttons in more fragment -->
+    <style name="MoreActionButton">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_margin">5dp</item>
+        <item name="android:drawablePadding">15dp</item>
+        <item name="android:gravity">center_vertical|start</item>
+        <item name="android:paddingLeft">20dp</item>
+        <item name="android:paddingRight">20dp</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+    </style>
 </resources>

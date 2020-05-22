@@ -26,7 +26,7 @@
     <string name="settings_swipe_title">Gestures</string>
     <string name="settings_swipe_enable_title">Enable Swipe Gestures</string>
     <string name="settings_swipe_enable_off">Swipe Gestures are disabled</string>
-    <string name="settings_swipe_enable_on">Volume &amp; Brightness can be adjusted by swiping</string>
+    <string name="settings_swipe_enable_on">Volume and Brightness can be adjusted by swiping</string>
     <string name="settings_swipe_brightness_step_title">Brightness Step Size</string>
     <string name="settings_swipe_brightness_step_summary">By how many Percent the Brightness is adjusted per step</string>
     <string name="settings_swipe_hard_swipe_enable_title">Hard- Swipe for Auto Brightness</string>
@@ -35,7 +35,7 @@
     <string name="settings_swipe_hard_swipe_thresh_title">Hard- Swipe Threshold</string>
     <string name="settings_swipe_hard_swipe_thresh_summary">How many pixels long a Swipe hast to be to be counted as a Hard- Swipe</string>
     <string name="settings_swipe_info_duration_title">Info Text Duration</string>
-    <string name="settings_swipe_info_duration_summary">How many milliseconds the Info Text (Brightness &amp; Volume) stays visible</string>
+    <string name="settings_swipe_info_duration_summary">How many milliseconds the Info Text (Brightness and Volume) stays visible</string>
 
     <!-- Settings: swipe - advanced -->
     <string name="settings_swipe_adv_title">Gesture Controls - Advanced</string>
@@ -85,17 +85,17 @@
     <string name="settings_about_version_f">Version %s (%d)</string>
 
     <!-- Settings: about - library -->
-    <string name="settings_about_libs_title">Used Library</string>
-    <string name="settings_about_libs_exoplayer_title">google/ExoPlayer</string>
-    <string name="settings_about_libs_exoplayer_url">https://github.com/google/ExoPlayer</string>
-    <string name="settings_about_libs_mat_icons_title">google/Material-Design-Icons</string>
-    <string name="settings_about_libs_mat_icons_url">https://github.com/google/material-design-icons</string>
-    <string name="settings_about_libs_mat_progress_title">pnikosis/Materialish-Progress</string>
-    <string name="settings_about_libs_mat_progress_url">https://github.com/pnikosis/materialish-progress</string>
-    <string name="settings_about_libs_time_dur_pick_title">svenwiegand/Time-Duration-Picker</string>
-    <string name="settings_about_libs_time_dur_pick_url">https://github.com/svenwiegand/time-duration-picker</string>
-    <string name="settings_about_libs_exofilter_title">MasayukiSuda/ExoPlayerFilter</string>
-    <string name="settings_about_libs_exofilter_url">https://github.com/MasayukiSuda/ExoPlayerFilter</string>
-    <string name="settings_about_libs_anime4k_title">bloc97/Anime4K</string>
-    <string name="settings_about_libs_anime4k_url">https://github.com/bloc97/Anime4K/</string>
+    <string name="settings_about_libs_title">Used Libraries</string>
+    <string name="settings_about_libs_exoplayer_title" translatable="false">google/ExoPlayer</string>
+    <string name="settings_about_libs_exoplayer_url" translatable="false">https://github.com/google/ExoPlayer</string>
+    <string name="settings_about_libs_mat_icons_title" translatable="false">google/Material-Design-Icons</string>
+    <string name="settings_about_libs_mat_icons_url" translatable="false">https://github.com/google/material-design-icons</string>
+    <string name="settings_about_libs_mat_progress_title" translatable="false">pnikosis/Materialish-Progress</string>
+    <string name="settings_about_libs_mat_progress_url" translatable="false">https://github.com/pnikosis/materialish-progress</string>
+    <string name="settings_about_libs_time_dur_pick_title" translatable="false">svenwiegand/Time-Duration-Picker</string>
+    <string name="settings_about_libs_time_dur_pick_url" translatable="false">https://github.com/svenwiegand/time-duration-picker</string>
+    <string name="settings_about_libs_exofilter_title" translatable="false">MasayukiSuda/ExoPlayerFilter</string>
+    <string name="settings_about_libs_exofilter_url" translatable="false">https://github.com/MasayukiSuda/ExoPlayerFilter</string>
+    <string name="settings_about_libs_anime4k_title" translatable="false">bloc97/Anime4K</string>
+    <string name="settings_about_libs_anime4k_url" translatable="false">https://github.com/bloc97/Anime4K/</string>
 </resources>

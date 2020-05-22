@@ -1,4 +1,4 @@
-package de.shadow578.yetanothervideoplayer.ui.mediapicker;
+package de.shadow578.yetanothervideoplayer.ui.mediapicker.chooser;
 
 import android.graphics.Bitmap;
 import android.net.Uri;

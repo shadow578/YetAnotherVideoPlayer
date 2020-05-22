@@ -10,6 +10,8 @@ import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import de.shadow578.yetanothervideoplayer.R;
+import de.shadow578.yetanothervideoplayer.ui.mediapicker.chooser.DeviceMediaChooserFragment;
+import de.shadow578.yetanothervideoplayer.ui.mediapicker.chooser.MediaEntry;
 import de.shadow578.yetanothervideoplayer.util.Logging;
 
 public class MediaPickerActivity extends AppCompatActivity implements BottomNavigationView.OnNavigationItemSelectedListener
@@ -64,7 +66,7 @@ public class MediaPickerActivity extends AppCompatActivity implements BottomNavi
             case R.id.mediapicker_navigation_target_more:
             {
                 //show "more" page
-                //TODO: more fragment with access to settings, update check, ...
+                contentFragment = new AppMoreFragment();
                 break;
             }
         }

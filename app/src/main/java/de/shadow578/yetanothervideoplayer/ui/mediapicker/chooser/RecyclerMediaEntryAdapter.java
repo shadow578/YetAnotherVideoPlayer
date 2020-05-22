@@ -1,4 +1,4 @@
-package de.shadow578.yetanothervideoplayer.ui.mediapicker;
+package de.shadow578.yetanothervideoplayer.ui.mediapicker.chooser;
 
 import android.content.Context;
 import android.database.Cursor;
