@@ -9,60 +9,22 @@
         <item name="windowNoTitle">true</item>
     </style>
 
-    <!-- Base for Buttons -->
-    <style name="AppButton">
+    <!-- shared style of all player control buttons (play/pause/replay/fast forward/ rewind) -->
+    <style name="PlayerControlButton">
         <item name="android:background">?selectableItemBackgroundBorderless</item>
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:scaleType">fitCenter</item>
-    </style>
-
-    <!-- Play button in layout_exo_controls (video controls) -->
-    <style name="AppButton.PlayButton">
-        <item name="android:src">@drawable/ic_play_arrow_black_24dp</item>
         <item name="android:tint">@color/player_controls_center_buttons</item>
     </style>
 
-    <!-- Pause button in layout_exo_controls (video controls) -->
-    <style name="AppButton.PauseButton">
-        <item name="android:src">@drawable/ic_pause_black_24dp</item>
-        <item name="android:tint">@color/player_controls_center_buttons</item>
-    </style>
-
-    <!-- Fast Forward button in layout_exo_controls (video controls) -->
-    <style name="AppButton.FastForwardButton">
-        <item name="android:src">@drawable/ic_fast_forward_black_24dp</item>
-        <item name="android:tint">@color/player_controls_center_buttons</item>
-    </style>
-
-    <!-- Fast Rewind button in layout_exo_controls (video controls) -->
-    <style name="AppButton.FastRewindButton">
-        <item name="android:src">@drawable/ic_fast_rewind_black_24dp</item>
-        <item name="android:tint">@color/player_controls_center_buttons</item>
-    </style>
-
-    <!-- lock screen to portrait button in layout_exo_controls (video controls) -->
-    <style name="AppButton.ScreenLockPortrait">
-        <item name="android:src">@drawable/ic_screen_lock_portrait_black_24dp</item>
+    <!-- shared style of all screen rotation buttons (in playback controls) -->
+    <style name="ScreenRotationButton">
+        <item name="android:background">?selectableItemBackgroundBorderless</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:scaleType">fitCenter</item>
         <item name="android:tint">@color/player_controls_screen_rotation_buttons</item>
-    </style>
-
-    <!-- lock screen to landscape button in layout_exo_controls (video controls) -->
-    <style name="AppButton.ScreenLockLandscape">
-        <item name="android:src">@drawable/ic_screen_lock_landscape_black_24dp</item>
-        <item name="android:tint">@color/player_controls_screen_rotation_buttons</item>
-    </style>
-
-    <!-- auto- rotate button in layout_exo_controls (video controls) -->
-    <style name="AppButton.ScreenAuto">
-        <item name="android:src">@drawable/ic_screen_rotation_black_24dp</item>
-        <item name="android:tint">@color/player_controls_screen_rotation_buttons</item>
-    </style>
-
-    <!-- player settings button in layout_exo_controls (top buttons) -->
-    <style name="AppButton.PlayerQuickSettings">
-        <item name="android:src">@drawable/ic_more_vert_black_24dp</item>
-        <item name="android:tint">@color/player_controls_top_buttons</item>
     </style>
 
     <!-- shared style of all Quick Settings buttons -->

@@ -44,7 +44,8 @@
             <!-- settings button -->
             <ImageButton
                 android:id="@+id/pb_quick_settings"
-                style="@style/AppButton.PlayerQuickSettings"
+                style="@style/PlayerControlButton"
+                android:src="@drawable/ic_more_vert_black_24dp"
                 android:layout_height="match_parent"
                 android:contentDescription="@string/playback_player_quick_settings"
                 android:onClick="playback_OnClick" />
@@ -64,14 +65,16 @@
 
         <ImageButton
             android:id="@id/exo_play"
-            style="@style/AppButton.PlayButton"
+            style="@style/PlayerControlButton"
+            android:src="@drawable/ic_play_arrow_black_24dp"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:contentDescription="@string/exo_controls_play_description" />
 
         <ImageButton
             android:id="@id/exo_pause"
-            style="@style/AppButton.PauseButton"
+            style="@style/PlayerControlButton"
+            android:src="@drawable/ic_pause_black_24dp"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:contentDescription="@string/exo_controls_pause_description"
@@ -130,7 +133,8 @@
             <!-- locked: portrait -->
             <ImageButton
                 android:id="@+id/pb_screen_rotation_portrait"
-                style="@style/AppButton.ScreenLockPortrait"
+                style="@style/ScreenRotationButton"
+                android:src="@drawable/ic_screen_lock_portrait_black_24dp"
                 android:contentDescription="@string/playback_screen_lock_portrait"
                 android:onClick="playback_OnClick"
                 android:visibility="invisible" />
@@ -138,7 +142,8 @@
             <!-- locked: landscape -->
             <ImageButton
                 android:id="@+id/pb_screen_rotation_landscape"
-                style="@style/AppButton.ScreenLockLandscape"
+                style="@style/ScreenRotationButton"
+                android:src="@drawable/ic_screen_lock_landscape_black_24dp"
                 android:contentDescription="@string/playback_screen_lock_landscape"
                 android:onClick="playback_OnClick"
                 android:visibility="invisible" />
@@ -146,7 +151,8 @@
             <!-- automatic/device default -->
             <ImageButton
                 android:id="@+id/pb_screen_rotation_auto"
-                style="@style/AppButton.ScreenAuto"
+                style="@style/ScreenRotationButton"
+                android:src="@drawable/ic_screen_rotation_black_24dp"
                 android:contentDescription="@string/playback_screen_auto"
                 android:onClick="playback_OnClick"
                 android:visibility="visible" />
