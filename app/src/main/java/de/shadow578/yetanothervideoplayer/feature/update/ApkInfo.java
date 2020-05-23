@@ -1,14 +1,14 @@
 package de.shadow578.yetanothervideoplayer.feature.update;
 
-import android.net.Uri;
-
 import androidx.annotation.NonNull;
+
+import java.io.Serializable;
 
 /**
  * Contains information about a apk that is part of a {@link UpdateInfo}
  */
 @SuppressWarnings("unused")
-public final class ApkInfo
+public final class ApkInfo implements Serializable
 {
     /**
      * filename of the apk
@@ -20,14 +20,14 @@ public final class ApkInfo
      * download url of the apk
      */
     @NonNull
-    private final Uri downloadUrl;
+    private final String downloadUrl;
 
     /**
      * how large is the apk?
      */
     private final long fileSize;
 
-    public ApkInfo(@NonNull String filename, @NonNull Uri downloadUrl, long fileSize)
+    public ApkInfo(@NonNull String filename, @NonNull String downloadUrl, long fileSize)
     {
         this.filename = filename;
         this.downloadUrl = downloadUrl;
@@ -47,7 +47,7 @@ public final class ApkInfo
      * @return download url of the apk
      */
     @NonNull
-    public Uri getDownloadUrl()
+    public String getDownloadUrl()
     {
         return downloadUrl;
     }
@@ -58,5 +58,15 @@ public final class ApkInfo
     public long getFileSize()
     {
         return fileSize;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "ApkInfo{" +
+                "filename='" + filename + '\'' +
+                ", downloadUrl='" + downloadUrl + '\'' +
+                ", fileSize=" + fileSize +
+                '}';
     }
 }

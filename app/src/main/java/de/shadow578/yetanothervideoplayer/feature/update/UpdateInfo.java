@@ -1,16 +1,15 @@
 package de.shadow578.yetanothervideoplayer.feature.update;
 
-import android.net.Uri;
-
 import androidx.annotation.NonNull;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
 /**
  * Contains information about a update found by the {@link AppUpdateManager}
  */
 @SuppressWarnings("unused")
-public final class UpdateInfo
+public final class UpdateInfo implements Serializable
 {
     /**
      * version tag of the update
@@ -34,7 +33,7 @@ public final class UpdateInfo
      * url to the update release on github
      */
     @NonNull
-    private final Uri webUrl;
+    private final String webUrl;
 
     /**
      * is this update a pre- release?
@@ -47,7 +46,7 @@ public final class UpdateInfo
     @NonNull
     private final ApkInfo[] updateAssets;
 
-    public UpdateInfo(@NonNull String versionTag, @NonNull String updateTitle, @NonNull String updateDesc, @NonNull Uri webUrl, boolean isPrerelease, @NonNull ApkInfo[] updateAssets)
+    public UpdateInfo(@NonNull String versionTag, @NonNull String updateTitle, @NonNull String updateDesc, @NonNull String webUrl, boolean isPrerelease, @NonNull ApkInfo[] updateAssets)
     {
         this.versionTag = versionTag;
         this.updateTitle = updateTitle;
@@ -88,7 +87,7 @@ public final class UpdateInfo
      * @return url to the update release on github
      */
     @NonNull
-    public Uri getWebUrl()
+    public String getWebUrl()
     {
         return webUrl;
     }

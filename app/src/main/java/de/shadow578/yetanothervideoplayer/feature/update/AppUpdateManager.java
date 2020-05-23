@@ -1,6 +1,5 @@
 package de.shadow578.yetanothervideoplayer.feature.update;
 
-import android.net.Uri;
 import android.os.AsyncTask;
 
 import androidx.annotation.NonNull;
@@ -306,11 +305,11 @@ fileSize    -> (long)   size
                 if (!isApk) continue;
 
                 //create and add apk info object
-                apkAssets.add(new ApkInfo(filename, Uri.parse(dlUrl), fileSize));
+                apkAssets.add(new ApkInfo(filename, dlUrl, fileSize));
             }
 
             //create update info
-            return new UpdateInfo(tag, title, desc, Uri.parse(url), isPrerelease, apkAssets.toArray(new ApkInfo[0]));
+            return new UpdateInfo(tag, title, desc, url, isPrerelease, apkAssets.toArray(new ApkInfo[0]));
         }
     }
 }

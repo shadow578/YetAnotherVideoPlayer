@@ -258,6 +258,7 @@
                 <data android:mimeType="application/3gpp2" />
             </intent-filter>
         </activity>
+        <activity android:name=".ui.update.UpdateActivity" />
 
         <!-- video playback service -->
         <service android:name=".feature.playback.VideoPlaybackService" />
