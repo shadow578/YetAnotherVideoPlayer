@@ -17,7 +17,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import de.shadow578.yetanothervideoplayer.util.Logging;
@@ -75,188 +74,13 @@ public class AppUpdateManager
         VersionComparison compareVersion(String version);
 
         /**
-         * Callback to {@link AppUpdateManager#checkForUpdate()} function.
+         * Callback to {@link AppUpdateManager#checkForUpdate(UpdateCallback)} function.
          * Called after update check is done
          *
          * @param update the update to the latest version. Null if no newer version was found
          * @param failed did the update check fail?
          */
         void onUpdateCheckFinished(@Nullable UpdateInfo update, boolean failed);
-    }
-
-    /**
-     * Information about a update
-     */
-    @SuppressWarnings("unused")
-    public static final class UpdateInfo
-    {
-        /**
-         * Information about a apk that is part of a update
-         */
-        @SuppressWarnings("unused")
-        public static final class ApkInfo
-        {
-            /**
-             * filename of the apk
-             */
-            @NonNull
-            private final String filename;
-
-            /**
-             * download url of the apk
-             */
-            @NonNull
-            private final Uri downloadUrl;
-
-            /**
-             * how large is the apk?
-             */
-            private final long fileSize;
-
-            ApkInfo(@NonNull String filename, @NonNull Uri downloadUrl, long fileSize)
-            {
-                this.filename = filename;
-                this.downloadUrl = downloadUrl;
-                this.fileSize = fileSize;
-            }
-
-            /**
-             * @return filename of the apk
-             */
-            @NonNull
-            public String getFilename()
-            {
-                return filename;
-            }
-
-            /**
-             * @return download url of the apk
-             */
-            @NonNull
-            public Uri getDownloadUrl()
-            {
-                return downloadUrl;
-            }
-
-            /**
-             * @return how large is the apk?
-             */
-            public long getFileSize()
-            {
-                return fileSize;
-            }
-        }
-
-        /**
-         * version tag of the update
-         */
-        @NonNull
-        private final String versionTag;
-
-        /**
-         * title of the update
-         */
-        @NonNull
-        private final String updateTitle;
-
-        /**
-         * description of the update
-         */
-        @NonNull
-        private final String updateDesc;
-
-        /**
-         * url to the update release on github
-         */
-        @NonNull
-        private final Uri webUrl;
-
-        /**
-         * is this update a pre- release?
-         */
-        private final boolean isPrerelease;
-
-        /**
-         * assets of this update (only apks)
-         */
-        @NonNull
-        private final ApkInfo[] updateAssets;
-
-        UpdateInfo(@NonNull String versionTag, @NonNull String updateTitle, @NonNull String updateDesc, @NonNull Uri webUrl, boolean isPrerelease, @NonNull ApkInfo[] updateAssets)
-        {
-            this.versionTag = versionTag;
-            this.updateTitle = updateTitle;
-            this.updateDesc = updateDesc;
-            this.webUrl = webUrl;
-            this.isPrerelease = isPrerelease;
-            this.updateAssets = updateAssets;
-        }
-
-        /**
-         * @return version tag of the update
-         */
-        @NonNull
-        public String getVersionTag()
-        {
-            return versionTag;
-        }
-
-        /**
-         * @return title of the update
-         */
-        @NonNull
-        public String getUpdateTitle()
-        {
-            return updateTitle;
-        }
-
-        /**
-         * @return description of the update
-         */
-        @NonNull
-        public String getUpdateDesc()
-        {
-            return updateDesc;
-        }
-
-        /**
-         * @return url to the update release on github
-         */
-        @NonNull
-        public Uri getWebUrl()
-        {
-            return webUrl;
-        }
-
-        /**
-         * @return is this update a pre- release?
-         */
-        public boolean isPrerelease()
-        {
-            return isPrerelease;
-        }
-
-        /**
-         * @return assets of this update (only apks)
-         */
-        @NonNull
-        public ApkInfo[] getUpdateAssets()
-        {
-            return updateAssets;
-        }
-
-        @Override
-        public String toString()
-        {
-            return "UpdateInfo{" +
-                    "versionTag='" + versionTag + '\'' +
-                    ", updateTitle='" + updateTitle + '\'' +
-                    ", updateDesc='" + updateDesc + '\'' +
-                    ", webUrl=" + webUrl +
-                    ", isPrerelease=" + isPrerelease +
-                    ", updateAssets=" + Arrays.toString(updateAssets) +
-                    '}';
-        }
     }
 
     /**
@@ -276,41 +100,23 @@ public class AppUpdateManager
     private final String repoName;
 
     /**
-     * Callback for the manager.
-     * used as callback after update check and comparator for version strings.
-     */
-    @NonNull
-    private UpdateCallback callback;
-
-    /**
      * Create a new Update Manager
      *
      * @param repoOwner owner of the github repository (github.com/OWNER/repo)
      * @param repoName  name of the github repository ((github.com/owner/REPO)
-     * @param callback  callback to compare version strings to the current version
      */
-    public AppUpdateManager(@NonNull String repoOwner, @NonNull String repoName, @NonNull UpdateCallback callback)
+    public AppUpdateManager(@NonNull String repoOwner, @NonNull String repoName)
     {
         this.repoOwner = repoOwner;
         this.repoName = repoName;
-        this.callback = callback;
-    }
-
-    /**
-     * Set the update callback
-     *
-     * @param callback the callback to use
-     */
-    @SuppressWarnings("unused")
-    public void setCallback(@NonNull UpdateCallback callback)
-    {
-        this.callback = callback;
     }
 
     /**
      * Checks for updates and calls {@link UpdateCallback#onUpdateCheckFinished(UpdateInfo, boolean)} once it's done.
+     *
+     * @param callback callback to compare version strings to the current version
      */
-    public void checkForUpdate()
+    public void checkForUpdate(@NonNull UpdateCallback callback)
     {
         //get url
         URL updateUrl = getUpdateUrl();
@@ -436,7 +242,7 @@ public class AppUpdateManager
                 UpdateInfo update = parseUpdateJson(json);
 
                 //check if update is newer than current version
-                if (parameters.callback.compareVersion(update.versionTag) != VersionComparison.NEWER_VERSION)
+                if (parameters.callback.compareVersion(update.getVersionTag()) != VersionComparison.NEWER_VERSION)
                 {
                     parameters.callback.onUpdateCheckFinished(null, false);
                     return;
@@ -485,7 +291,7 @@ fileSize    -> (long)   size
             boolean isPrerelease = json.getBoolean("prerelease");
 
             //get apk assets
-            List<UpdateInfo.ApkInfo> apkAssets = new ArrayList<>();
+            List<ApkInfo> apkAssets = new ArrayList<>();
             JSONArray assets = json.getJSONArray("assets");
             for (int i = 0; i < assets.length(); i++)
             {
@@ -500,11 +306,11 @@ fileSize    -> (long)   size
                 if (!isApk) continue;
 
                 //create and add apk info object
-                apkAssets.add(new UpdateInfo.ApkInfo(filename, Uri.parse(dlUrl), fileSize));
+                apkAssets.add(new ApkInfo(filename, Uri.parse(dlUrl), fileSize));
             }
 
             //create update info
-            return new UpdateInfo(tag, title, desc, Uri.parse(url), isPrerelease, apkAssets.toArray(new UpdateInfo.ApkInfo[0]));
+            return new UpdateInfo(tag, title, desc, Uri.parse(url), isPrerelease, apkAssets.toArray(new ApkInfo[0]));
         }
     }
 }
