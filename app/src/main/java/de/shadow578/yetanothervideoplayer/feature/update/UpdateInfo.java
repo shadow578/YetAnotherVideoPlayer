@@ -47,7 +47,7 @@ public final class UpdateInfo
     @NonNull
     private final ApkInfo[] updateAssets;
 
-    UpdateInfo(@NonNull String versionTag, @NonNull String updateTitle, @NonNull String updateDesc, @NonNull Uri webUrl, boolean isPrerelease, @NonNull ApkInfo[] updateAssets)
+    public UpdateInfo(@NonNull String versionTag, @NonNull String updateTitle, @NonNull String updateDesc, @NonNull Uri webUrl, boolean isPrerelease, @NonNull ApkInfo[] updateAssets)
     {
         this.versionTag = versionTag;
         this.updateTitle = updateTitle;

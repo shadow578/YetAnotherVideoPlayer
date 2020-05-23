@@ -3,6 +3,8 @@ package de.shadow578.yetanothervideoplayer.util;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.StringRes;
 import androidx.preference.PreferenceManager;
 
 /**
@@ -61,6 +63,26 @@ public class ConfigUtil
     }
 
     /**
+     * Get a string from app preferences
+     *
+     * @param key   the key of the value
+     * @param defId the id of the default value in R.string
+     * @param ctx   the context to get the config value with
+     * @return the string value
+     */
+    public static String getConfigString(@NonNull Context ctx, @NonNull String key, @StringRes int defId)
+    {
+        String def = ctx.getResources().getString(defId);
+
+        //get value
+        String value = getAppConfig(ctx).getString(key, def);
+
+        //log the value
+        Logging.logD("getConfigString(): key= %s; val= %s", key, value);
+        return value;
+    }
+
+    /**
      * Set a boolean in the app preferences
      *
      * @param ctx   the context to get the config value with
@@ -106,5 +128,29 @@ public class ConfigUtil
         //set the value and save them
         prefs.edit().putInt(key, value).apply();
         Logging.logD("Set int key %s to %d", key, value);
+    }
+
+    /**
+     * Set a string in the app preferences
+     *
+     * @param ctx   the context to get the config value with
+     * @param key   the key of the value
+     * @param value the value to set
+     */
+    public static void setConfigString(@NonNull Context ctx, @NonNull String key, @NonNull String value)
+    {
+        //get app preferences
+        SharedPreferences prefs = getAppConfig(ctx);
+
+        //check prefs are ok
+        if (prefs == null)
+        {
+            Logging.logD("cannot save playback position: ConfigUtil.getAppConfig() returned null!");
+            return;
+        }
+
+        //set the value and save them
+        prefs.edit().putString(key, value).apply();
+        Logging.logD("Set string key %s to %s", key, value);
     }
 }

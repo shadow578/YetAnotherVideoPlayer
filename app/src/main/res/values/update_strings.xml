@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="update_dialog_install">Update</string>
+    <string name="update_dialog_dismiss">Dismiss</string>
+    <string name="update_dialog_ignore_this_version">Ignore this Version</string>
+    <string name="update_download_manager_title">YAVP Update</string>
+
+</resources>

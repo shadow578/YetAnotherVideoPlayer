@@ -27,7 +27,7 @@ public final class ApkInfo
      */
     private final long fileSize;
 
-    ApkInfo(@NonNull String filename, @NonNull Uri downloadUrl, long fileSize)
+    public ApkInfo(@NonNull String filename, @NonNull Uri downloadUrl, long fileSize)
     {
         this.filename = filename;
         this.downloadUrl = downloadUrl;

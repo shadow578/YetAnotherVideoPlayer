@@ -177,11 +177,11 @@ public final class ConfigKeys
     public static final String KEY_UPDATE_AVAILABLE = "UPDATE_AVAILABLE";
 
     /**
-     * The version of the last update we prompted a update dialog for
-     * VersionInt
+     * The version of the last update user wanted to ignore.
      * Don't show another prompt for this version
+     * Version tag string
      */
-    public static final String KEY_LAST_UPDATE_PROMPT_VERSION = "LAST_UPDATE_PROMPT_VERSION";
+    public static final String KEY_IGNORE_UPDATE_VERSION = "IGNORE_UPDATE_VERSION";
 
     //endregion
 }

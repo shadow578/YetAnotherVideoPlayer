@@ -41,5 +41,5 @@
     <!-- updates -->
     <integer name="DEF_LAST_UPDATE_CHECK">0</integer>
     <bool name="DEF_UPDATE_AVAILABLE">false</bool>
-    <integer name="DEF_LAST_UPDATE_PROMPT_VERSION">0</integer>
+    <string name="DEF_IGNORE_UPDATE_VERSION">0</string>
 </resources>

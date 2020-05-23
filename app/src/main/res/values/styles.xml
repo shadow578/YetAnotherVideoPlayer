@@ -7,6 +7,9 @@
         <item name="colorAccent">@color/colorAccent</item>
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+
+        <!-- stupid material dialogs need this -->
+        <item name="colorSurface">@color/app_background_elevated</item>
     </style>
 
     <!-- shared style of all player control buttons (play/pause/replay/fast forward/ rewind) -->
