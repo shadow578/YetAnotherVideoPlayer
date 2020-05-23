@@ -7,11 +7,14 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.material.badge.BadgeDrawable;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import de.shadow578.yetanothervideoplayer.R;
 import de.shadow578.yetanothervideoplayer.ui.mediapicker.chooser.MediaChooserFragment;
 import de.shadow578.yetanothervideoplayer.ui.mediapicker.chooser.MediaEntry;
+import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
+import de.shadow578.yetanothervideoplayer.util.ConfigUtil;
 import de.shadow578.yetanothervideoplayer.util.Logging;
 
 public class MediaPickerActivity extends AppCompatActivity implements BottomNavigationView.OnNavigationItemSelectedListener
@@ -37,7 +40,14 @@ public class MediaPickerActivity extends AppCompatActivity implements BottomNavi
         //set this activity as navigation listener
         bottomNav.setOnNavigationItemSelectedListener(this);
 
-        //TODO: we need READ_EXTERNAL_STORAGE permissions before doing this, get them first ;)
+        //add badge on "more" if a update is available
+        if (ConfigUtil.getConfigBoolean(this, ConfigKeys.KEY_UPDATE_AVAILABLE, R.bool.DEF_UPDATE_AVAILABLE))
+        {
+            //TODO: show badge
+            //BadgeDrawable moreBadge = bottomNav.getOrCreateBadge(R.id.mediapicker_navigation_target_more);
+            //moreBadge.setVisible(true);
+        }
+
         //show media chooser fragment for VIDEO by default
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.mediapicker_content_container, new MediaChooserFragment(MediaEntry.MediaKind.VIDEO))

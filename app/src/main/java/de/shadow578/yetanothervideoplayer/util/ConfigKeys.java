@@ -162,4 +162,26 @@ public final class ConfigKeys
      */
     public static final String KEY_LAST_PLAYED_POSITION = "LAST_PLAYED_POSITION";
     //endregion
+
+    //region ~~ Updates ~~
+
+    /**
+     * When was the last update check done?
+     * UTC- Timestamp
+     */
+    public static final String KEY_LAST_UPDATE_CHECK = "LAST_UPDATE_CHECK";
+
+    /**
+     * Persistent flag that tells if a update is available
+     */
+    public static final String KEY_UPDATE_AVAILABLE = "UPDATE_AVAILABLE";
+
+    /**
+     * The version of the last update we prompted a update dialog for
+     * VersionInt
+     * Don't show another prompt for this version
+     */
+    public static final String KEY_LAST_UPDATE_PROMPT_VERSION = "LAST_UPDATE_PROMPT_VERSION";
+
+    //endregion
 }

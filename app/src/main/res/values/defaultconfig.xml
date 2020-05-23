@@ -37,4 +37,9 @@
     <!-- anime4k settings -->
     <bool name="DEF_ANIME4K_FPS_LIMIT_EN">false</bool>
     <integer name="DEF_ANIME4K_FPS_LIMIT">30</integer>
+
+    <!-- updates -->
+    <integer name="DEF_LAST_UPDATE_CHECK">0</integer>
+    <bool name="DEF_UPDATE_AVAILABLE">false</bool>
+    <integer name="DEF_LAST_UPDATE_PROMPT_VERSION">0</integer>
 </resources>

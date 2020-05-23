@@ -14,10 +14,17 @@ import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.fragment.app.Fragment;
 
+import java.util.Date;
+
 import de.shadow578.yetanothervideoplayer.BuildConfig;
 import de.shadow578.yetanothervideoplayer.R;
+import de.shadow578.yetanothervideoplayer.feature.update.AppUpdateManager;
+import de.shadow578.yetanothervideoplayer.feature.update.DefaultUpdateCallback;
+import de.shadow578.yetanothervideoplayer.feature.update.UpdateInfo;
 import de.shadow578.yetanothervideoplayer.ui.AppSettingsActivity;
 import de.shadow578.yetanothervideoplayer.ui.PlayerDebugActivity;
+import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
+import de.shadow578.yetanothervideoplayer.util.ConfigUtil;
 import de.shadow578.yetanothervideoplayer.util.Logging;
 
 /**
@@ -25,6 +32,17 @@ import de.shadow578.yetanothervideoplayer.util.Logging;
  */
 public class AppMoreFragment extends Fragment implements View.OnClickListener
 {
+    /**
+     * Update manager to check for updates
+     */
+    //TODO: get repo info from somewhere else
+    private final AppUpdateManager updateManager = new AppUpdateManager("shadow578", "yetanothervideoplayer");
+
+    /**
+     * Button to start a update (check)
+     */
+    private Button updateCheckButton;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState)
@@ -33,7 +51,8 @@ public class AppMoreFragment extends Fragment implements View.OnClickListener
         View rootView = inflater.inflate(R.layout.mediapicker_fragment_more, container, false);
 
         //register click listeners
-        rootView.findViewById(R.id.more_btn_update_check).setOnClickListener(this);
+        updateCheckButton = rootView.findViewById(R.id.more_btn_update_check);
+        updateCheckButton.setOnClickListener(this);
         rootView.findViewById(R.id.more_btn_settings).setOnClickListener(this);
         rootView.findViewById(R.id.more_btn_donate).setOnClickListener(this);
         rootView.findViewById(R.id.more_btn_about).setOnClickListener(this);
@@ -43,6 +62,13 @@ public class AppMoreFragment extends Fragment implements View.OnClickListener
         final Button debugButton = rootView.findViewById(R.id.more_btn_debug);
         debugButton.setOnClickListener(this);
         debugButton.setVisibility(BuildConfig.DEBUG ? View.VISIBLE : View.GONE);
+
+        //change check for update button if a update is available
+        if (getContext() != null && ConfigUtil.getConfigBoolean(getContext(), ConfigKeys.KEY_UPDATE_AVAILABLE, R.bool.DEF_UPDATE_AVAILABLE))
+        {
+            //update text
+            updateCheckButton.setText(R.string.more_update_available);
+        }
 
         //return inflated view
         return rootView;
@@ -68,8 +94,7 @@ public class AppMoreFragment extends Fragment implements View.OnClickListener
             case R.id.more_btn_update_check:
             {
                 //update check button was clicked
-                Toast.makeText(getContext(), "Checking for Updates...", Toast.LENGTH_LONG).show();
-                //TODO: add update check
+                checkForUpdate();
                 break;
             }
             case R.id.more_btn_settings:
@@ -118,5 +143,53 @@ public class AppMoreFragment extends Fragment implements View.OnClickListener
         //open link in default browser
         Intent webIntent = new Intent(Intent.ACTION_VIEW, linkUri);
         startActivity(webIntent);
+    }
+
+    /**
+     * Uses a {@link de.shadow578.yetanothervideoplayer.feature.update.AppUpdateManager} to check for updates manually
+     */
+    private void checkForUpdate()
+    {
+        //disable the update button while searching
+        updateCheckButton.setEnabled(false);
+
+        //check for a update
+        Toast.makeText(getContext(), R.string.more_update_check_start_toast, Toast.LENGTH_SHORT).show();
+        updateManager.checkForUpdate(new DefaultUpdateCallback()
+        {
+            @Override
+            public void onUpdateCheckFinished(@Nullable UpdateInfo update, boolean failed)
+            {
+                //check if update check failed
+                if (failed)
+                {
+                    Toast.makeText(getContext(), R.string.more_update_check_failed_toast, Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                //save the current timestamp as last update check time in shared prefs
+                ConfigUtil.setConfigInt(getContext(), ConfigKeys.KEY_LAST_UPDATE_CHECK, (int) new Date().getTime());
+
+                //do we have a update?
+                if (update != null)
+                {
+                    //have a update, set persistent flag show update dialog
+                    //set a flag in shared prefs that we have a update, in case the user does not update right away
+                    ConfigUtil.setConfigBoolean(getContext(), ConfigKeys.KEY_UPDATE_AVAILABLE, true);
+
+                    //show update dialog
+                    //TODO: update dialog
+                    Toast.makeText(getContext(), update.getUpdateTitle(), Toast.LENGTH_LONG).show();
+                }
+                else
+                {
+                    //no update found, tell user that
+                    Toast.makeText(getContext(), R.string.more_no_update_toast, Toast.LENGTH_LONG).show();
+                }
+
+                //unlock button
+                updateCheckButton.setEnabled(true);
+            }
+        });
     }
 }
