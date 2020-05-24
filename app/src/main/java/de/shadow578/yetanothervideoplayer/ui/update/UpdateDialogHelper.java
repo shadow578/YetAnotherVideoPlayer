@@ -70,10 +70,17 @@ public class UpdateDialogHelper
         View dialogAddin = View.inflate(ctx, R.layout.update_dialog_addin_layout, null);
         final CheckBox ignoreThisVersion = dialogAddin.findViewById(R.id.update_ignore_version);
 
+        //get and shorten message
+        String msg = update.getUpdateDesc();
+        if (msg.length() > 150)
+        {
+            msg = msg.substring(0, msg.indexOf('\n', 140)) + "\n...";
+        }
+
         //build a dialog that shows update title and description, with options to dismiss and update, + checkbox for ignoring this version
         new MaterialAlertDialogBuilder(ctx)
                 .setTitle(update.getUpdateTitle())
-                .setMessage(update.getUpdateDesc())
+                .setMessage(msg)
                 .setView(dialogAddin)
                 .setPositiveButton(R.string.update_dialog_install, new DialogInterface.OnClickListener()
                 {
