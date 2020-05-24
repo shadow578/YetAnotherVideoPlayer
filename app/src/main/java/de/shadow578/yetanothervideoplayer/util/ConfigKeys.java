@@ -166,6 +166,11 @@ public final class ConfigKeys
     //region ~~ Updates ~~
 
     /**
+     * Are automatic app updates enabled?
+     */
+    public static final String KEY_ENABLE_APP_UPDATES = "ENABLE_APP_UPDATES";
+
+    /**
      * When was the last update check done?
      * UTC- Timestamp
      */

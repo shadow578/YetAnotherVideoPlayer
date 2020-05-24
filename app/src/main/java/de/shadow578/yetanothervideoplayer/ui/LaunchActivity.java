@@ -83,6 +83,13 @@ public class LaunchActivity extends AppCompatActivity
      */
     private boolean shouldCheckUpdate()
     {
+        //check if automatic updates are disabled
+        if (!ConfigUtil.getConfigBoolean(this, ConfigKeys.KEY_ENABLE_APP_UPDATES, R.bool.DEF_ENABLE_APP_UPDATES))
+        {
+            //updates are disabled
+            return false;
+        }
+
         //get time of last update
         //if there was no update, we want to check for one
         int lastUpdateCheck = ConfigUtil.getConfigInt(this, ConfigKeys.KEY_LAST_UPDATE_CHECK, R.integer.DEF_LAST_UPDATE_CHECK);

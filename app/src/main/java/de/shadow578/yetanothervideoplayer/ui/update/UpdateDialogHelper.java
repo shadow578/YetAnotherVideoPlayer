@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.CheckBox;
 
 import androidx.annotation.NonNull;
@@ -16,6 +17,7 @@ import de.shadow578.yetanothervideoplayer.R;
 import de.shadow578.yetanothervideoplayer.feature.update.UpdateInfo;
 import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
 import de.shadow578.yetanothervideoplayer.util.ConfigUtil;
+import de.shadow578.yetanothervideoplayer.util.Logging;
 
 /**
  * Helper for creating a dialog from a {@link UpdateInfo} + handling the actions
@@ -79,7 +81,7 @@ public class UpdateDialogHelper
         }
 
         //build a dialog that shows update title and description, with options to dismiss and update, + checkbox for ignoring this version
-        new MaterialAlertDialogBuilder(ctx)
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(ctx)
                 .setTitle(update.getUpdateTitle())
                 .setMessage(msg)
                 .setView(dialogAddin)
@@ -110,8 +112,17 @@ public class UpdateDialogHelper
                         if (callback != null)
                             callback.onUpdateFinished(false);
                     }
-                })
-                .show();
+                });
+
+        //try to show dialog
+        try
+        {
+            builder.show();
+        }
+        catch (WindowManager.BadTokenException ignore)
+        {
+            Logging.logE("UpdateDialogHelper: the window that called seems to have closed! catching error gracefully");
+        }
     }
 
     /**

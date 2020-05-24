@@ -4,6 +4,13 @@
     <PreferenceCategory android:title="@string/settings_general_title" />
 
     <SwitchPreference
+        android:defaultValue="@bool/DEF_ENABLE_APP_UPDATES"
+        android:key="ENABLE_APP_UPDATES"
+        android:summaryOff="@string/settings_general_check_updates_off"
+        android:summaryOn="@string/settings_general_check_updates_on"
+        android:title="@string/settings_general_check_updates_title" />
+
+    <SwitchPreference
         android:defaultValue="@bool/DEF_BACK_DOUBLE_PRESS_EN"
         android:key="BACK_DOUBLE_PRESS_EN"
         android:summaryOff="@string/settings_general_confirm_exit_off"
