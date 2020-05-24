@@ -19,21 +19,20 @@ With that out of the way, here are some reasons you might want to consider using
 	* Take a look [here](#what-permissions-does-yavp-use) to see what permissions YAVP uses
 * YAVP is __completely free and without ads__
 * YAVP does __not__ include any Trackers
+* YAVP now has a media picker
 * YAVP will play most __Video and Audio Files and Streams__
 	* For a full list of supported formats, see [here](https://exoplayer.dev/supported-formats.html)
 * __Simple and modern__ User Interface
 	* No flashy lights and thousands of buttons, just a simple user interface
 * __Resume where I left__ Features
 	* You can just close the app at any point - it will handle resuming for you later
-* Build and Optimized for watchin __Anime__
+* Build and Optimized for watching __Anime__
 	* For Anime- Specific features, see [here](#anime-specific-features)
 	
 ## Things you should Know
 
 * YAVP requires at least __Android 7.0 (Nougat)__
 	* This may change in the future
-* YAVP cannot be used standalone.
-	* You will need to use another app (like the Gallery app) to open the videos you want to play
 * While Anime4K really is great at making Anime look great, it is also outstandingly eager to drain your battery
 	* When Anime4K is enabled, you will experience a __much__ higher battery drain
 	* To slow down battery drain, you can enable FPS limiting in the app Settings
@@ -54,13 +53,9 @@ I personally use YAVP to watch Anime. As a result of this, it has some features 
 ## FAQ
 
 #### How Do I Play Videos using YAVP?
-Simply open any Video file (for example in the Gallery app). Android will ask you what Video Player you want to use. Simply select YAVP and the video will start playing.
-Additionally, you can share the video. In the Share menu, there will be a entry called __Play with YAVP.__
-
-#### When I Open YAVP, It Only Opens A Windows With Many Buttons?
-YAVP currently does __not__ have a builtin media browser. As such, you have to use a external app to get the video playing. See [here](#how-do-i-play-videos-using-yavp).
-What you are seeing is a debugging activity. It allows me to quickly start playback of a video for testing.
-As soon as there is a media browser, this will be moved somewhere else.
+Simply open YAVP and select a video from the media browser. 
+Additionally, you can also open a video file in another app (eg. the Gallery app) and Android will ask you what video player to use. Simply select YAVP and your video will start playing.
+In addition to this, you can also share the video with YAVP. In the Share menu, there will be a entry called __Play with YAVP.__
 
 #### A App Forces Me To Use VLC For Videos
 Take a look at [NotVLC](https://github.com/shadow578/NotVLC).
@@ -98,11 +93,18 @@ These are all permissions that YAVP uses:
 
 * [__INTERNET__](https://developer.android.com/reference/android/Manifest.permission#INTERNET)
 	* To access the Internet and stream videos
+	* Also to check for and download updates
 * [__MODIFY_AUDIO_SETTINGS__](https://developer.android.com/reference/android/Manifest.permission#MODIFY_AUDIO_SETTINGS)
 	* To adjust the Volume with gestures
 * [__READ_EXTERNAL_STORAGE__](https://developer.android.com/reference/android/Manifest.permission#READ_EXTERNAL_STORAGE)
-	* To play local videos
-	* This permission is actually disabled by default and is only requested when needed.
+	* To list and play local videos
+	* This permission is actually disabled by default and is only requested when needed
+* [__WRITE_EXTERNAL_STORAGE__](https://developer.android.com/reference/android/Manifest.permission#WRITE_EXTERNAL_STORAGE)
+	* To download app updates
+	* This permission is actually disabled by default and is only requested when needed
+* [__REQUEST_INSTALL_PACKAGES__](https://developer.android.com/reference/android/Manifest.permission#REQUEST_INSTALL_PACKAGES)
+	* This might sound scary, but it only means that YAVP is allowed to __ask__ you to install new apps (a new screen will open for you to confirm the installation)
+	* This is used to install app updates
 	
 As you can see, YAVP cannot access any of your private information (for example [__READ_CONTACTS__](https://developer.android.com/reference/android/Manifest.permission#READ_CONTACTS)).
 
@@ -112,7 +114,8 @@ As you can see, YAVP cannot access any of your private information (for example 
 
 * **Include the App Version**
 	* If not on the latest App Version, try updating the app. The Issue may have already been solved
-* Include Steps to reproduce the Bug** (if not obvious from the Description)
+* Include the crash details (select and copy the text on the crash screen)
+* Include steps to reproduce the Bug (if not obvious from the Description)
 * Include Screenshots (if needed)
 * If you suspect the Bug may be device specific, try reproducing on another device (if possible)
 * For large logs use [pastebin.com](https://pastebin.com/) or similar
