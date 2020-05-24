@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="250dp"
+    app:cardBackgroundColor="@color/mediacardview_card_background"
+    app:cardCornerRadius="@dimen/mediacardview_card_corner_radius"
+    tools:parentTag="androidx.cardview.widget.CardView">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- thumbnail -->
+        <ImageView
+            android:id="@+id/mediacardview_thumbnail"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="2dp"
+            android:layout_marginLeft="2dp"
+            android:layout_marginRight="2dp"
+            android:background="@color/mediacardview_thumbnail_background"
+            android:contentDescription="@string/mediacardview_thumbnail_content_description"
+            android:scaleType="fitCenter"
+            app:layout_constraintBottom_toTopOf="@id/mediacardview_title"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:src="@drawable/ic_app_crash_256" />
+
+        <!-- media resolution -->
+        <TextView
+            android:id="@+id/mediacardview_resolution"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:background="@drawable/mediapicker_details_text_rounded"
+            android:maxLines="1"
+            android:textColor="@color/mediacardview_details_text_foreground"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="@id/mediacardview_thumbnail"
+            app:layout_constraintLeft_toLeftOf="@id/mediacardview_thumbnail"
+            tools:text="1920x1080" />
+
+        <!-- media duration -->
+        <TextView
+            android:id="@+id/mediacardview_duration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:background="@drawable/mediapicker_details_text_rounded"
+            android:maxLines="1"
+            android:textColor="@color/mediacardview_details_text_foreground"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="@id/mediacardview_thumbnail"
+            app:layout_constraintRight_toRightOf="@id/mediacardview_thumbnail"
+            tools:text="12:30:50" />
+
+        <!-- media title -->
+        <TextView
+            android:id="@+id/mediacardview_title"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginBottom="10dp"
+            android:ellipsize="end"
+            android:gravity="start|center_vertical"
+            android:maxLines="2"
+            android:textColor="@color/mediacardview_title_text_foreground"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/mediacardview_thumbnail"
+            tools:text="Big Buck Bunny (Directors Cut, with a very long title that is very long for testing).mp4" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</merge>

@@ -1,13 +1,23 @@
 package de.shadow578.yetanothervideoplayer.ui;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
 
+import de.shadow578.yetanothervideoplayer.BuildConfig;
 import de.shadow578.yetanothervideoplayer.R;
+import de.shadow578.yetanothervideoplayer.feature.update.AppUpdateManager;
+import de.shadow578.yetanothervideoplayer.feature.update.DefaultUpdateCallback;
+import de.shadow578.yetanothervideoplayer.feature.update.UpdateInfo;
+import de.shadow578.yetanothervideoplayer.ui.mediapicker.MediaPickerActivity;
+import de.shadow578.yetanothervideoplayer.ui.playback.PlaybackActivity;
+import de.shadow578.yetanothervideoplayer.ui.update.UpdateDialogHelper;
 import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
+import de.shadow578.yetanothervideoplayer.util.ConfigUtil;
 import de.shadow578.yetanothervideoplayer.util.Logging;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -15,10 +25,22 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.widget.Toast;
 
+import java.util.Date;
 import java.util.Locale;
 
 public class LaunchActivity extends AppCompatActivity
 {
+    /**
+     * Intent Extra for the Launcher activity to skip launch delays, eg. use min_splash_screen_duration of 0 ms
+     * (boolean extra)
+     */
+    public static final String EXTRA_LAUNCH_NO_DELAY = "launchNoDelay";
+
+    /**
+     * Update manager to check for updates
+     */
+    private final AppUpdateManager updateManager = new AppUpdateManager(BuildConfig.UPDATE_VENDOR, BuildConfig.UPDATE_REPO);
+
     /**
      * The Shared prefs of this app
      */
@@ -33,14 +55,121 @@ public class LaunchActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_launch);
+        setContentView(R.layout.lauch_activity);
         Logging.logD("Launch Activity onCreate was called.");
 
         //get app prefs
         appPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+    }
 
+    @Override
+    protected void onStart()
+    {
+        super.onStart();
+        if (shouldCheckUpdate())
+        {
+            checkUpdateAndContinueTo();
+        }
+        else
+        {
+            continueTo();
+        }
+
+        //continueTo();
+    }
+
+    /**
+     * @return should we check for a update?
+     */
+    private boolean shouldCheckUpdate()
+    {
+        //check if automatic updates are disabled
+        if (!ConfigUtil.getConfigBoolean(this, ConfigKeys.KEY_ENABLE_APP_UPDATES, R.bool.DEF_ENABLE_APP_UPDATES))
+        {
+            //updates are disabled
+            return false;
+        }
+
+        //get time of last update
+        //if there was no update, we want to check for one
+        int lastUpdateCheck = ConfigUtil.getConfigInt(this, ConfigKeys.KEY_LAST_UPDATE_CHECK, R.integer.DEF_LAST_UPDATE_CHECK);
+        if (lastUpdateCheck == 0)
+        {
+            return true;
+        }
+
+        //get current timestamp
+        int currentTime = (int) new Date().getTime();
+
+        //get minimum time between checks
+        int minimumTime = getResources().getInteger(R.integer.update_check_freqency);
+
+        //check if minimum time has passed
+        return (lastUpdateCheck + minimumTime) < currentTime;
+    }
+
+    /**
+     * Check for a app update, then call continueTo() (if not updating)
+     */
+    private void checkUpdateAndContinueTo()
+    {
+        Toast.makeText(this, R.string.launch_update_check_toast, Toast.LENGTH_SHORT).show();
+        final Context ctx = this;
+        updateManager.checkForUpdate(new DefaultUpdateCallback()
+        {
+            @Override
+            public void onUpdateCheckFinished(@Nullable UpdateInfo update, boolean failed)
+            {
+                //check if update check failed
+                if (failed)
+                {
+                    //update failed, just continue on
+                    continueTo();
+                    return;
+                }
+
+                //save the current timestamp as last update check time in shared prefs
+                ConfigUtil.setConfigInt(ctx, ConfigKeys.KEY_LAST_UPDATE_CHECK, (int) new Date().getTime());
+
+                //check if no update was found
+                if (update == null)
+                {
+                    //no update found, continue on
+                    continueTo();
+                    return;
+                }
+
+                //have a update, set persistent flag show update dialog
+                //set a flag in shared prefs that we have a update, in case the user does not update right away
+                ConfigUtil.setConfigBoolean(ctx, ConfigKeys.KEY_UPDATE_AVAILABLE, true);
+
+                //show update dialog
+                new UpdateDialogHelper(ctx).showUpdateDialog(update, new UpdateDialogHelper.Callback()
+                {
+                    @Override
+                    public void onUpdateFinished(boolean isUpdating)
+                    {
+                        if (!isUpdating) continueTo();
+                    }
+                }, false);
+            }
+        });
+    }
+
+    /**
+     * Continue to launch the appropriate activity based on what is given in this activitys launch intent
+     */
+    private void continueTo()
+    {
         //get splash screen duration
         int minSplashDuration = getResources().getInteger(R.integer.min_splash_screen_duration);
+
+        //get intent that was used to create the activity
+        final Intent launchIntent = getIntent();
+        if (launchIntent.getBooleanExtra(EXTRA_LAUNCH_NO_DELAY, false))
+        {
+            minSplashDuration = 0;
+        }
 
         //post event to start playback activity delayed
         splashHandler.postDelayed(new Runnable()
@@ -48,19 +177,51 @@ public class LaunchActivity extends AppCompatActivity
             @Override
             public void run()
             {
-                //launch the playback activity
-                if (launchPlayback(getIntent()))
+                //check if the intent is ACTION_MAIN (called from launcher) or has no data (cannot play if we have no data ;))
+                String action = launchIntent.getAction();
+                if (action != null
+                        && (action.equals(Intent.ACTION_VIEW) || action.equals(Intent.ACTION_SEND))
+                        && launchIntent.getData() != null)
                 {
-                    //launched ok, close this activity as soon as playback activity closes
-                    finish();
+                    //our target is playback (have data and ACTION_VIEW or ACTION_SEND)
+                    continueToPlayback();
                 }
                 else
                 {
-                    //launch failed, show error
-                    Toast.makeText(getApplicationContext(), "Could not launch Playback Activity!", Toast.LENGTH_LONG).show();
+                    //our target is the media picker (ACTION_MAIN or no data)
+                    continueToMediaPicker();
                 }
             }
         }, minSplashDuration);
+    }
+
+    /**
+     * Continue to the media picker activity (Action.MAIN + Action.VIEW without data)
+     */
+    private void continueToMediaPicker()
+    {
+        //launch media picker
+        Intent pickerIntent = new Intent(this, MediaPickerActivity.class);
+        startActivity(pickerIntent);
+        finish();
+    }
+
+    /**
+     * Continue to the playback activity (Action.SEND and Action.VIEW)
+     */
+    private void continueToPlayback()
+    {
+        //launch the playback activity
+        if (launchPlayback(getIntent()))
+        {
+            //launched ok, close this activity as soon as playback activity closes
+            finish();
+        }
+        else
+        {
+            //launch failed, show error
+            Toast.makeText(getApplicationContext(), "Could not launch Playback Activity!", Toast.LENGTH_LONG).show();
+        }
     }
 
     /**

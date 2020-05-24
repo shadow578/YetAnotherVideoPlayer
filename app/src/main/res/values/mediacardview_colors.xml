@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="mediacardview_card_background">@color/app_background_elevated</color>
+    <color name="mediacardview_thumbnail_background">@color/app_background_elevated</color>
+    <color name="mediacardview_title_text_foreground">@color/app_text_dark</color>
+    <color name="mediacardview_details_text_background">@color/app_dark_curtain_1</color>
+    <color name="mediacardview_details_text_foreground">@color/app_text_light</color>
+</resources>

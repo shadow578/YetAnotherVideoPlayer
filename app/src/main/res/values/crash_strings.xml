@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Crash Activity -->
+    <string name="crash_text_error">An unexpected error occurred and the app had to be closed. \nSorry for the inconvenience.</string>
+    <string name="crash_resume_playback">Try to resume playback</string>
+    <string name="crash_exit_app">Close App</string>
+</resources>

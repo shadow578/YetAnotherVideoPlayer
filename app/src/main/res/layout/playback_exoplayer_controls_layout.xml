@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="center"
+    android:background="@drawable/controls_vignette"
+    android:layoutDirection="ltr"
+    android:orientation="vertical"
+    tools:targetApi="28">
+
+    <!-- top bar -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginHorizontal="5dp"
+        android:layout_marginTop="5dp"
+        android:orientation="vertical">
+
+        <!-- stream title -->
+        <TextView
+            android:id="@+id/pb_streamTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="left"
+            android:text="Video Title that could actually be really long, so we should add some sort of text wrapping here or whatever idk"
+            android:textAllCaps="false"
+            android:textColor="@color/player_controls_title_text"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:visibility="visible"
+            tools:ignore="HardcodedText,RtlHardcoded" />
+
+        <!-- top controls (swipe from right to access)-->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:layout_alignParentRight="true"
+            android:orientation="horizontal"
+            android:visibility="invisible"
+            tools:ignore="RtlHardcoded">
+
+            <!-- settings button -->
+            <ImageButton
+                android:id="@+id/pb_quick_settings"
+                style="@style/PlayerControlButton"
+                android:src="@drawable/ic_more_vert_black_24dp"
+                android:layout_height="match_parent"
+                android:contentDescription="@string/playback_player_quick_settings"
+                android:onClick="playback_OnClick" />
+
+        </LinearLayout>
+
+    </RelativeLayout>
+
+    <!-- play/pause button -->
+    <FrameLayout
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_centerInParent="true"
+        android:layout_gravity="center"
+        android:layout_marginHorizontal="45dp"
+        android:clipChildren="false">
+
+        <ImageButton
+            android:id="@id/exo_play"
+            style="@style/PlayerControlButton"
+            android:src="@drawable/ic_play_arrow_black_24dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/exo_controls_play_description" />
+
+        <ImageButton
+            android:id="@id/exo_pause"
+            style="@style/PlayerControlButton"
+            android:src="@drawable/ic_pause_black_24dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/exo_controls_pause_description"
+            android:visibility="invisible" />
+    </FrameLayout>
+
+    <!-- bottom controls -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="25dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginHorizontal="5dp"
+        android:layout_marginVertical="5dp"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <!-- playback position -->
+        <TextView
+            android:id="@id/exo_position"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:paddingLeft="4dp"
+            android:paddingRight="4dp"
+            android:textColor="@color/player_controls_progress_labels_text"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <!-- (placeholder) progress seek bar -->
+        <View
+            android:id="@id/exo_progress_placeholder"
+            android:layout_width="0dp"
+            android:layout_height="26dp"
+            android:layout_weight="1" />
+
+        <!-- video duration -->
+        <TextView
+            android:id="@id/exo_duration"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:paddingLeft="4dp"
+            android:paddingRight="4dp"
+            android:textColor="@color/player_controls_progress_labels_text"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <!-- screen orientation (portrait/landscape/auto) toggle -->
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent">
+
+            <!-- locked: portrait -->
+            <ImageButton
+                android:id="@+id/pb_screen_rotation_portrait"
+                style="@style/ScreenRotationButton"
+                android:src="@drawable/ic_screen_lock_portrait_black_24dp"
+                android:contentDescription="@string/playback_screen_lock_portrait"
+                android:onClick="playback_OnClick"
+                android:visibility="invisible" />
+
+            <!-- locked: landscape -->
+            <ImageButton
+                android:id="@+id/pb_screen_rotation_landscape"
+                style="@style/ScreenRotationButton"
+                android:src="@drawable/ic_screen_lock_landscape_black_24dp"
+                android:contentDescription="@string/playback_screen_lock_landscape"
+                android:onClick="playback_OnClick"
+                android:visibility="invisible" />
+
+            <!-- automatic/device default -->
+            <ImageButton
+                android:id="@+id/pb_screen_rotation_auto"
+                style="@style/ScreenRotationButton"
+                android:src="@drawable/ic_screen_rotation_black_24dp"
+                android:contentDescription="@string/playback_screen_auto"
+                android:onClick="playback_OnClick"
+                android:visibility="visible" />
+        </RelativeLayout>
+    </LinearLayout>
+</RelativeLayout>

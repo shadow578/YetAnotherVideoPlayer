@@ -7,8 +7,20 @@ android {
         applicationId "de.shadow578.yetanothervideoplayer"
         minSdkVersion 24
         targetSdkVersion 29
+
+        // versioning using gitVersioner. If you want to work without git, change this
+        // to a hardcoded string (or other versioning) + remove gitVersioner from other .gradle files
         versionCode gitVersioner.versionCode
         versionName gitVersioner.versionName
+
+        // info for automatic app updates.
+        // Fill in your github username and repo as you find it in the github url to the repo (eg. github.com/shadow578/YetAnotherVideoPlayer).
+        // Updates are designed to use github releases, so if you want to use something else, you have to reimplement
+        // the update functionality in feature/update/AppUpdateManager.
+        // also, the updater expects the tags in github releases to be formatted as "v<version_int>", but you can change that with the regex below
+        buildConfigField "String", "UPDATE_VENDOR", '"shadow578"'
+        buildConfigField "String", "UPDATE_REPO", '"YetAnotherVideoPlayer"'
+        buildConfigField "String", "UPDATE_VERSION_FORMAT", '"^v(\\\\d{3,})$"'
     }
     buildTypes {
         release {
@@ -33,10 +45,10 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'androidx.appcompat:appcompat:1.0.2'
+    implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
-    implementation 'androidx.preference:preference:1.1.0-rc01'
-    implementation 'com.google.android.material:material:1.0.0'
+    implementation 'androidx.preference:preference:1.1.1'
+    implementation 'com.google.android.material:material:1.1.0'
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.2.0'

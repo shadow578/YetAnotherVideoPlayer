@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="update_dialog_install">Update</string>
+    <string name="update_dialog_dismiss">Dismiss</string>
+    <string name="update_dialog_open_web">View Release</string>
+    <string name="update_dialog_ignore_this_version">Ignore this Version</string>
+    <string name="update_download_manager_title">YAVP Update</string>
+    <string name="update_failed_toast">Update failed</string>
+    <string name="update_install_apk_toast">Click on \"Install\" to install the update</string>
+</resources>

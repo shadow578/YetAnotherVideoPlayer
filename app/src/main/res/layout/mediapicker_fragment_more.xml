@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/app_background_base"
+    android:orientation="vertical">
+
+    <!-- app name presented on top -->
+    <TextView
+        android:id="@+id/more_app_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/app_name"
+        android:textColor="@color/app_text_dark"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/more_app_icon"
+        android:visibility="gone"/>
+
+    <!-- app logo presented on top -->
+    <ImageView
+        android:id="@+id/more_app_icon"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_margin="20dp"
+        android:contentDescription="@string/app_name"
+        android:scaleType="fitCenter"
+        android:src="@mipmap/ic_launcher_foreground"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- action cards -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <!-- app actions card -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/more_card_actions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginBottom="5dp"
+            app:cardBackgroundColor="@color/app_background_elevated"
+            app:cardCornerRadius="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- open debugging activity (only on debug builds) -->
+                <Button
+                    android:id="@+id/more_btn_debug"
+                    style="@style/MoreActionButton"
+                    android:drawableStart="@drawable/ic_placeholder_black_24dp"
+                    android:text="@string/more_open_debug" />
+
+                <!-- check for updates -->
+                <Button
+                    android:id="@+id/more_btn_update_check"
+                    style="@style/MoreActionButton"
+                    android:drawableStart="@drawable/ic_update_black_24dp"
+                    android:text="@string/more_check_for_updates" />
+
+                <!-- settings -->
+                <Button
+                    android:id="@+id/more_btn_settings"
+                    style="@style/MoreActionButton"
+                    android:drawableStart="@drawable/ic_settings_black_24dp"
+                    android:text="@string/more_open_settings" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- app info / links card -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/more_card_info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginBottom="5dp"
+            app:cardBackgroundColor="@color/app_background_elevated"
+            app:cardCornerRadius="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- donate -->
+                <Button
+                    android:id="@+id/more_btn_donate"
+                    style="@style/MoreActionButton"
+                    android:drawableStart="@drawable/ic_free_breakfast_black_24dp"
+                    android:text="@string/more_donate"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+
+                <!-- about -->
+                <Button
+                    android:id="@+id/more_btn_about"
+                    style="@style/MoreActionButton"
+                    android:drawableStart="@drawable/ic_info_outline_black_24dp"
+                    android:text="@string/more_about" />
+
+                <!-- help -->
+                <Button
+                    android:id="@+id/more_btn_help"
+                    style="@style/MoreActionButton"
+                    android:drawableStart="@drawable/ic_help_outline_black_24dp"
+                    android:text="@string/more_help" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

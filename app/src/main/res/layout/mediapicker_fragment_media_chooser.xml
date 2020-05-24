@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/app_background_base"
+    android:orientation="vertical">
+
+    <!-- media entries -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/mediapicker_media_previews_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:visibility="gone" />
+
+    <!-- info containers -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- no permissions info -->
+        <LinearLayout
+            android:id="@+id/mediapicker_no_permissions_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:gravity="center"
+                android:maxWidth="200dp"
+                android:text="@string/mediapicker_frag_no_permissions"
+                android:textColor="@color/app_text_dark"
+                android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/mediapicker_request_permissions_btn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/app_background_elevated"
+                android:foreground="?attr/selectableItemBackground"
+                android:text="@string/mediapicker_frag_no_permissions_btn"
+                tools:foreground="#00000000" />
+
+        </LinearLayout>
+
+        <!-- no media info -->
+        <LinearLayout
+            android:id="@+id/mediapicker_no_media_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:layout_width="200dp"
+                android:layout_height="75dp"
+                android:contentDescription="@string/mediapicker_no_media"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_shrug_black_48dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/mediapicker_no_media"
+                android:textColor="@color/app_text_dark"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

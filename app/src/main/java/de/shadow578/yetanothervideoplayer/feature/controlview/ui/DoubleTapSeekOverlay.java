@@ -265,7 +265,7 @@ public class DoubleTapSeekOverlay extends FrameLayout
         super(context, attrs, defStyleAttr, defStyleRes);
 
         //inflate layout
-        inflate(getContext(), R.layout.layout_double_tap_seek_overlay, this);
+        inflate(getContext(), R.layout.playback_double_tap_seek_overlay_layout, this);
 
         //find views
         seekForwardText = findViewById(R.id.dtso_seek_ffw_text);
@@ -444,7 +444,7 @@ public class DoubleTapSeekOverlay extends FrameLayout
             if (seekForwardText != null && seekForwardAnimation != null)
             {
                 //set text
-                seekForwardText.setText(String.format(getContext().getString(R.string.dtso_seek_duration_label_f), seekAmountS));
+                seekForwardText.setText(String.format(getContext().getString(R.string.double_tap_seek_seek_duration_label), seekAmountS));
 
                 //make visible and start animation
                 seekForwardText.setVisibility(VISIBLE);
@@ -468,7 +468,7 @@ public class DoubleTapSeekOverlay extends FrameLayout
             if (seekReverseText != null && seekReverseAnimation != null)
             {
                 //set text
-                seekReverseText.setText(String.format(getContext().getString(R.string.dtso_seek_duration_label_f), seekAmountS));
+                seekReverseText.setText(String.format(getContext().getString(R.string.double_tap_seek_seek_duration_label), seekAmountS));
 
                 //make visible and start animation
                 seekReverseText.setVisibility(VISIBLE);

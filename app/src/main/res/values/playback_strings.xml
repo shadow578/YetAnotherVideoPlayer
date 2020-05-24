@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Content Descriptions -->
+    <string name="playback_screen_auto">Automatically Rotate Screen</string>
+    <string name="playback_screen_lock_portrait">Lock Screen to Portrait</string>
+    <string name="playback_screen_lock_landscape">Lock Screen to Landscape</string>
+    <string name="playback_player_quick_settings">Open Quick Settings</string>
+
+    <!-- PIP Action Titles -->
+    <string name="pip_title_play">Play</string>
+    <string name="pip_title_pause">Pause</string>
+    <string name="pip_title_replay">Replay</string>
+    <string name="pip_title_rewind">Rewind</string>
+    <string name="pip_title_forward">Fast- Forward</string>
+
+    <!-- Info Texts in PlaybackActivity -->
+    <string name="info_volume_change">Volume: %d%%</string><!-- 1st arg: volume% [0-100] -->
+    <string name="info_brightness_change">Brightness: %s</string><!-- 1st arg: brightness% ["1%"-"100%" + "@strings\info_brightness_auto"] -->
+    <string name="info_brightness_auto">AUTO</string>
+    <string name="info_battery_low">Low Battery</string>
+
+    <!-- Quick Settings -->
+    <string name="quick_settings_quality">Quality</string>
+    <string name="quick_settings_jump_to">Jump to</string>
+    <string name="quick_settings_picture_in_picture">PIP- Player</string>
+    <string name="quick_settings_cast">Cast</string>
+    <string name="quick_settings_loop">Loop</string>
+    <string name="quick_settings_subs">Subtitles</string>
+    <string name="quick_settings_app_settings">Global Settings</string>
+    <string name="quick_settings_skip_intro">Skip Opening</string>
+    <string name="quick_settings_anime4k">Anime4K</string>
+
+    <!-- Toast Strings -->
+    <string name="toast_no_storage_permissions_granted">No Storage Permissions granted! Permissions are required to play local files.</string>
+    <string name="toast_invalid_playback_uri">Invalid Playback URI!</string>
+    <string name="toast_press_back_again_to_exit">Press Back again to exit</string>
+</resources>

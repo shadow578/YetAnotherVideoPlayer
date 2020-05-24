@@ -152,7 +152,7 @@ public class GesturePlayerControlView extends FrameLayout
         super(context, attrs, defStyleAttr, defStyleRes);
 
         //inflate our layout
-        inflate(getContext(), R.layout.layout_gesture_player_control_view, this);
+        inflate(getContext(), R.layout.playback_gesture_control_view_layout, this);
 
         //get views
         playerControls = findViewById(R.id.ctl_playercontrols);

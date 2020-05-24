@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.PlayerDebugActivity"
+    tools:ignore="HardcodedText">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Switch
+                android:id="@+id/vtest_tgl_open_direct"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:text="Directly launch Playback Activity" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Switch
+                android:id="@+id/vtest_tgl_open_share"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="false"
+                android:enabled="false" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:text="Use ACTION_SEND instead of ACTION_VIEW" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Switch
+                android:id="@+id/vtest_tgl_add_title_extra"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:text="Add title as Intent Extra" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Switch
+                android:id="@+id/vtest_tgl_non_standard_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:text="Use non- standard title id for Extra" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/vtest_btn_replaylast"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="videoTest_OnClick"
+            android:text="Replay Last Played"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/vtest_btn_mp3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="videoTest_OnClick"
+            android:text="Stream MP3 Audio (Exoplayer Test Media)"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/vtest_btn_mp4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="videoTest_OnClick"
+            android:text="Stream MP4 Video (BuckBunny 320x180)"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/vtest_btn_mp4_2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="videoTest_OnClick"
+            android:text="Stream MP4 Video (Techslides.com)"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/vtest_btn_webm"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="videoTest_OnClick"
+            android:text="Stream WEBM Video (Techslides.com)"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/vtest_btn_3gp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="videoTest_OnClick"
+            android:text="Stream 3GP Video (Techslides.com)"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/vtest_btn_dash"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="videoTest_OnClick"
+            android:text="Stream DASH Video (DASH IF - Tears of Steel)"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/vtest_btn_dash_2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="videoTest_OnClick"
+            android:text="Stream DASH Video (DASH IF - ElephantsDream)"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/vtest_btn_dash_3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="videoTest_OnClick"
+            android:text="Stream DASH Video (ITEC - Buck Bunny)"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/vtest_btn_dash_and_subs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="videoTest_OnClick"
+            android:text="Stream DASH Video + TTML Subs ()"
+            android:textAllCaps="false"
+            android:visibility="gone"/>
+
+        <Button
+            android:id="@+id/vtest_btn_hls"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="videoTest_OnClick"
+            android:text="Stream HLS Video (bitdash/bitmovin - sintel [+SUBS))"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/vtest_btn_media_picker"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="videoTest_OnClick"
+            android:text="Open Media Picker Activity"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/vtest_btn_settings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="videoTest_OnClick"
+            android:text="Open Settings Activity"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/vtest_btn_crash_app"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="videoTest_OnCrashClick"
+            android:text="Crash Application"
+            android:textAllCaps="false" />
+    </LinearLayout>
+</ScrollView>

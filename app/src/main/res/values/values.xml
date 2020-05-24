@@ -15,4 +15,7 @@
     <bool name="double_tap_seek_enable_fade_animation_combine">true</bool>
     <integer name="double_tap_seek_fade_duration_combine">150</integer>
 
+    <!-- how often do we check for updates (updates are checked in LaunchActivity, so this is more of a "minimum time between checks" value) -->
+    <!-- 12h -->
+    <integer name="update_check_freqency">43200</integer>
 </resources>

@@ -39,7 +39,7 @@ public class CrashScreenActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_crash_screen);
+        setContentView(R.layout.crash_activity);
 
         //get app prefs
         appPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());

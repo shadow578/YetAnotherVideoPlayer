@@ -6,78 +6,29 @@
     <color name="colorAccent">#f55449</color>
     <color name="ic_launcher_background">#008577</color>
 
-    <!-- shared colors -->
-    <color name="white">#FFFFFF</color>
-    <color name="black">#000000</color>
-    <color name="transparent">#00000000</color>
-    <color name="hotpink">#FF64B4</color>
-    <color name="default_text">#FFBEBEBE</color>
+    <!-- layout app colors -->
 
-    <!-- specific colors -->
-    <!-- ~~ acitvity_launch ~~ -->
-    <color name="launch_progress_bar">@color/ic_launcher_background</color>
+    <!-- background colors of the app -->
+    <color name="app_background_base">#FFFFFF</color>
+    <color name="app_background_elevated">#F5F5F5</color>
+    <color name="app_background_inverse">#000000</color>
 
-    <!-- ~~ activity_playback ~~ -->
-    <!-- background color of info text (Volume: x%) label -->
-    <color name="info_text_background">#80000000</color>
+    <!-- light text color (white on black) -->
+    <color name="app_text_light">#FAFAFA</color>
 
-    <!-- text color of info text (Volume: x%) label -->
-    <color name="info_text_text">@color/default_text</color>
+    <!-- dark text color (black on white) -->
+    <color name="app_text_dark">#000000</color>
 
-    <!-- color of buffering state spinner (indeterminate circular progress bar) -->
-    <color name="player_buffering_progress">@color/default_text</color>
+    <!-- color for inactive button icons -->
+    <color name="app_button_inactive">#FAFAFA</color>
 
-    <!-- start color of the player controls background vignette, used to darken the video while showing the controls-->
-    <color name="player_vignette_start">#3E000000</color>
+    <!-- color for active button icons -->
+    <color name="app_button_active">@color/colorAccent</color>
 
-    <!-- start color of the player controls background vignette, used to darken the video while showing the controls-->
-    <color name="player_vignette_end">#BC000000</color>
-
-
-    <!-- ~~ layout_exo_controls ~~ -->
-    <!-- text color of the playback progress / duration labels -->
-    <color name="player_progress_labels_text">@color/default_text</color>
-
-    <!-- text color of the playback title label -->
-    <color name="player_title_text">@color/default_text</color>
-
-    <!-- color of the top buttons in layout_exo_controls (cast/settings) -->
-    <color name="player_top_buttons">@color/default_text</color>
-
-    <!-- color tint of the center buttons in layout_exo_controls (play/pause/fast forward/reverse) -->
-    <color name="player_center_buttons">@color/white</color>
-
-    <!-- color tint of the screen rotation buttons in layout_exo_controls (lock_landscape/lock_portrait/auto) -->
-    <color name="player_screen_rotation_buttons">@color/default_text</color>
-
-    <!-- ~~ layout_playback_quick_settings ~~ -->
-    <!-- general background of quick settings panel -->
-    <color name="qs_background">#43000000</color>
-
-    <!-- background of quick setting items -->
-    <color name="qs_item_background">#69000000</color>
-
-    <!-- color of quick setting item text -->
-    <color name="qs_item_text">@color/default_text</color>
-
-    <!-- default (not- active) icon tint of quick settings icons -->
-    <color name="qs_item_icon_default">@color/white</color>
-
-    <!-- active (...) icon tint of quick settings icons -->
-    <color name="qs_item_icon_active">@color/colorAccent</color>
-
-
-    <!-- ~~ layout_double_tap_seek_overlay -->
-    <!-- text color of seek text (xx Seconds) -->
-    <color name="dtso_seek_text">@color/white</color>
-
-    <!-- colors for seek animation -->
-    <color name="cseek_anim_0">#00FFFFFF</color>
-    <color name="cseek_anim_1">#22FFFFFF</color>
-    <color name="cseek_anim_2">#99FFFFFF</color>
-    <color name="cseek_anim_3">#FFFFFFFF</color>
-
-    <!-- colors for double- tap ripple animation -->
-    <color name="dtso_ripple_arc">#15EEEEEE</color>
-    <color name="dtso_ripple_circle">#15FFFFFF</color>
+    <!-- curtain colors for when we want to darken something. Black curtain with increasing opacity -->
+    <color name="app_dark_curtain_0">#40000000</color>
+    <color name="app_dark_curtain_1">#60000000</color>
+    <color name="app_dark_curtain_2">#80000000</color>
+    <color name="app_dark_curtain_3">#A0000000</color>
+    <color name="app_dark_curtain_4">#C0000000</color>
 </resources>
