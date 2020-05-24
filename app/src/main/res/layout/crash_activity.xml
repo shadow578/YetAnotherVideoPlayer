@@ -20,7 +20,8 @@
             android:layout_width="150dp"
             android:layout_height="100dp"
             android:contentDescription="@null"
-            android:src="@drawable/ic_app_crash_256" />
+            android:src="@drawable/ic_app_crash_256"
+            android:visibility="gone"/>
 
         <TextView
             android:layout_width="wrap_content"
@@ -55,6 +56,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="CRASH_DETAILS"
+                android:textIsSelectable="true"
                 tools:ignore="HardcodedText" />
         </ScrollView>
     </LinearLayout>
