@@ -5,10 +5,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -42,12 +45,40 @@ public class UpdateActivity extends AppCompatActivity
      */
     private final String MIME_TYPE_APK = "application/vnd.android.package-archive";
 
+    /**
+     * Main progress bar to show update / download progress
+     */
+    private ProgressBar progressBar;
+
+    /**
+     * TextView that shows the updates title
+     */
+    private TextView updateTitle;
+
+    /**
+     * TextView that shows the updates message / changelog
+     */
+    private TextView updateMessage;
+
+    /**
+     * Download manager for downloading app updates
+     */
+    private DownloadManager downloadManager;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState)
     {
         //init activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.update_activity);
+
+        //find views
+        progressBar = findViewById(R.id.update_progress_bar);
+        updateTitle = findViewById(R.id.update_title);
+        updateMessage = findViewById(R.id.update_message);
+
+        //get services
+        downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
 
         //get intent that called
         Intent callIntent = getIntent();
@@ -65,6 +96,9 @@ public class UpdateActivity extends AppCompatActivity
             return;
         }
 
+        //update ui
+        setUpdateInfo(update);
+
         //start update
         installUpdate(update);
     }
@@ -74,7 +108,33 @@ public class UpdateActivity extends AppCompatActivity
      */
     private void onUpdateFailed()
     {
+        Toast.makeText(this, R.string.update_failed_toast, Toast.LENGTH_LONG).show();
 
+        progressBar.setIndeterminate(true);
+        updateTitle.setText(R.string.update_failed_toast);
+    }
+
+    /**
+     * Called when the update is ready to install
+     *
+     * @param updateApk the apk file that should be installed for this update
+     */
+    private void onUpdateReady(@NonNull File updateApk)
+    {
+        Toast.makeText(this, R.string.update_install_apk_toast, Toast.LENGTH_LONG).show();
+        installApk(updateApk);
+        finish();
+    }
+
+    /**
+     * set update message and title on the ui
+     *
+     * @param update the update to get title and message of
+     */
+    private void setUpdateInfo(@NonNull UpdateInfo update)
+    {
+        updateTitle.setText(update.getUpdateTitle());
+        updateMessage.setText(update.getUpdateDesc());
     }
 
     //region Update Download and install logic
@@ -98,17 +158,30 @@ public class UpdateActivity extends AppCompatActivity
             return;
         }
 
+        //check download manager is ok
+        if (downloadManager == null)
+        {
+            Logging.logE("failed to find download manager!");
+            onUpdateFailed();
+            return;
+        }
+
         //install apk from update
-        downloadAndInstallUpdate(updateApk, update.getVersionTag());
+        long id = downloadAndInstallUpdate(downloadManager, updateApk, update.getVersionTag());
+
+        //start download observer
+        createDownloadProgressObserver(downloadManager, id, progressBar).start();
     }
 
     /**
      * download and install the apk file
      *
+     * @param dlManager    download manager to use for the download
      * @param apk          the apk to download and install
      * @param downloadDesc description of the download, if null no description is set
+     * @return download id of the started download
      */
-    private void downloadAndInstallUpdate(@NonNull final ApkInfo apk, @Nullable String downloadDesc)
+    private long downloadAndInstallUpdate(@NonNull final DownloadManager dlManager, @NonNull final ApkInfo apk, @Nullable String downloadDesc)
     {
         //find a output name that does not yet exists
         File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
@@ -128,15 +201,6 @@ public class UpdateActivity extends AppCompatActivity
         if (downloadDesc != null && !downloadDesc.isEmpty())
         {
             dlRequest.setDescription(downloadDesc);
-        }
-
-        //get download manager service
-        final DownloadManager dlManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-        if (dlManager == null)
-        {
-            Logging.logE("failed to find download manager!");
-            onUpdateFailed();
-            return;
         }
 
         //enqueue the download of our file
@@ -164,10 +228,7 @@ public class UpdateActivity extends AppCompatActivity
                         && dlMime.equalsIgnoreCase(MIME_TYPE_APK))
                 {
                     //install the apk
-                    Intent installIntent = new Intent(Intent.ACTION_VIEW);
-                    installIntent.setDataAndType(getFileUri(apkFile), MIME_TYPE_APK);
-                    installIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    startActivity(installIntent);
+                    onUpdateReady(apkFile);
                 }
                 else
                 {
@@ -187,6 +248,22 @@ public class UpdateActivity extends AppCompatActivity
             }
         };
         registerReceiver(dlCompleteReceiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+
+        //return download id
+        return dlId;
+    }
+
+    /**
+     * installs a apk file
+     *
+     * @param apkFile the apk to install
+     */
+    private void installApk(@NonNull File apkFile)
+    {
+        Intent installIntent = new Intent(Intent.ACTION_VIEW);
+        installIntent.setDataAndType(getFileUri(apkFile), MIME_TYPE_APK);
+        installIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        startActivity(installIntent);
     }
 
     /**
@@ -205,6 +282,88 @@ public class UpdateActivity extends AppCompatActivity
         {
             return Uri.fromFile(file);
         }
+    }
+
+    /**
+     * Creates a thread that observes the download of the given download id on the download manager, and updates the progress bar accordingly
+     *
+     * @param dlManager   the download manager to observe
+     * @param dlId        the download to observe
+     * @param progressBar the progress bar that is updated according to the download progress
+     * @return the thread to observe the download. Have to call {@link Thread#start()} to start observing.
+     */
+    private Thread createDownloadProgressObserver(@NonNull final DownloadManager dlManager, final long dlId, @NonNull final ProgressBar progressBar)
+    {
+        return new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                //repeat until download finishes
+                boolean isDownloading = true;
+                while (isDownloading)
+                {
+                    //query download progress
+                    DownloadManager.Query query = new DownloadManager.Query();
+                    query.setFilterById(dlId);
+
+                    //access data of query
+                    try (Cursor dlCursor = dlManager.query(query))
+                    {
+                        //check cursor is valid
+                        if (dlCursor != null && dlCursor.getCount() > 0)
+                        {
+                            //move to first position
+                            dlCursor.moveToFirst();
+
+                            //get downloaded and total bytes + current download status
+                            final long bytesDownloaded = dlCursor.getLong(dlCursor.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
+                            final long bytesTotal = dlCursor.getLong(dlCursor.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
+                            final int dlStatus = dlCursor.getInt(dlCursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS));
+
+                            //set downloading flag to false if finished or failed download
+                            isDownloading = dlStatus != DownloadManager.STATUS_SUCCESSFUL && dlStatus != DownloadManager.STATUS_FAILED;
+
+                            //calculate progress of download in percent
+                            final int downloadProgress = (int) (bytesDownloaded * 100 / bytesTotal);
+
+                            //update ui
+                            runOnUiThread(new Runnable()
+                            {
+                                @Override
+                                public void run()
+                                {
+                                    Logging.logD("p= %d", downloadProgress);
+
+                                    //update progress bar
+                                    if (dlStatus == DownloadManager.STATUS_RUNNING
+                                            && downloadProgress > 0 && downloadProgress < 100)
+                                    {
+                                        //update progress bar
+                                        progressBar.setIndeterminate(false);
+                                        progressBar.setProgress(downloadProgress, true);
+                                    }
+                                    else
+                                    {
+                                        //set progress bar to intermediate -> no downloading is happening
+                                        progressBar.setIndeterminate(true);
+                                    }
+                                }
+                            });
+                        }
+                    }
+
+                    //wait a bit before next update
+                    try
+                    {
+                        Thread.sleep(100);
+                    }
+                    catch (InterruptedException ignored)
+                    {
+                    }
+                }
+            }
+        });
     }
     //endregion
 }
