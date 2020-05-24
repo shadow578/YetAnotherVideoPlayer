@@ -115,6 +115,18 @@ public class ConfigUtil
      */
     public static void setConfigInt(Context ctx, String key, int value)
     {
+        setConfigInt(ctx, key, value, true);
+    }
+
+    /**
+     * Set a integer in the app preferences
+     *
+     * @param ctx   the context to get the config value with
+     * @param key   the key of the value
+     * @param value the value to set
+     */
+    public static void setConfigInt(Context ctx, String key, int value, boolean saveAsString)
+    {
         //get app preferences
         SharedPreferences prefs = getAppConfig(ctx);
 
@@ -126,7 +138,14 @@ public class ConfigUtil
         }
 
         //set the value and save them
-        prefs.edit().putString(key, "" + value).apply();
+        if (saveAsString)
+        {
+            prefs.edit().putString(key, "" + value).apply();
+        }
+        else
+        {
+            prefs.edit().putInt(key, value).apply();
+        }
         Logging.logD("Set int key %s to %d", key, value);
     }
 
