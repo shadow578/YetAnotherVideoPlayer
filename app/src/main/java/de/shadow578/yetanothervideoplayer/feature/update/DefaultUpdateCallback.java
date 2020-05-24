@@ -18,7 +18,8 @@ public abstract class DefaultUpdateCallback implements AppUpdateManager.UpdateCa
         //version is in format "v###", so we need to parse it to a version int first
         //this regex does that, and more. It ensures that the string is in format "v####", and capture group 1 contains the version int.
         //would be easier to just not put a v before the version, but that's boring ;)
-        Pattern versionIntRegex = Pattern.compile("^v(\\d{3,})$");
+        //Pattern versionIntRegex = Pattern.compile("^v(\\d{3,})$");
+        Pattern versionIntRegex = Pattern.compile(BuildConfig.UPDATE_VERSION_FORMAT);
         Matcher match = versionIntRegex.matcher(version);
 
         //check format first

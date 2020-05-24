@@ -7,8 +7,20 @@ android {
         applicationId "de.shadow578.yetanothervideoplayer"
         minSdkVersion 24
         targetSdkVersion 29
+
+        // versioning using gitVersioner. If you want to work without git, change this
+        // to a hardcoded string (or other versioning) + remove gitVersioner from other .gradle files
         versionCode gitVersioner.versionCode
         versionName gitVersioner.versionName
+
+        // info for automatic app updates.
+        // Fill in your github username and repo as you find it in the github url to the repo (eg. github.com/shadow578/YetAnotherVideoPlayer).
+        // Updates are designed to use github releases, so if you want to use something else, you have to reimplement
+        // the update functionality in feature/update/AppUpdateManager.
+        // also, the updater expects the tags in github releases to be formatted as "v<version_int>", but you can change that with the regex below
+        buildConfigField "String", "UPDATE_VENDOR", '"shadow578"'
+        buildConfigField "String", "UPDATE_REPO", '"YetAnotherVideoPlayer"'
+        buildConfigField "String", "UPDATE_VERSION_FORMAT", '"^v(\\\\d{3,})$"'
     }
     buildTypes {
         release {

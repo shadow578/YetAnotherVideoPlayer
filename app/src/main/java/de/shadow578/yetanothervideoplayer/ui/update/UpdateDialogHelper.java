@@ -23,7 +23,7 @@ import de.shadow578.yetanothervideoplayer.util.ConfigUtil;
 public class UpdateDialogHelper
 {
     /**
-     * Callback for {@link UpdateDialogHelper#showUpdateDialog(UpdateInfo, Callback)}
+     * Callback for {@link UpdateDialogHelper#showUpdateDialog(UpdateInfo, Callback, boolean)}
      */
     public interface Callback
     {
@@ -53,13 +53,14 @@ public class UpdateDialogHelper
      * When the user chooses to install the update, a new {@link UpdateActivity} is created and the app is restarted.
      * So make sure everything worth saving is saved ;)
      *
-     * @param update   the update to create the dialog for (should have at least one apk asset)
-     * @param callback callback that is called once the update is finished (either because it was dismissed or finished installing)
+     * @param update    the update to create the dialog for (should have at least one apk asset)
+     * @param callback  callback that is called once the update is finished (either because it was dismissed or finished installing)
+     * @param forceShow if true, the users "ignore this update" settings are ignored
      */
-    public void showUpdateDialog(@NonNull final UpdateInfo update, @Nullable final Callback callback)
+    public void showUpdateDialog(@NonNull final UpdateInfo update, @Nullable final Callback callback, boolean forceShow)
     {
         //check if we should show a dialog at all
-        if (dontShowUpdateDialog(update))
+        if (dontShowUpdateDialog(update) && !forceShow)
         {
             if (callback != null) callback.onUpdateFinished(false);
             return;

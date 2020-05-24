@@ -126,7 +126,7 @@ public class ConfigUtil
         }
 
         //set the value and save them
-        prefs.edit().putInt(key, value).apply();
+        prefs.edit().putString(key, "" + value).apply();
         Logging.logD("Set int key %s to %d", key, value);
     }
 

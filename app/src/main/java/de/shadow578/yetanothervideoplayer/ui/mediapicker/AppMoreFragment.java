@@ -1,5 +1,6 @@
 package de.shadow578.yetanothervideoplayer.ui.mediapicker;
 
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -23,6 +24,7 @@ import de.shadow578.yetanothervideoplayer.feature.update.DefaultUpdateCallback;
 import de.shadow578.yetanothervideoplayer.feature.update.UpdateInfo;
 import de.shadow578.yetanothervideoplayer.ui.AppSettingsActivity;
 import de.shadow578.yetanothervideoplayer.ui.PlayerDebugActivity;
+import de.shadow578.yetanothervideoplayer.ui.update.UpdateDialogHelper;
 import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
 import de.shadow578.yetanothervideoplayer.util.ConfigUtil;
 import de.shadow578.yetanothervideoplayer.util.Logging;
@@ -35,8 +37,7 @@ public class AppMoreFragment extends Fragment implements View.OnClickListener
     /**
      * Update manager to check for updates
      */
-    //TODO: get repo info from somewhere else
-    private final AppUpdateManager updateManager = new AppUpdateManager("shadow578", "yetanothervideoplayer");
+    private final AppUpdateManager updateManager = new AppUpdateManager(BuildConfig.UPDATE_VENDOR, BuildConfig.UPDATE_REPO);
 
     /**
      * Button to start a update (check)
@@ -161,7 +162,8 @@ public class AppMoreFragment extends Fragment implements View.OnClickListener
             public void onUpdateCheckFinished(@Nullable UpdateInfo update, boolean failed)
             {
                 //check if update check failed
-                if (failed)
+                Context ctx = getContext();
+                if (failed || ctx == null)
                 {
                     Toast.makeText(getContext(), R.string.more_update_check_failed_toast, Toast.LENGTH_LONG).show();
                     return;
@@ -178,8 +180,7 @@ public class AppMoreFragment extends Fragment implements View.OnClickListener
                     ConfigUtil.setConfigBoolean(getContext(), ConfigKeys.KEY_UPDATE_AVAILABLE, true);
 
                     //show update dialog
-                    //TODO: update dialog
-                    Toast.makeText(getContext(), update.getUpdateTitle(), Toast.LENGTH_LONG).show();
+                    new UpdateDialogHelper(ctx).showUpdateDialog(update, null, true);
                 }
                 else
                 {

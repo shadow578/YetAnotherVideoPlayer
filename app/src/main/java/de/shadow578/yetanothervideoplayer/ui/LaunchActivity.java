@@ -1,15 +1,23 @@
 package de.shadow578.yetanothervideoplayer.ui;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
 
+import de.shadow578.yetanothervideoplayer.BuildConfig;
 import de.shadow578.yetanothervideoplayer.R;
+import de.shadow578.yetanothervideoplayer.feature.update.AppUpdateManager;
+import de.shadow578.yetanothervideoplayer.feature.update.DefaultUpdateCallback;
+import de.shadow578.yetanothervideoplayer.feature.update.UpdateInfo;
 import de.shadow578.yetanothervideoplayer.ui.mediapicker.MediaPickerActivity;
 import de.shadow578.yetanothervideoplayer.ui.playback.PlaybackActivity;
+import de.shadow578.yetanothervideoplayer.ui.update.UpdateDialogHelper;
 import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
+import de.shadow578.yetanothervideoplayer.util.ConfigUtil;
 import de.shadow578.yetanothervideoplayer.util.Logging;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -17,6 +25,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.widget.Toast;
 
+import java.util.Date;
 import java.util.Locale;
 
 public class LaunchActivity extends AppCompatActivity
@@ -26,6 +35,11 @@ public class LaunchActivity extends AppCompatActivity
      * (boolean extra)
      */
     public static final String EXTRA_LAUNCH_NO_DELAY = "launchNoDelay";
+
+    /**
+     * Update manager to check for updates
+     */
+    private final AppUpdateManager updateManager = new AppUpdateManager(BuildConfig.UPDATE_VENDOR, BuildConfig.UPDATE_REPO);
 
     /**
      * The Shared prefs of this app
@@ -52,7 +66,87 @@ public class LaunchActivity extends AppCompatActivity
     protected void onStart()
     {
         super.onStart();
-        continueTo();
+        if (shouldCheckUpdate())
+        {
+            checkUpdateAndContinueTo();
+        }
+        else
+        {
+            continueTo();
+        }
+
+        //continueTo();
+    }
+
+    /**
+     * @return should we check for a update?
+     */
+    private boolean shouldCheckUpdate()
+    {
+        //get time of last update
+        //if there was no update, we want to check for one
+        int lastUpdateCheck = ConfigUtil.getConfigInt(this, ConfigKeys.KEY_LAST_UPDATE_CHECK, R.integer.DEF_LAST_UPDATE_CHECK);
+        if (lastUpdateCheck == 0)
+        {
+            return true;
+        }
+
+        //get current timestamp
+        int currentTime = (int) new Date().getTime();
+
+        //get minimum time between checks
+        int minimumTime = getResources().getInteger(R.integer.update_check_freqency);
+
+        //check if minimum time has passed
+        return (lastUpdateCheck + minimumTime) < currentTime;
+    }
+
+    /**
+     * Check for a app update, then call continueTo() (if not updating)
+     */
+    private void checkUpdateAndContinueTo()
+    {
+        Toast.makeText(this, R.string.launch_update_check_toast, Toast.LENGTH_SHORT).show();
+        final Context ctx = this;
+        updateManager.checkForUpdate(new DefaultUpdateCallback()
+        {
+            @Override
+            public void onUpdateCheckFinished(@Nullable UpdateInfo update, boolean failed)
+            {
+                //check if update check failed
+                if (failed)
+                {
+                    //update failed, just continue on
+                    continueTo();
+                    return;
+                }
+
+                //save the current timestamp as last update check time in shared prefs
+                ConfigUtil.setConfigInt(ctx, ConfigKeys.KEY_LAST_UPDATE_CHECK, (int) new Date().getTime());
+
+                //check if no update was found
+                if (update == null)
+                {
+                    //no update found, continue on
+                    continueTo();
+                    return;
+                }
+
+                //have a update, set persistent flag show update dialog
+                //set a flag in shared prefs that we have a update, in case the user does not update right away
+                ConfigUtil.setConfigBoolean(ctx, ConfigKeys.KEY_UPDATE_AVAILABLE, true);
+
+                //show update dialog
+                new UpdateDialogHelper(ctx).showUpdateDialog(update, new UpdateDialogHelper.Callback()
+                {
+                    @Override
+                    public void onUpdateFinished(boolean isUpdating)
+                    {
+                        if (!isUpdating) continueTo();
+                    }
+                }, false);
+            }
+        });
     }
 
     /**
