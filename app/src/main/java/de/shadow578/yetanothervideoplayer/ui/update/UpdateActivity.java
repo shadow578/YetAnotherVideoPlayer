@@ -1,10 +1,12 @@
 package de.shadow578.yetanothervideoplayer.ui.update;
 
+import android.Manifest;
 import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
@@ -17,6 +19,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
 import java.io.File;
@@ -46,6 +49,11 @@ public class UpdateActivity extends AppCompatActivity
     private final String MIME_TYPE_APK = "application/vnd.android.package-archive";
 
     /**
+     * Id for permission request WRITE_EXTERNAL_STORAGE
+     */
+    private final int ID_PERMISSION_WRITE_EXT_STORAGE = 15;
+
+    /**
      * Main progress bar to show update / download progress
      */
     private ProgressBar progressBar;
@@ -64,6 +72,11 @@ public class UpdateActivity extends AppCompatActivity
      * Download manager for downloading app updates
      */
     private DownloadManager downloadManager;
+
+    /**
+     * Update to install
+     */
+    private UpdateInfo update;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState)
@@ -89,7 +102,7 @@ public class UpdateActivity extends AppCompatActivity
         }
 
         //get update info from intent
-        UpdateInfo update = (UpdateInfo) callIntent.getSerializableExtra(EXTRA_UPDATE_INFO);
+        update = (UpdateInfo) callIntent.getSerializableExtra(EXTRA_UPDATE_INFO);
         if (update == null)
         {
             onUpdateFailed();
@@ -99,8 +112,35 @@ public class UpdateActivity extends AppCompatActivity
         //update ui
         setUpdateInfo(update);
 
-        //start update
-        installUpdate(update);
+        //do we have permissions to write external storage (needed for downloading the update)?
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
+        {
+            //have permission, all ok
+            installUpdate(update);
+        }
+        else
+        {
+            //dont have permission, request
+            requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, ID_PERMISSION_WRITE_EXT_STORAGE);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
+    {
+        if (requestCode == ID_PERMISSION_WRITE_EXT_STORAGE
+                && grantResults.length > 0
+                && grantResults[0] == PackageManager.PERMISSION_GRANTED
+                && update != null)
+        {
+            //got permissions
+            installUpdate(update);
+        }
+        else
+        {
+            //permissions denied
+            onUpdateFailed();
+        }
     }
 
     /**
@@ -109,8 +149,8 @@ public class UpdateActivity extends AppCompatActivity
     private void onUpdateFailed()
     {
         Toast.makeText(this, R.string.update_failed_toast, Toast.LENGTH_LONG).show();
-
-        progressBar.setIndeterminate(true);
+        progressBar.setIndeterminate(false);
+        progressBar.setProgress(0);
         updateTitle.setText(R.string.update_failed_toast);
     }
 
