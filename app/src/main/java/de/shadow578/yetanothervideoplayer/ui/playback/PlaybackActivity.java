@@ -1258,15 +1258,23 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         {
             //make right indicator visible
             if (bufferingIndicatorNormal != null)
-                bufferingIndicatorNormal.setVisibility(isPip ? View.GONE : View.VISIBLE);
+                bufferingIndicatorNormal.setWillNotDraw(isPip);
             if (bufferingIndicatorPip != null)
-                bufferingIndicatorPip.setVisibility(isPip ? View.VISIBLE : View.GONE);
+                bufferingIndicatorPip.setWillNotDraw(!isPip);
+
+            //if (bufferingIndicatorNormal != null)
+            //    bufferingIndicatorNormal.setVisibility(isPip ? View.GONE : View.VISIBLE);
+            //if (bufferingIndicatorPip != null)
+            //    bufferingIndicatorPip.setVisibility(isPip ? View.VISIBLE : View.GONE);
         }
         else
         {
             //make both invisible
-            if (bufferingIndicatorNormal != null) bufferingIndicatorNormal.setVisibility(View.GONE);
-            if (bufferingIndicatorPip != null) bufferingIndicatorPip.setVisibility(View.GONE);
+            if (bufferingIndicatorNormal != null) bufferingIndicatorNormal.setWillNotDraw(true);
+            if (bufferingIndicatorPip != null) bufferingIndicatorPip.setWillNotDraw(true);
+
+            //if (bufferingIndicatorNormal != null) bufferingIndicatorNormal.setVisibility(View.GONE);
+            //if (bufferingIndicatorPip != null) bufferingIndicatorPip.setVisibility(View.GONE);
         }
     }
 
