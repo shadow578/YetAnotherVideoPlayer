@@ -104,6 +104,7 @@ public class CrashScreenActivity extends AppCompatActivity
 
         //launch the launch activity (launch activity handles start position)
         Intent launchIntent = new Intent(this, LaunchActivity.class);
+        launchIntent.setAction(Intent.ACTION_VIEW);
         launchIntent.setData(resumeUri);
         launchIntent.putExtra(Intent.EXTRA_TITLE, resumeTitle);
 
