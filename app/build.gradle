@@ -4,7 +4,12 @@ android {
     compileSdkVersion 29
     buildToolsVersion "29.0.2"
     defaultConfig {
+        //app package name
         applicationId "de.shadow578.yetanothervideoplayer"
+
+        //version requirement and target of yavp
+        //min:    7 Nougat --5 Lollipop--
+        //target: 10
         minSdkVersion 24
         targetSdkVersion 29
 
@@ -21,6 +26,9 @@ android {
         buildConfigField "String", "UPDATE_VENDOR", '"shadow578"'
         buildConfigField "String", "UPDATE_REPO", '"YetAnotherVideoPlayer"'
         buildConfigField "String", "UPDATE_VERSION_FORMAT", '"^v(\\\\d{3,})$"'
+
+        //fixes vector drawables randomly changing color (idk why ¯\_(ツ)_/¯)
+        vectorDrawables.useSupportLibrary = true
     }
     buildTypes {
         release {
