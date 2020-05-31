@@ -8,7 +8,7 @@ android {
         applicationId "de.shadow578.yetanothervideoplayer"
 
         //version requirement and target of yavp
-        //min:    7 Nougat --5 Lollipop--
+        //min:    7 Nougat
         //target: 10
         minSdkVersion 24
         targetSdkVersion 29

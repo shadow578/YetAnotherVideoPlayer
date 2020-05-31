@@ -70,6 +70,9 @@
     <string name="settings_player_auto_pip_on">Enter Picture- in- Picture when minimizing App</string>
     <string name="settings_player_seek_increment_title">Seek Increment</string>
     <string name="settings_player_seek_increment_summary">By how many milliseconds the Seek buttons adjust the playback position</string>
+    <string name="settings_player_video_scale_to_width_title">Scale video to width</string>
+    <string name="settings_player_video_scale_to_width_off">Video is fitted inside Viewport, but not cropped</string>
+    <string name="settings_player_video_scale_to_width_on">Video width is scaled to Viewport, and cropped where needed</string>
 
     <!-- Settings: Anime4K -->
     <string name="settings_a4k_title">Anime4K Settings</string>

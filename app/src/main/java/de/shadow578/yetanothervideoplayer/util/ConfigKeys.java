@@ -57,6 +57,13 @@ public final class ConfigKeys
      * threshold at which a battery warning is shown
      */
     public static final String KEY_BATTERY_WARN_THRESHOLD = "BATTERY_WARN_THRESHOLD";
+
+    /**
+     * scale mode for player view.
+     * if true, the video should be scaled to width (even with cropping)
+     * if false, the video should be fitted in the view area (without cropping)
+     */
+    public static final String KEY_SCALE_TO_WIDTH = "SCALE_TO_WIDTH";
     //endregion
 
     //region ~~ (Swipe) Gestures ~~

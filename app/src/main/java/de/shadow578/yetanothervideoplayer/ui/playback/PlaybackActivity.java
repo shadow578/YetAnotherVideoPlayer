@@ -14,6 +14,7 @@ import de.shadow578.yetanothervideoplayer.feature.controlview.TapToHidePlayerCon
 import de.shadow578.yetanothervideoplayer.feature.gl.GLAnime4K;
 import de.shadow578.yetanothervideoplayer.feature.playback.VideoPlaybackService;
 import de.shadow578.yetanothervideoplayer.feature.playback.VideoPlaybackServiceListener;
+import de.shadow578.yetanothervideoplayer.feature.playerview.YavpEPlayerView;
 import de.shadow578.yetanothervideoplayer.ui.AppSettingsActivity;
 import de.shadow578.yetanothervideoplayer.ui.playback.views.ControlQuickSettingsButton;
 import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
@@ -53,8 +54,6 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.daasuu.epf.EPlayerView;
-import com.daasuu.epf.PlayerScaleType;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
@@ -141,7 +140,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     /**
      * The View the Player Renders Video to
      */
-    private EPlayerView playerView;
+    private YavpEPlayerView playerView;
 
     /**
      * The View that contains and controls the player controls and also handles gestures for us
@@ -1462,7 +1461,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         public void onPlayerInitialized()
         {
             //create new opengl player view
-            playerView = new EPlayerView(playerViewPlaceholder.getContext());
+            playerView = new YavpEPlayerView(playerViewPlaceholder.getContext());
 
             //adjust layout
             playerView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
@@ -1470,8 +1469,17 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
             //set player of view
             playerView.setSimpleExoPlayer(playbackService.getPlayerInstance());
 
-            //we want the video to be scaled to fit the width
-            playerView.setPlayerScaleType(PlayerScaleType.RESIZE_FIT_WIDTH);
+            //set scale type
+            if (ConfigUtil.getConfigBoolean(getApplicationContext(), ConfigKeys.KEY_SCALE_TO_WIDTH, R.bool.DEF_SCALE_TO_WIDTH))
+            {
+                //scale the video to fill the whole width available, even if part of the video is cropped
+                playerView.setPlayerScaleType(YavpEPlayerView.PlayerScaleType.FillWidth);
+            }
+            else
+            {
+                //scale the video to fit inside the viewport (avoid cropping the video)
+                playerView.setPlayerScaleType(YavpEPlayerView.PlayerScaleType.Fit);
+            }
 
             //add player view to placeholder
             playerViewPlaceholder.addView(playerView);

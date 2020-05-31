@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <PreferenceCategory
-        android:title="@string/settings_player_title"/>
+    <PreferenceCategory android:title="@string/settings_player_title" />
 
     <SwitchPreference
         android:defaultValue="@bool/DEF_AUTO_PLAY"
@@ -10,6 +9,13 @@
         android:summaryOff="@string/settings_player_auto_play_off"
         android:summaryOn="@string/settings_player_auto_play_on"
         android:title="@string/settings_player_auto_play_title" />
+
+    <SwitchPreference
+        android:defaultValue="@bool/DEF_SCALE_TO_WIDTH"
+        android:key="SCALE_TO_WIDTH"
+        android:summaryOff="@string/settings_player_video_scale_to_width_off"
+        android:summaryOn="@string/settings_player_video_scale_to_width_on"
+        android:title="@string/settings_player_video_scale_to_width_title" />
 
     <SwitchPreference
         android:defaultValue="@bool/DEF_CLOSE_WHEN_FINISHED_PLAYING"
@@ -28,7 +34,7 @@
     <EditTextPreference
         android:defaultValue="@integer/DEF_SEEK_BUTTON_INCREMENT"
         android:key="SEEK_BUTTON_INCREMENT"
-        android:title="@string/settings_player_seek_increment_title"
-        android:summary="@string/settings_player_seek_increment_summary"/>
+        android:summary="@string/settings_player_seek_increment_summary"
+        android:title="@string/settings_player_seek_increment_title" />
 
 </PreferenceScreen>

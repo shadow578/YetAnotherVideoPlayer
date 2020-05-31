@@ -33,6 +33,7 @@
     <bool name="DEF_CLOSE_WHEN_FINISHED_PLAYING">false</bool>
     <bool name="DEF_ENTER_PIP_ON_LEAVE">true</bool>
     <integer name="DEF_SEEK_BUTTON_INCREMENT">5000</integer>
+    <bool name="DEF_SCALE_TO_WIDTH">false</bool>
 
     <!-- anime4k settings -->
     <bool name="DEF_ANIME4K_FPS_LIMIT_EN">false</bool>
