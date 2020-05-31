@@ -63,7 +63,7 @@ import com.pnikosis.materialishprogress.ProgressWheel;
 
 import java.util.ArrayList;
 
-public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICrashListener
+public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICrashListener, GesturePlayerControlView.Listener
 {
     //region ~~ Constants ~~
 
@@ -221,6 +221,16 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
      * Reset in onStop()
      */
     private boolean dontSavePlaybackPositionOnExit = false;
+
+    /**
+     * if true, the buffering indicator may not be used to indicate buffering
+     */
+    private boolean isBufferingIndicatorBlocked = false;
+
+    /**
+     * is the player currently buffering?
+     */
+    private boolean isBufferingState = false;
     //endregion
 
     //region ~~ Message Handler (delayHandler) ~~
@@ -244,6 +254,11 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
          * Message to make the buffering indicator visible (with a *optional* delay)
          */
         private static final int SHOW_BUFFERING_INDICATOR = 4;
+
+        /**
+         * Message to unblock the buffering indicator
+         */
+        private static final int UNBLOCK_BUFFERING_INDICATOR = 5;
     }
 
     /**
@@ -296,6 +311,20 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                 {
                     setBufferingIndicatorVisible(true, isPictureInPicture);
                 }
+                case Messages.UNBLOCK_BUFFERING_INDICATOR:
+                {
+                    //set visibility
+                    bufferingIndicatorNormal.setWillNotDraw(!isBufferingState || isPictureInPicture);
+
+                    //reset progress + start spinning again
+                    bufferingIndicatorNormal.setInstantProgress(0f);
+                    bufferingIndicatorNormal.setLinearProgress(false);
+                    bufferingIndicatorNormal.spin();
+
+                    //unblock
+                    isBufferingIndicatorBlocked = false;
+                    break;
+                }
             }
         }
     };
@@ -335,6 +364,9 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         int seekIncrement = ConfigUtil.getConfigInt(this, ConfigKeys.KEY_SEEK_BUTTON_INCREMENT, R.integer.DEF_SEEK_BUTTON_INCREMENT);
         playerControlView.getPlayerControls().setFastForwardIncrementMs(seekIncrement);
         playerControlView.getPlayerControls().setRewindIncrementMs(seekIncrement);
+
+        //set volume / brightness change listener
+        playerControlView.setListener(this);
 
         //init screen rotation manager
         screenRotationManager = new ScreenRotationManager();
@@ -988,6 +1020,22 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
 
     //endregion
 
+    //region ~~ Control View / Volume + Brightness change listener
+
+    @Override
+    public void onVolumeChange(float volPercent)
+    {
+        setBufferingIndicatorProgress(volPercent);
+    }
+
+    @Override
+    public void onBrightnessChange(float brightnessPercent)
+    {
+        setBufferingIndicatorProgress(brightnessPercent);
+    }
+
+    //endregion
+
     //region ~~ Utility ~~
 
     /**
@@ -1247,6 +1295,31 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     }
 
     /**
+     * sets the progress of the normal (NOT pip) buffering indicator
+     * used by volume & brightness controls, indicator fills as you swipe
+     * blocks the indicator from being used as buffering indicator
+     * automatically resets the progress & function of the indicator after fixed duration
+     *
+     * @param progressPercent how much the indicator should be filled (0.0 - 1.0)
+     */
+    private void setBufferingIndicatorProgress(float progressPercent)
+    {
+        //block buffering indicator
+        isBufferingIndicatorBlocked = true;
+
+        //set progress of normal indicator instantly and make it visible
+        bufferingIndicatorNormal.setWillNotDraw(false);
+        bufferingIndicatorNormal.setInstantProgress(progressPercent);
+        bufferingIndicatorNormal.setLinearProgress(true);
+
+        //reset later
+        int indicatorVisibleDuration = getResources().getInteger(R.integer.info_buffering_indicator_duration)
+                + ConfigUtil.getConfigInt(this, ConfigKeys.KEY_INFO_TEXT_DURATION, R.integer.DEF_INFO_TEXT_DURATION);
+        delayHandler.removeMessages(Messages.UNBLOCK_BUFFERING_INDICATOR);
+        delayHandler.sendEmptyMessageDelayed(Messages.UNBLOCK_BUFFERING_INDICATOR, indicatorVisibleDuration);
+    }
+
+    /**
      * set the visibility of the buffering indicator
      *
      * @param isBuffering is currently buffering? (=visible)
@@ -1254,13 +1327,25 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
      */
     private void setBufferingIndicatorVisible(boolean isBuffering, boolean isPip)
     {
+        isBufferingState = isBuffering;
+
         if (isBuffering)
         {
-            //make right indicator visible
-            if (bufferingIndicatorNormal != null)
-                bufferingIndicatorNormal.setWillNotDraw(isPip);
-            if (bufferingIndicatorPip != null)
-                bufferingIndicatorPip.setWillNotDraw(!isPip);
+            //make right indicator visible and spin
+            if (isPip)
+            {
+                //pip
+                bufferingIndicatorPip.setWillNotDraw(false);
+                if (!isBufferingIndicatorBlocked)
+                    bufferingIndicatorPip.spin();
+            }
+            else
+            {
+                //normal
+                bufferingIndicatorNormal.setWillNotDraw(false);
+                if (!isBufferingIndicatorBlocked)
+                    bufferingIndicatorNormal.spin();
+            }
 
             //if (bufferingIndicatorNormal != null)
             //    bufferingIndicatorNormal.setVisibility(isPip ? View.GONE : View.VISIBLE);
@@ -1270,8 +1355,9 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         else
         {
             //make both invisible
-            if (bufferingIndicatorNormal != null) bufferingIndicatorNormal.setWillNotDraw(true);
-            if (bufferingIndicatorPip != null) bufferingIndicatorPip.setWillNotDraw(true);
+            if (!isBufferingIndicatorBlocked)
+                bufferingIndicatorNormal.setWillNotDraw(true);
+            bufferingIndicatorPip.setWillNotDraw(true);
 
             //if (bufferingIndicatorNormal != null) bufferingIndicatorNormal.setVisibility(View.GONE);
             //if (bufferingIndicatorPip != null) bufferingIndicatorPip.setVisibility(View.GONE);

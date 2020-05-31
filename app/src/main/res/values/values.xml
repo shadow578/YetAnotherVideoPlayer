@@ -3,6 +3,9 @@
     <!-- how long the fade out of the info text lasts (ms) -->
     <integer name="info_text_fade_duration">500</integer>
 
+    <!-- how long the buffering indicator in volume / brightness fill mode lasts (ms) -->
+    <integer name="info_buffering_indicator_duration">500</integer>
+
     <!-- minimum time the splash screen (launch activity) is shown -->
     <integer name="min_splash_screen_duration">500</integer>
 

@@ -37,7 +37,7 @@
             app:matProg_barColor="@color/player_buffering_progress"
             app:matProg_barWidth="5dp"
             app:matProg_fillRadius="true"
-            app:matProg_progressIndeterminate="true" />
+            app:matProg_progressIndeterminate="true"/>
 
         <!-- Buffering Progress Wheel, pip mode-->
         <com.pnikosis.materialishprogress.ProgressWheel

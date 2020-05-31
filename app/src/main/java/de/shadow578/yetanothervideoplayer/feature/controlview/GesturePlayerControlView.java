@@ -37,6 +37,26 @@ import de.shadow578.yetanothervideoplayer.util.Logging;
 public class GesturePlayerControlView extends FrameLayout
 {
     /**
+     * Listener for {@link GesturePlayerControlView} events
+     */
+    public interface Listener
+    {
+        /**
+         * called when the volume changed
+         *
+         * @param volPercent the new volume value (0.0 - 1.0)
+         */
+        void onVolumeChange(float volPercent);
+
+        /**
+         * called when the brightness changed
+         *
+         * @param brightnessPercent the new brightness value (0.0 - 1.0)
+         */
+        void onBrightnessChange(float brightnessPercent);
+    }
+
+    /**
      * Should we ignore setVisibility calls?
      * This allows us to prevent the superclass from changing our visibility
      */
@@ -68,6 +88,12 @@ public class GesturePlayerControlView extends FrameLayout
      * Custom ripple animation for double- tap seeking
      */
     private CircleRippleAnimationView rippleAnimation;
+
+    /**
+     * Listener for volume / brightness changes
+     */
+    @Nullable
+    private Listener listener;
 
     //region ~~ Message Handler (delayHandler) ~~
 
@@ -208,6 +234,16 @@ public class GesturePlayerControlView extends FrameLayout
     public void hide()
     {
         playerControls.hide();
+    }
+
+    /**
+     * set the listener for volume and brightness
+     *
+     * @param listener the listener to set
+     */
+    public void setListener(@Nullable Listener listener)
+    {
+        this.listener = listener;
     }
 
     //endregion
@@ -386,6 +422,9 @@ public class GesturePlayerControlView extends FrameLayout
             brightnessStr = getContext().getString(R.string.info_brightness_auto);
         }
         showInfoText(getContext().getString(R.string.info_brightness_change), brightnessStr);
+
+        //call listener
+        if (listener != null) listener.onBrightnessChange(windowAttributes.screenBrightness);
     }
 
     /**
@@ -417,10 +456,13 @@ public class GesturePlayerControlView extends FrameLayout
         }
 
         //calculate volume in percent
-        int volumePercent = (int) Math.floor(((float) currentVolume - (float) minVolume) / ((float) maxVolume - (float) minVolume) * 100);
+        float volumePercent = ((float) currentVolume - (float) minVolume) / ((float) maxVolume - (float) minVolume);
 
         //show info text
-        showInfoText(getContext().getString(R.string.info_volume_change), volumePercent);
+        showInfoText(getContext().getString(R.string.info_volume_change), (int) (volumePercent * 100));
+
+        //call listener
+        if (listener != null) listener.onVolumeChange(volumePercent);
     }
 
     /**
