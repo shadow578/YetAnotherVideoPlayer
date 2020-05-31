@@ -9,10 +9,12 @@ import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+
 
 public class CrashScreenActivity extends AppCompatActivity
 {
@@ -57,12 +59,45 @@ public class CrashScreenActivity extends AppCompatActivity
         //String crashThreadName = i.getStringExtra(INTENT_EXTRA_THREAD_NAME);
         //String crashCauseShort = i.getStringExtra(INTENT_EXTRA_CAUSE_SHORT);
         //String crashCauseMessage= i.getStringExtra(INTENT_EXTRA_CAUSE_MESSAGE);
-        String crashCauseStack = i.getStringExtra(INTENT_EXTRA_CAUSE_STACKTRACE);
+        String crashDetails = i.getStringExtra(INTENT_EXTRA_CAUSE_STACKTRACE);
+
+        //check stacktrace is not empty
+        if (crashDetails == null || crashDetails.isEmpty())
+        {
+            //the activity was started, but no stacktrace was added to the intent
+            //This should NEVER EVER happen, but who knows ;)
+            //dump intent so we're able to debug how this activity was called later
+            StringBuilder s = new StringBuilder();
+            s.append("no stacktrace! dumping intent now:\n")
+                    .append(i.toString())
+                    .append("\n")
+                    .append(i.getData())
+                    .append("\n\n");
+
+            //dump extras
+            Bundle extras = i.getExtras();
+            if (extras != null)
+            {
+                for (String key : extras.keySet())
+                {
+                    s.append(key)
+                            .append(" = ")
+                            .append(extras.get(key));
+                }
+            }
+            else
+            {
+                s.append("no extras");
+            }
+            crashDetails = s.toString();
+        }
+
+        //add device / platform info to details
+        crashDetails = buildDeviceInfoString() + crashDetails;
 
         //add crash info to activity
-        TextView crashDetails = findViewById(R.id.crashac_txt_crash_details);
-        if (crashDetails != null)
-            crashDetails.setText(crashCauseStack);
+        TextView crashDetailsView = findViewById(R.id.crashac_txt_crash_details);
+        crashDetailsView.setText(crashDetails);
     }
 
     public void crashac_OnClick(View view)
@@ -82,6 +117,43 @@ public class CrashScreenActivity extends AppCompatActivity
                 break;
             }
         }
+    }
+
+    /**
+     * @return a multi- line string containing details about the device and android version
+     */
+    private String buildDeviceInfoString()
+    {
+        StringBuilder s = new StringBuilder();
+        s.append("Platform Info:\n")
+                .append("Device: ")
+                .append(Build.MANUFACTURER)//Google
+                .append(" ")
+                .append(Build.MODEL)//AOSP on IA Emulator
+                .append(" (")
+                .append(Build.PRODUCT)//sdk_gphone_x86_arm
+                .append(")\nBoard: ")
+                .append(Build.BOARD)//goldfish_x86
+                .append("\nType&Tags: ")
+                .append(Build.TYPE)//user
+                .append(" (")
+                .append(Build.TAGS)//release-keys
+                .append(")\nAndroid ")
+                .append(Build.VERSION.RELEASE)//9
+                .append(" SDK ")
+                .append(Build.VERSION.SDK_INT)//28
+                .append(" (")
+                .append(Build.VERSION.CODENAME)//REL
+                .append(")\nABIs: ");
+
+        //add abis
+        for (String abi : Build.SUPPORTED_ABIS)
+        {
+            s.append(abi).append(", ");//x86,armeabi-v7a, armeabi,
+        }
+
+        s.append("\n\nStacktrace:\n");
+        return s.toString();
     }
 
     // region "resume where i left off"- feature

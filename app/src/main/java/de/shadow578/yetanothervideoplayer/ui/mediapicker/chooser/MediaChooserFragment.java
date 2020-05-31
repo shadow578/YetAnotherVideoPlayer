@@ -343,6 +343,9 @@ public class MediaChooserFragment extends Fragment implements RecyclerMediaEntry
                 mdEx.fillInStackTrace();
             }
 
+            //skip if duration is zero
+            if (duration <= 0) continue;
+
             //create and add media entry
             MediaEntry entry = new MediaEntry(mediaKind, uri, title, duration, null);
             mediaList.add(entry);
