@@ -23,6 +23,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -234,12 +235,7 @@ public class MediaChooserFragment extends Fragment implements RecyclerMediaEntry
                     null, null,
                     MediaStore.MediaColumns.DATE_MODIFIED + " ASC"))
             {
-                //check cursor not null
-                if (videoCursor != null && videoCursor.getCount() > 0)
-                {
-                    //add media to list
-                    addMediaToList(videoCursor, mediaEntries, MediaEntry.MediaKind.VIDEO);
-                }
+                addMediaToList(videoCursor, mediaEntries, MediaEntry.MediaKind.VIDEO);
             }
         }
 
@@ -252,12 +248,7 @@ public class MediaChooserFragment extends Fragment implements RecyclerMediaEntry
                     null, null,
                     MediaStore.MediaColumns.DATE_MODIFIED + " ASC"))
             {
-                //check cursor not null
-                if (audioCursor != null && audioCursor.getCount() > 0)
-                {
-                    //add media to list
-                    addMediaToList(audioCursor, mediaEntries, MediaEntry.MediaKind.MUSIC);
-                }
+                addMediaToList(audioCursor, mediaEntries, MediaEntry.MediaKind.MUSIC);
             }
         }
 
@@ -274,8 +265,15 @@ public class MediaChooserFragment extends Fragment implements RecyclerMediaEntry
      * @param mediaList the media list to add media entries to
      * @param mediaKind what kind of media is this?
      */
-    private void addMediaToList(@NonNull Cursor cursor, @NonNull List<MediaEntry> mediaList, @NonNull MediaEntry.MediaKind mediaKind)
+    private void addMediaToList(@Nullable Cursor cursor, @NonNull List<MediaEntry> mediaList, @NonNull MediaEntry.MediaKind mediaKind)
     {
+        //check cursor not null
+        if (cursor == null || cursor.getCount() <= 0)
+        {
+            Logging.logE("media Cursor of kind %s was null!", mediaKind.toString());
+            return;
+        }
+
         //move to the first position
         cursor.moveToFirst();
 
@@ -283,44 +281,67 @@ public class MediaChooserFragment extends Fragment implements RecyclerMediaEntry
         MediaMetadataRetriever metadataRetriever = new MediaMetadataRetriever();
         do
         {
+            String uriStr;
+            String title;
+
             //get basic info (data(=uri), title (=display_name)
-            String uriStr = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA));
-            String dispName = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME));
+            try
+            {
+                uriStr = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA));
+                title = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME));
+            }
+            catch (IllegalArgumentException e)
+            {
+                //failed to find either DATA or DISPLAY_NAME column
+                Logging.logE("failed to find column DATA or DISPLAY_NAME for kind %s!", mediaKind.toString());
+                e.printStackTrace();
+                continue;
+            }
 
             //parse uri
             Uri uri = Uri.parse(uriStr);
 
             //skip if invalid uri
-            if (uri == null) continue;
-
-            //get extra metadata for media
-            metadataRetriever.setDataSource(getContext(), uri);
-            String durationStr = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
-            int duration = -1;
-            if (durationStr != null && !durationStr.isEmpty())
+            if (!isMediaUriValid(uri))
             {
-                duration = Integer.parseInt(durationStr) / 1000;//ms to s
+                Logging.logW("Encountered invalid media uri: %s", uri == null ? "URI NULL" : uri.toString());
+                continue;
             }
 
-            //skip if duration not available
-            if (duration <= 0) continue;
-
-            //extract title from metadata
-            String title = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-            if (title == null || title.isEmpty())
+            //try to get extra metadata for media
+            int duration = 0;
+            try
             {
-                title = dispName;
-            }
+                metadataRetriever.setDataSource(getContext(), uri);
+                String durationStr = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+                if (durationStr != null && !durationStr.isEmpty())
+                {
+                    duration = Integer.parseInt(durationStr) / 1000;//ms to s
+                }
 
-            //TODO: get resolution in a different way, this is way too slow
-            //Size vidSize = null;
-            //if (mediaKind == MediaEntry.MediaKind.VIDEO)
-            //{
-            //    //for resolution, we just take some random frame of the video and get it's resolution
-            //    Bitmap randomFrame = metadataRetriever.getFrameAtTime();
-            //    if (randomFrame != null)
-            //        vidSize = new Size(randomFrame.getWidth(), randomFrame.getHeight());
-            //}
+                //extract title from metadata
+                String mdTitle = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+                if (mdTitle != null && !mdTitle.isEmpty())
+                {
+                    title = mdTitle;
+                }
+
+                //TODO: get resolution in a different way, this is way too slow
+                //Size vidSize = null;
+                //if (mediaKind == MediaEntry.MediaKind.VIDEO)
+                //{
+                //    //for resolution, we just take some random frame of the video and get it's resolution
+                //    Bitmap randomFrame = metadataRetriever.getFrameAtTime();
+                //    if (randomFrame != null)
+                //        vidSize = new Size(randomFrame.getWidth(), randomFrame.getHeight());
+                //}
+            }
+            catch (IllegalArgumentException mdEx)
+            {
+                //log error
+                Logging.logE("Error retrieving metadata for media file %s!", uri.toString());
+                mdEx.fillInStackTrace();
+            }
 
             //create and add media entry
             MediaEntry entry = new MediaEntry(mediaKind, uri, title, duration, null);
@@ -346,6 +367,23 @@ public class MediaChooserFragment extends Fragment implements RecyclerMediaEntry
         playbackIntent.setData(cardMedia.getUri());
         playbackIntent.putExtra(Intent.EXTRA_TITLE, cardMedia.getTitle());
         startActivity(playbackIntent);
+    }
+
+    /**
+     * Check if a uri to a media file is valid for use with eg. the media metadata resolver
+     *
+     * @param mediaUri the uri to check
+     * @return is the uri valid for use?
+     */
+    private boolean isMediaUriValid(@Nullable Uri mediaUri)
+    {
+        //check uri is not null and path is not empty
+        if (mediaUri == null || mediaUri.getPath() == null || mediaUri.getPath().isEmpty())
+            return false;
+
+        //check file exists
+        File mediaFile = new File(mediaUri.getPath());
+        return mediaFile.exists();
     }
 
     /**

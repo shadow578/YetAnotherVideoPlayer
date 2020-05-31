@@ -26,7 +26,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme.Light"
         android:usesCleartextTraffic="true">
-        <!-- ^^allow traffic over http, since not all streams will be via https -->
+        <!-- usesCleartextTraffic: allow traffic over http, since not all streams will be via https -->
 
         <!-- file provider for app updates -->
         <provider

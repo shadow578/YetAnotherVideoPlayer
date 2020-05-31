@@ -292,29 +292,38 @@ public class RecyclerMediaEntryAdapter extends RecyclerView.Adapter<RecyclerMedi
                         thumbCursor.moveToFirst();
 
                         //get thumbnail uri
-                        String thumbUri = thumbCursor.getString(thumbCursor.getColumnIndex(MediaStore.Images.Thumbnails.DATA));
+                        String thumbUri = thumbCursor.getString(thumbCursor.getColumnIndexOrThrow(MediaStore.Images.Thumbnails.DATA));
 
                         if (thumbUri != null)
                         {
                             //load thumbnail as bitmap
                             thumbnail = MediaStore.Images.Media.getBitmap(context.getContentResolver(), Uri.parse(thumbUri));
                         }
-
                     }
                 }
-                catch (IOException e)
+                catch (IOException | IllegalArgumentException e)
                 {
                     //thumbnail from MediaStore failed :(
                     Logging.logW("failed to load thumbnail for %s from MediaStore! Will fall back to MediaMetadataResolver...", entry.toString());
+                    e.printStackTrace();
                 }
 
                 //fallback to MediaMetadataRetriever for getting a thumbnail
                 if (thumbnail == null)
                 {
                     Logging.logD("Fallback to MediaMetadataRetriever for retrieving thumbnail for %s", entry.toString());
-                    MediaMetadataRetriever metadataRetriever = new MediaMetadataRetriever();
-                    metadataRetriever.setDataSource(context, entry.getUri());
-                    thumbnail = metadataRetriever.getFrameAtTime();
+                    try
+                    {
+                        MediaMetadataRetriever metadataRetriever = new MediaMetadataRetriever();
+                        metadataRetriever.setDataSource(context, entry.getUri());
+                        thumbnail = metadataRetriever.getFrameAtTime();
+                    }
+                    catch (IllegalArgumentException e)
+                    {
+                        //failed too, log error
+                        Logging.logE("Failed to get thumbnail for %s using fallback MediaMetadataRetriever.", entry.toString());
+                        e.printStackTrace();
+                    }
                 }
 
                 return thumbnail;
