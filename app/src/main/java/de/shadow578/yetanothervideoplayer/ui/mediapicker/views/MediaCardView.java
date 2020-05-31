@@ -117,7 +117,25 @@ public class MediaCardView extends CardView
      */
     public MediaCardView setMediaDuration(long seconds)
     {
-        duration.setText(String.format(Locale.US, "%d:%02d:%02d", seconds / 3600, (seconds % 3600) / 60, (seconds % 60)));
+        long h = seconds / 3600;
+        long m = (seconds % 3600) / 60;
+        long s = (seconds % 60);
+
+        //remove hour display if less than 1h
+        String durationStr;
+        if (h <= 0)
+        {
+            //less than 1h, dont show hours
+            durationStr = String.format(Locale.US, "%02d:%02d", m, s);
+        }
+        else
+        {
+            //show hours
+            durationStr = String.format(Locale.US, "%d:%02d:%02d", h, m, s);
+        }
+
+        //set label
+        duration.setText(durationStr);
         return this;
     }
 
