@@ -33,7 +33,7 @@ import de.shadow578.yetanothervideoplayer.util.Logging;
 /**
  * Updater activity.
  * Handles downloading and installing app updates.
- * Called by UpdateDialogHelper.
+ * Called by UpdateHelper.
  */
 public class UpdateActivity extends AppCompatActivity
 {
@@ -161,6 +161,10 @@ public class UpdateActivity extends AppCompatActivity
      */
     private void onUpdateReady(@NonNull File updateApk)
     {
+        //reset update flag
+        new UpdateHelper(this).setUpdateAvailableFlag(false);
+
+        //install apk
         Toast.makeText(this, R.string.update_install_apk_toast, Toast.LENGTH_LONG).show();
         installApk(updateApk);
         finish();

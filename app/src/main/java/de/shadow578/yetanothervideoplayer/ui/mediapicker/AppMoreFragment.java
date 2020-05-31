@@ -15,8 +15,6 @@ import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.fragment.app.Fragment;
 
-import java.util.Date;
-
 import de.shadow578.yetanothervideoplayer.BuildConfig;
 import de.shadow578.yetanothervideoplayer.R;
 import de.shadow578.yetanothervideoplayer.feature.update.AppUpdateManager;
@@ -24,9 +22,7 @@ import de.shadow578.yetanothervideoplayer.feature.update.DefaultUpdateCallback;
 import de.shadow578.yetanothervideoplayer.feature.update.UpdateInfo;
 import de.shadow578.yetanothervideoplayer.ui.AppSettingsActivity;
 import de.shadow578.yetanothervideoplayer.ui.PlayerDebugActivity;
-import de.shadow578.yetanothervideoplayer.ui.update.UpdateDialogHelper;
-import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
-import de.shadow578.yetanothervideoplayer.util.ConfigUtil;
+import de.shadow578.yetanothervideoplayer.ui.update.UpdateHelper;
 import de.shadow578.yetanothervideoplayer.util.Logging;
 
 /**
@@ -38,6 +34,11 @@ public class AppMoreFragment extends Fragment implements View.OnClickListener
      * Update manager to check for updates
      */
     private final AppUpdateManager updateManager = new AppUpdateManager(BuildConfig.UPDATE_VENDOR, BuildConfig.UPDATE_REPO);
+
+    /**
+     * helper for update flags and dialogs
+     */
+    private UpdateHelper updateHelper;
 
     /**
      * Button to start a update (check)
@@ -65,10 +66,17 @@ public class AppMoreFragment extends Fragment implements View.OnClickListener
         debugButton.setVisibility(BuildConfig.DEBUG ? View.VISIBLE : View.GONE);
 
         //change check for update button if a update is available
-        if (getContext() != null && ConfigUtil.getConfigBoolean(getContext(), ConfigKeys.KEY_UPDATE_AVAILABLE, R.bool.DEF_UPDATE_AVAILABLE))
+        if (getContext() != null)
         {
-            //update text
-            updateCheckButton.setText(R.string.more_update_available);
+            //init update helper
+            updateHelper = new UpdateHelper(getContext());
+
+            //change check update button
+            if (updateHelper.getUpdateAvailableFlag())
+            {
+                //update text
+                updateCheckButton.setText(R.string.more_update_available);
+            }
         }
 
         //return inflated view
@@ -163,28 +171,29 @@ public class AppMoreFragment extends Fragment implements View.OnClickListener
             {
                 //check if update check failed
                 Context ctx = getContext();
-                if (failed || ctx == null)
+                if (failed || ctx == null || updateHelper == null)
                 {
                     Toast.makeText(getContext(), R.string.more_update_check_failed_toast, Toast.LENGTH_LONG).show();
                     return;
                 }
 
                 //save the current timestamp as last update check time in shared prefs
-                ConfigUtil.setConfigInt(getContext(), ConfigKeys.KEY_LAST_UPDATE_CHECK, (int) new Date().getTime());
+                updateHelper.updateTimeOfLastUpdateCheck();
 
                 //do we have a update?
                 if (update != null)
                 {
                     //have a update, set persistent flag show update dialog
                     //set a flag in shared prefs that we have a update, in case the user does not update right away
-                    ConfigUtil.setConfigBoolean(getContext(), ConfigKeys.KEY_UPDATE_AVAILABLE, true);
+                    updateHelper.setUpdateAvailableFlag(true);
 
                     //show update dialog
-                    new UpdateDialogHelper(ctx).showUpdateDialog(update, null, true);
+                    updateHelper.showUpdateDialog(update, null, true);
                 }
                 else
                 {
                     //no update found, tell user that
+                    updateHelper.setUpdateAvailableFlag(false);
                     Toast.makeText(getContext(), R.string.more_no_update_toast, Toast.LENGTH_LONG).show();
                 }
 

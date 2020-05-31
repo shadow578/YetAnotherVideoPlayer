@@ -13,6 +13,8 @@ import androidx.annotation.Nullable;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
+import java.util.Calendar;
+
 import de.shadow578.yetanothervideoplayer.R;
 import de.shadow578.yetanothervideoplayer.feature.update.UpdateInfo;
 import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
@@ -22,10 +24,11 @@ import de.shadow578.yetanothervideoplayer.util.Logging;
 /**
  * Helper for creating a dialog from a {@link UpdateInfo} + handling the actions
  */
-public class UpdateDialogHelper
+@SuppressWarnings("WeakerAccess")
+public class UpdateHelper
 {
     /**
-     * Callback for {@link UpdateDialogHelper#showUpdateDialog(UpdateInfo, Callback, boolean)}
+     * Callback for {@link UpdateHelper#showUpdateDialog(UpdateInfo, Callback, boolean)}
      */
     public interface Callback
     {
@@ -43,10 +46,75 @@ public class UpdateDialogHelper
     @NonNull
     private final Context ctx;
 
-    public UpdateDialogHelper(@NonNull Context ctx)
+    public UpdateHelper(@NonNull Context ctx)
     {
         this.ctx = ctx;
     }
+
+    //region External Utilities
+
+    /**
+     * @return the timestamp of the last update check
+     */
+    public long getTimeOfLastUpdateCheck()
+    {
+        return ConfigUtil.getConfigInt(ctx, ConfigKeys.KEY_LAST_UPDATE_CHECK, R.integer.DEF_LAST_UPDATE_CHECK);
+    }
+
+    /**
+     * @return the time in seconds since the last update check
+     */
+    public long getTimeSinceLastUpdateCheck()
+    {
+        //calculate time since last check
+        long delta = getCurrentTimestamp() - getTimeOfLastUpdateCheck();
+
+        //force a update if negative
+        if (delta < 0)
+        {
+            delta = Long.MAX_VALUE;
+        }
+
+        return delta;
+    }
+
+    /**
+     * updates the last update check timestamp to the current time
+     */
+    public void updateTimeOfLastUpdateCheck()
+    {
+        ConfigUtil.setConfigInt(ctx, ConfigKeys.KEY_LAST_UPDATE_CHECK, (int) getCurrentTimestamp());
+    }
+
+    /**
+     * @return the (persistent) update availability flag
+     */
+    public boolean getUpdateAvailableFlag()
+    {
+        return ConfigUtil.getConfigBoolean(ctx, ConfigKeys.KEY_UPDATE_AVAILABLE, R.bool.DEF_UPDATE_AVAILABLE);
+    }
+
+    /**
+     * set the (persistent) update availability flag
+     *
+     * @param updateAvailable new value of the flag
+     */
+    public void setUpdateAvailableFlag(boolean updateAvailable)
+    {
+        ConfigUtil.setConfigBoolean(ctx, ConfigKeys.KEY_UPDATE_AVAILABLE, updateAvailable);
+    }
+
+    /**
+     * @return the current timestamp
+     */
+    private long getCurrentTimestamp()
+    {
+        return Calendar.getInstance().getTimeInMillis() / 1000;
+    }
+
+    //endregion
+
+    //region Update Dialog
 
     /**
      * Creates and shows a update dialog.
@@ -121,7 +189,7 @@ public class UpdateDialogHelper
         }
         catch (WindowManager.BadTokenException ignore)
         {
-            Logging.logE("UpdateDialogHelper: the window that called seems to have closed! catching error gracefully");
+            Logging.logE("UpdateHelper: the window that called seems to have closed! catching error gracefully");
         }
     }
 
@@ -179,4 +247,5 @@ public class UpdateDialogHelper
         Intent webIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(update.getWebUrl()));
         ctx.startActivity(webIntent);
     }
+    //endregion
 }

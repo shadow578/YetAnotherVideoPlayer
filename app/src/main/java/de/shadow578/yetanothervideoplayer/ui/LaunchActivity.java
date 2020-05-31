@@ -12,12 +12,11 @@ import de.shadow578.yetanothervideoplayer.feature.update.DefaultUpdateCallback;
 import de.shadow578.yetanothervideoplayer.feature.update.UpdateInfo;
 import de.shadow578.yetanothervideoplayer.ui.mediapicker.MediaPickerActivity;
 import de.shadow578.yetanothervideoplayer.ui.playback.PlaybackActivity;
-import de.shadow578.yetanothervideoplayer.ui.update.UpdateDialogHelper;
+import de.shadow578.yetanothervideoplayer.ui.update.UpdateHelper;
 import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
 import de.shadow578.yetanothervideoplayer.util.ConfigUtil;
 import de.shadow578.yetanothervideoplayer.util.Logging;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -25,7 +24,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.widget.Toast;
 
-import java.util.Date;
 import java.util.Locale;
 
 public class LaunchActivity extends AppCompatActivity
@@ -83,29 +81,15 @@ public class LaunchActivity extends AppCompatActivity
      */
     private boolean shouldCheckUpdate()
     {
-        //check if automatic updates are disabled
+        //skip if updates are disabled
         if (!ConfigUtil.getConfigBoolean(this, ConfigKeys.KEY_ENABLE_APP_UPDATES, R.bool.DEF_ENABLE_APP_UPDATES))
-        {
-            //updates are disabled
             return false;
-        }
 
-        //get time of last update
-        //if there was no update, we want to check for one
-        int lastUpdateCheck = ConfigUtil.getConfigInt(this, ConfigKeys.KEY_LAST_UPDATE_CHECK, R.integer.DEF_LAST_UPDATE_CHECK);
-        if (lastUpdateCheck == 0)
-        {
-            return true;
-        }
+        //get update check frequency
+        int updateFrequency = getResources().getInteger(R.integer.update_check_freqency);
 
-        //get current timestamp
-        int currentTime = (int) new Date().getTime();
-
-        //get minimum time between checks
-        int minimumTime = getResources().getInteger(R.integer.update_check_freqency);
-
-        //check if minimum time has passed
-        return (lastUpdateCheck + minimumTime) < currentTime;
+        //check if last update is old enough
+        return new UpdateHelper(this).getTimeSinceLastUpdateCheck() >= updateFrequency;
     }
 
     /**
@@ -114,7 +98,7 @@ public class LaunchActivity extends AppCompatActivity
     private void checkUpdateAndContinueTo()
     {
         Toast.makeText(this, R.string.launch_update_check_toast, Toast.LENGTH_SHORT).show();
-        final Context ctx = this;
+        final UpdateHelper updateHelper = new UpdateHelper(this);
         updateManager.checkForUpdate(new DefaultUpdateCallback()
         {
             @Override
@@ -129,22 +113,23 @@ public class LaunchActivity extends AppCompatActivity
                 }
 
                 //save the current timestamp as last update check time in shared prefs
-                ConfigUtil.setConfigInt(ctx, ConfigKeys.KEY_LAST_UPDATE_CHECK, (int) new Date().getTime());
+                updateHelper.updateTimeOfLastUpdateCheck();
 
                 //check if no update was found
                 if (update == null)
                 {
                     //no update found, continue on
+                    updateHelper.setUpdateAvailableFlag(false);
                     continueTo();
                     return;
                 }
 
                 //have a update, set persistent flag show update dialog
                 //set a flag in shared prefs that we have a update, in case the user does not update right away
-                ConfigUtil.setConfigBoolean(ctx, ConfigKeys.KEY_UPDATE_AVAILABLE, true);
+                updateHelper.setUpdateAvailableFlag(true);
 
                 //show update dialog
-                new UpdateDialogHelper(ctx).showUpdateDialog(update, new UpdateDialogHelper.Callback()
+                updateHelper.showUpdateDialog(update, new UpdateHelper.Callback()
                 {
                     @Override
                     public void onUpdateFinished(boolean isUpdating)

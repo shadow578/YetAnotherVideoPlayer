@@ -13,6 +13,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import de.shadow578.yetanothervideoplayer.R;
 import de.shadow578.yetanothervideoplayer.ui.mediapicker.chooser.MediaChooserFragment;
 import de.shadow578.yetanothervideoplayer.ui.mediapicker.chooser.MediaEntry;
+import de.shadow578.yetanothervideoplayer.ui.update.UpdateHelper;
 import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
 import de.shadow578.yetanothervideoplayer.util.ConfigUtil;
 import de.shadow578.yetanothervideoplayer.util.Logging;
@@ -41,7 +42,7 @@ public class MediaPickerActivity extends AppCompatActivity implements BottomNavi
         bottomNav.setOnNavigationItemSelectedListener(this);
 
         //add badge on "more" if a update is available
-        if (ConfigUtil.getConfigBoolean(this, ConfigKeys.KEY_UPDATE_AVAILABLE, R.bool.DEF_UPDATE_AVAILABLE))
+        if (new UpdateHelper(this).getUpdateAvailableFlag())
         {
             //TODO: show badge
             //BadgeDrawable moreBadge = bottomNav.getOrCreateBadge(R.id.mediapicker_navigation_target_more);
