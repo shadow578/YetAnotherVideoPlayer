@@ -409,8 +409,11 @@ public class MediaChooserFragment extends Fragment implements RecyclerMediaEntry
      * @return the size parsed
      */
     @Nullable
-    private Size parseSize(@NonNull String sizeStr)
+    private Size parseSize(@Nullable String sizeStr)
     {
+        //check size string is ok to parse
+        if (sizeStr == null || sizeStr.isEmpty()) return null;
+
         //compile regex for size parsing
         //matches WxH, W in cg1, H in cg2
         final Pattern sizeRegex = Pattern.compile("^(\\d+)[x×](\\d+)$");
