@@ -125,6 +125,11 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
      */
     private ControlQuickSettingsButton anime4kQSButton;
 
+    /**
+     * The "go pip" quick settings button
+     */
+    private ControlQuickSettingsButton goPipQSButton;
+
     //endregion
 
     /**
@@ -259,6 +264,11 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
          * Message to unblock the buffering indicator
          */
         private static final int UNBLOCK_BUFFERING_INDICATOR = 5;
+
+        /**
+         * hide the system ui navbar
+         */
+        private static final int HIDE_SYSTEM_UI_NAVBAR = 6;
     }
 
     /**
@@ -325,6 +335,12 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                     isBufferingIndicatorBlocked = false;
                     break;
                 }
+                case Messages.HIDE_SYSTEM_UI_NAVBAR:
+                {
+                    //hide system ui
+                    View decor = getWindow().getDecorView();
+                    decor.setSystemUiVisibility(decor.getVisibility() | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+                }
             }
         }
     };
@@ -350,6 +366,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         titleTextView = findViewById(R.id.pb_streamTitle);
         quickAccessDrawer = findViewById(R.id.pb_quick_settings_drawer);
         anime4kQSButton = findViewById(R.id.qs_btn_a4k_tgl);
+        goPipQSButton = findViewById(R.id.qs_btn_pip);
         bufferingIndicatorNormal = findViewById(R.id.pb_playerBufferingWheel_normal);
         bufferingIndicatorPip = findViewById(R.id.pb_playerBufferingWheel_pipmode);
         playButton = findViewById(R.id.exo_play);
@@ -423,43 +440,55 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
 
         //get auto play when launching
         playbackPlayWhenReady = ConfigUtil.getConfigBoolean(this, ConfigKeys.KEY_AUTO_PLAY, R.bool.DEF_AUTO_PLAY);
+
+        //update pip button visibility (hide on devices without pip support)
+        updatePipButtonVisibility();
+
+        //update window flags
+        updateWindowFlags();
     }
 
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig)
     {
         super.onConfigurationChanged(newConfig);
-        updateFullscreen();
+        updateWindowFlags();
     }
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus)
     {
         super.onWindowFocusChanged(hasFocus);
-        updateFullscreen();
+        if (hasFocus)
+            updateWindowFlags();
     }
 
     /**
      * Update System UI visibility for fullscreen mode
      */
-    private void updateFullscreen()
+    private void updateWindowFlags()
     {
-        if (hasWindowFocus() && isLandscapeOrientation())
+        if (isLandscapeOrientation())
         {
-            //enter fullscreen if in landscape orientation and with focus
-            getWindow().getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+            //enables full screen (immersive) mode
+            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE
+                    // Set the content to appear under the system bars so that the content doesn't resize when the system bars hide and show.
+                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    // Hide the nav bar and status bar
+                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_FULLSCREEN);
         }
         else
         {
             //reset fullscreen when exiting landscape
-            getWindow().getDecorView().setSystemUiVisibility(0);
+            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE
+                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
         }
+
     }
 
     @SuppressWarnings("SwitchStatementWithTooFewBranches")
@@ -498,7 +527,6 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     protected void onStart()
     {
         super.onStart();
-        Logging.logD("onStart of PlaybackActivity called.");
 
         //create and bind video playback service
         playbackServiceConnection = new VideoServiceConnection();
@@ -515,7 +543,6 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     protected void onResume()
     {
         super.onResume();
-        Logging.logD("onResume of PlaybackActivity called.");
 
         //restore volume and brightness
         restorePersistentValues(true);
@@ -525,7 +552,6 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     protected void onPause()
     {
         super.onPause();
-        Logging.logD("onPause of PlaybackActivity called.");
 
         //save volume and brightness
         savePersistentValues(true);
@@ -535,7 +561,6 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     protected void onStop()
     {
         super.onStop();
-        Logging.logD("onStop of PlaybackActivity called.");
 
         //save playback position to prefs to be able to resume later
         if (!dontSavePlaybackPositionOnExit)
@@ -1018,6 +1043,16 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         return new RemoteAction(icon, getString(titleId), getString(contentDescriptionId), pIntent);
     }
 
+    /**
+     * Updates the PIP quick settings button visibility.
+     * Hides on devices below API 26 (they don't support pip)
+     */
+    private void updatePipButtonVisibility()
+    {
+        if (goPipQSButton != null)
+            goPipQSButton.setVisibility((Util.SDK_INT < 26) ? View.GONE : View.VISIBLE);
+    }
+
     //endregion
 
     //region ~~ Control View / Volume + Brightness change listener
@@ -1032,6 +1067,12 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     public void onBrightnessChange(float brightnessPercent)
     {
         setBufferingIndicatorProgress(brightnessPercent);
+    }
+
+    @Override
+    public void onNoSwipeClick()
+    {
+        updateWindowFlags();
     }
 
     //endregion
@@ -1574,6 +1615,9 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                 //scale the video to fit inside the viewport (avoid cropping the video)
                 playerView.setPlayerScaleType(YavpEPlayerView.PlayerScaleType.Fit);
             }
+
+            //remove all previous children
+            playerViewPlaceholder.removeAllViews();
 
             //add player view to placeholder
             playerViewPlaceholder.addView(playerView);

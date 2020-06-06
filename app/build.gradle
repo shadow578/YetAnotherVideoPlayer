@@ -8,9 +8,9 @@ android {
         applicationId "de.shadow578.yetanothervideoplayer"
 
         //version requirement and target of yavp
-        //min:    7 Nougat
+        //min:    6 Marshmallow
         //target: 10
-        minSdkVersion 24
+        minSdkVersion 23
         targetSdkVersion 29
 
         // versioning using gitVersioner. If you want to work without git, change this
