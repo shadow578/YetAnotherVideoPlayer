@@ -64,6 +64,11 @@ public final class ConfigKeys
      * if false, the video should be fitted in the view area (without cropping)
      */
     public static final String KEY_SCALE_TO_WIDTH = "SCALE_TO_WIDTH";
+
+    /**
+     * disable GL effects and use a normal player view
+     */
+    public static final String KEY_DISABLE_GL_EFFECTS = "DISABLE_GL_EFFECTS";
     //endregion
 
     //region ~~ (Swipe) Gestures ~~

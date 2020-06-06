@@ -31,6 +31,13 @@
         android:summaryOn="@string/settings_player_auto_pip_on"
         android:title="@string/settings_player_auto_pip_title" />
 
+    <SwitchPreference
+        android:defaultValue="@bool/DEF_DISABLE_GL_EFFECTS"
+        android:key="DISABLE_GL_EFFECTS"
+        android:summaryOff="@string/settings_player_disable_gl_effects_off"
+        android:summaryOn="@string/settings_player_disable_gl_effects_on"
+        android:title="@string/settings_player_disable_gl_effects_title" />
+
     <EditTextPreference
         android:defaultValue="@integer/DEF_SEEK_BUTTON_INCREMENT"
         android:key="SEEK_BUTTON_INCREMENT"

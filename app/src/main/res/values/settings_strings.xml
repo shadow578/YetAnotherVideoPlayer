@@ -73,6 +73,9 @@
     <string name="settings_player_video_scale_to_width_title">Scale video to width</string>
     <string name="settings_player_video_scale_to_width_off">Video is fitted inside Viewport, but not cropped</string>
     <string name="settings_player_video_scale_to_width_on">Video width is scaled to Viewport, and cropped where needed</string>
+    <string name="settings_player_disable_gl_effects_title">Disable Video Effects</string>
+    <string name="settings_player_disable_gl_effects_on">Video effects are disabled</string>
+    <string name="settings_player_disable_gl_effects_off">Video effects are enabled, battery usage will be higher</string>
 
     <!-- Settings: Anime4K -->
     <string name="settings_a4k_title">Anime4K Settings</string>

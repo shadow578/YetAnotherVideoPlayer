@@ -1,6 +1,7 @@
 package de.shadow578.yetanothervideoplayer.ui.playback;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -14,7 +15,9 @@ import de.shadow578.yetanothervideoplayer.feature.controlview.TapToHidePlayerCon
 import de.shadow578.yetanothervideoplayer.feature.gl.GLAnime4K;
 import de.shadow578.yetanothervideoplayer.feature.playback.VideoPlaybackService;
 import de.shadow578.yetanothervideoplayer.feature.playback.VideoPlaybackServiceListener;
+import de.shadow578.yetanothervideoplayer.feature.playerview.PlayerScaleType;
 import de.shadow578.yetanothervideoplayer.feature.playerview.YavpEPlayerView;
+import de.shadow578.yetanothervideoplayer.feature.playerview.YavpPlayerView;
 import de.shadow578.yetanothervideoplayer.ui.AppSettingsActivity;
 import de.shadow578.yetanothervideoplayer.ui.playback.views.ControlQuickSettingsButton;
 import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
@@ -143,9 +146,17 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     private VideoPlaybackService playbackService;
 
     /**
-     * The View the Player Renders Video to
+     * The View the Player Renders to when using GL video effects
      */
-    private YavpEPlayerView playerView;
+    @Nullable
+    private YavpEPlayerView glPlayerView;
+
+    /**
+     * The View the Player Renders to when not using GL video effects
+     */
+    @SuppressWarnings("FieldCanBeLocal")
+    @Nullable
+    private YavpPlayerView playerView;
 
     /**
      * The View that contains and controls the player controls and also handles gestures for us
@@ -446,6 +457,9 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
 
         //update window flags
         updateWindowFlags();
+
+        //update effects drawer
+        updateGlEffectsDrawer();
     }
 
     @Override
@@ -1080,12 +1094,27 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     //region ~~ Utility ~~
 
     /**
+     * updates the visiblity of the gl effects drawer
+     */
+    private void updateGlEffectsDrawer()
+    {
+        boolean disableGl = ConfigUtil.getConfigBoolean(getApplicationContext(), ConfigKeys.KEY_DISABLE_GL_EFFECTS, R.bool.DEF_DISABLE_GL_EFFECTS);
+
+        //lock effects drawer
+        if (quickAccessDrawer != null)
+            quickAccessDrawer.setDrawerLockMode(disableGl ? DrawerLayout.LOCK_MODE_LOCKED_CLOSED : DrawerLayout.LOCK_MODE_UNLOCKED, GravityCompat.START);
+    }
+
+    /**
      * Enable / disable anime4k filter
      *
      * @param enable enable anime4k?
      */
     private void setAnime4kEnabled(boolean enable)
     {
+        //skip if gl player view is null (Anime4K button should be disabled in that case, but better safe than sorry)
+        if (glPlayerView == null) return;
+
         Logging.logD("Setting Anime4K Filter to enabled= %b", enable);
         if (enable)
         {
@@ -1098,7 +1127,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                 anime4KFilter.setPasses(1);
 
                 //set a4k as active filter
-                playerView.setGlFilter(anime4KFilter);
+                glPlayerView.setGlFilter(anime4KFilter);
 
                 //set a4k as video listener
                 if (playbackService.getIsPlayerValid())
@@ -1136,7 +1165,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                 }
 
                 //remove filter (this calls release on the filter)
-                playerView.setGlFilter(null);
+                glPlayerView.setGlFilter(null);
 
                 //set variable to null
                 anime4KFilter = null;
@@ -1595,32 +1624,51 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         @Override
         public void onPlayerInitialized()
         {
-            //create new opengl player view
-            playerView = new YavpEPlayerView(playerViewPlaceholder.getContext());
-
-            //adjust layout
-            playerView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-
-            //set player of view
-            playerView.setSimpleExoPlayer(playbackService.getPlayerInstance());
-
-            //set scale type
+            //get scale type to use
+            PlayerScaleType scaleType;
             if (ConfigUtil.getConfigBoolean(getApplicationContext(), ConfigKeys.KEY_SCALE_TO_WIDTH, R.bool.DEF_SCALE_TO_WIDTH))
             {
                 //scale the video to fill the whole width available, even if part of the video is cropped
-                playerView.setPlayerScaleType(YavpEPlayerView.PlayerScaleType.FillWidth);
+                scaleType = PlayerScaleType.FillWidth;
             }
             else
             {
                 //scale the video to fit inside the viewport (avoid cropping the video)
-                playerView.setPlayerScaleType(YavpEPlayerView.PlayerScaleType.Fit);
+                scaleType = PlayerScaleType.Fit;
             }
+
+            View pView;
+            if (ConfigUtil.getConfigBoolean(getApplicationContext(), ConfigKeys.KEY_DISABLE_GL_EFFECTS, R.bool.DEF_DISABLE_GL_EFFECTS))
+            {
+                //use normal player view
+                pView = playerView = new YavpPlayerView(playerViewPlaceholder.getContext());
+
+                //set player of view
+                playerView.setSimplePlayer(playbackService.getPlayerInstance());
+
+                //set scale type
+                playerView.setPlayerScaleType(scaleType);
+            }
+            else
+            {
+                //use gl player view
+                pView = glPlayerView = new YavpEPlayerView(playerViewPlaceholder.getContext());
+
+                //set player of view
+                glPlayerView.setSimpleExoPlayer(playbackService.getPlayerInstance());
+
+                //set scale type
+                glPlayerView.setPlayerScaleType(scaleType);
+            }
+
+            //adjust layout
+            pView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
             //remove all previous children
             playerViewPlaceholder.removeAllViews();
 
             //add player view to placeholder
-            playerViewPlaceholder.addView(playerView);
+            playerViewPlaceholder.addView(pView);
 
             //make controls visible
             setUseController(true);
@@ -1803,6 +1851,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         {
             //controls are visible, unlock drawer
             quickAccessDrawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+            updateGlEffectsDrawer();
         }
 
         /**
