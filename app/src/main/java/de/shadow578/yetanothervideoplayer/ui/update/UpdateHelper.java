@@ -153,12 +153,14 @@ public class UpdateHelper
                 .setTitle(update.getUpdateTitle())
                 .setMessage(msg)
                 .setView(dialogAddin)
-                .setPositiveButton(R.string.update_dialog_install, new DialogInterface.OnClickListener()
+                .setOnDismissListener(new DialogInterface.OnDismissListener()
                 {
                     @Override
-                    public void onClick(DialogInterface dialogInterface, int i)
+                    public void onDismiss(DialogInterface dialogInterface)
                     {
-                        installUpdate(update, callback);
+                        dismissUpdate(update, ignoreThisVersion.isChecked());
+                        if (callback != null)
+                            callback.onUpdateFinished(false);
                     }
                 })
                 .setNegativeButton(R.string.update_dialog_dismiss, new DialogInterface.OnClickListener()
@@ -169,6 +171,14 @@ public class UpdateHelper
                         dismissUpdate(update, ignoreThisVersion.isChecked());
                         if (callback != null)
                             callback.onUpdateFinished(false);
+                    }
+                })
+                .setPositiveButton(R.string.update_dialog_install, new DialogInterface.OnClickListener()
+                {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i)
+                    {
+                        installUpdate(update, callback);
                     }
                 })
                 .setNeutralButton(R.string.update_dialog_open_web, new DialogInterface.OnClickListener()
