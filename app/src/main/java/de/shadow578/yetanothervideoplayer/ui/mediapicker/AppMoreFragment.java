@@ -2,7 +2,6 @@ package de.shadow578.yetanothervideoplayer.ui.mediapicker;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -60,6 +59,7 @@ public class AppMoreFragment extends Fragment implements View.OnClickListener
         //register click listeners
         updateCheckButton = rootView.findViewById(R.id.more_btn_update_check);
         updateCheckButton.setOnClickListener(this);
+        updateCheckButton.setVisibility(BuildConfig.ENABLE_SELF_UPDATE ? View.VISIBLE : View.GONE);
         rootView.findViewById(R.id.more_btn_settings).setOnClickListener(this);
         rootView.findViewById(R.id.more_btn_donate).setOnClickListener(this);
         rootView.findViewById(R.id.more_btn_about).setOnClickListener(this);

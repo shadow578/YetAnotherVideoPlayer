@@ -85,7 +85,11 @@ public class LaunchActivity extends AppCompatActivity
      */
     private boolean shouldCheckUpdate()
     {
-        //skip if updates are disabled
+        //dont check if updates are disabled by build type
+        if (!BuildConfig.ENABLE_SELF_UPDATE)
+            return false;
+
+        //dont check if updates are disabled
         if (!ConfigUtil.getConfigBoolean(this, ConfigKeys.KEY_ENABLE_APP_UPDATES, R.bool.DEF_ENABLE_APP_UPDATES))
             return false;
 
@@ -104,7 +108,7 @@ public class LaunchActivity extends AppCompatActivity
         Toast.makeText(this, R.string.update_check_start_toast, Toast.LENGTH_SHORT).show();
 
         //check for INTERNET permissions first
-        if(ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED)
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED)
         {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.INTERNET}, 0);
             Toast.makeText(this, R.string.update_check_fail_toast, Toast.LENGTH_SHORT).show();

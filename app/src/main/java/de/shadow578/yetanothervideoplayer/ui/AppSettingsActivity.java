@@ -163,7 +163,7 @@ public class AppSettingsActivity extends AppCompatActivity implements
             //fill in app version in about screen
             Preference versionPref = findPreference("version_info");
             if (versionPref != null)
-                versionPref.setSummary(String.format(getString(R.string.settings_about_version_f), BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE));
+                versionPref.setSummary(String.format(getString(R.string.settings_about_version_f), BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE, BuildConfig.FLAVOR));
         }
     }
 }

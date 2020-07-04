@@ -90,8 +90,8 @@
     <!-- Settings: about -->
     <string name="settings_about_title">About YAVP</string>
     <string name="settings_about_yavp">YAVP by shadow578</string>
-    <!-- 1st. arg (%s)= Version String, 2nd. arg (%d)= Version number-->
-    <string name="settings_about_version_f">Version %s (%d)</string>
+    <!-- 1st. arg (%s)= Version String, 2nd. arg (%d)= Version number, 3rd. ard (%s)= flavor string-->
+    <string name="settings_about_version_f">Version %s (%d, %s)</string>
 
     <!-- Settings: about - library -->
     <string name="settings_about_libs_title">Used Libraries</string>

@@ -14,11 +14,12 @@ android {
         targetSdkVersion 29
 
         // versioning using gitVersioner. If you want to work without git, change this
-        // to a hardcoded string (or other versioning) + remove gitVersioner from other .gradle files
+        // to a hardcoded string (or other versioning) + remove gitVersioner from the other .gradle files
         versionCode gitVersioner.versionCode
         versionName gitVersioner.versionName
 
         // info for automatic app updates.
+        // needs to be present even if ENABLE_SELF_UPDATE is false, tho in that case the values may be empty
         // Fill in your github username and repo as you find it in the github url to the repo (eg. github.com/shadow578/YetAnotherVideoPlayer).
         // Updates are designed to use github releases, so if you want to use something else, you have to reimplement
         // the update functionality in feature/update/AppUpdateManager.
@@ -30,16 +31,28 @@ android {
         //fixes vector drawables randomly changing color (idk why ¯\_(ツ)_/¯)
         vectorDrawables.useSupportLibrary = true
     }
+    flavorDimensions "releasePlatform"
+    productFlavors {
+        github {
+            //enable automatic update checks on builds for github
+            buildConfigField "Boolean", "ENABLE_SELF_UPDATE", "true"
+        }
+        fdroid {
+            //no auto- update checks for fdroid (this is part of their inclusion policy)
+            isDefault true
+            buildConfigField "Boolean", "ENABLE_SELF_UPDATE", "false"
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
     compileOptions {
         targetCompatibility JavaVersion.VERSION_1_8
     }
-
     tasks.withType(JavaCompile) {
         configure(options) {
             options.encoding = 'UTF-8'
@@ -52,19 +65,22 @@ android {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    //androidX
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
     implementation 'androidx.preference:preference:1.1.1'
+
+    //tests
+    //testImplementation 'junit:junit:4.12'
+    //androidTestImplementation 'androidx.test:runner:1.2.0'
+    //androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+
+    //ui
     implementation 'com.google.android.material:material:1.1.0'
-
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'androidx.test:runner:1.2.0'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
-
-    implementation 'com.github.MasayukiSuda:ExoPlayerFilter:v0.2.4'
-
-    implementation 'com.google.android.exoplayer:exoplayer:2.10.4'
     implementation 'com.pnikosis:materialish-progress:1.7'
     implementation 'mobi.upod:time-duration-picker:1.1.3'
+
+    //exoplayer
+    implementation 'com.google.android.exoplayer:exoplayer:2.10.4'
+    implementation 'com.github.MasayukiSuda:ExoPlayerFilter:v0.2.4'
 }
