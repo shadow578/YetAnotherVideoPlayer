@@ -30,6 +30,9 @@ android {
 
         //fixes vector drawables randomly changing color (idk why ¯\_(ツ)_/¯)
         vectorDrawables.useSupportLibrary = true
+
+        //add version name to apk file name
+        setProperty("archivesBaseName", "yavp-$versionName")
     }
     flavorDimensions "releasePlatform"
     productFlavors {
