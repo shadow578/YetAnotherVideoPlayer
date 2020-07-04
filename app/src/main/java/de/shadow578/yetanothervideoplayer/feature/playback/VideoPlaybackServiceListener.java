@@ -1,6 +1,8 @@
 package de.shadow578.yetanothervideoplayer.feature.playback;
 
 
+import androidx.annotation.NonNull;
+
 import com.google.android.exoplayer2.metadata.Metadata;
 
 /**
@@ -15,11 +17,16 @@ public interface VideoPlaybackServiceListener
     void onPlayerInitialized();
 
     /**
-     * the media that was attempted to be loaded is on external storage, and the app needs Storage permissions to load the media
+     * the media that was attempted to be loaded is in a location that cannot be accessed with the app's current permissions.
+     * for local files, this means that {@link android.Manifest.permission#READ_EXTERNAL_STORAGE} is missing and should be requested.
+     * for streamed files, {@link android.Manifest.permission#INTERNET} is missing and should be requested.
+     * <p>
      * if this event is called, the media loading has been aborted and the video service is NOT ready for playback!
      * use this event to request the permissions, and call reloadMedia() once you have the needed permissions
+     *
+     * @param permissions the permission(s) that are missing for loading the media
      */
-    void onMissingStoragePermissions();
+    void onMissingPermissions(@NonNull String[] permissions);
 
     /**
      * A error occurred in the video playback service!

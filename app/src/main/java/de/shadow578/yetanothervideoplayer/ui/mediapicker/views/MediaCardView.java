@@ -146,7 +146,7 @@ public class MediaCardView extends CardView
      */
     public MediaCardView setMediaResolution(int width, int height)
     {
-        resolution.setText(String.format(Locale.US, "%dx%d", width, height));
+        resolution.setText(String.format(Locale.US, "%d×%d", width, height));
         return this;
     }
 

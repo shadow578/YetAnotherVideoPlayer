@@ -21,4 +21,18 @@
     <!-- how often do we check for updates (updates are checked in LaunchActivity, so this is more of a "minimum time between checks" value) -->
     <!-- 12h -->
     <integer name="update_check_freqency">43200</integer>
+
+    <!-- player load control config -->
+    <!-- minimum buffer duration before rebuffering, ms -->
+    <!-- same as max_buffer_duration to enable drip-style buffering -->
+    <integer name="playback_min_buffer_duration">60000</integer>
+
+    <!-- maximum buffer duration before stopping loading, ms -->
+    <integer name="playback_max_buffer_duration">60000</integer>
+
+    <!-- minimum buffer duration before starting playback (initial), ms -->
+    <integer name="playback_min_start_buffer">1500</integer>
+
+    <!-- minimum buffer duration before resuming playback (rebuffer), ms -->
+    <integer name="playback_min_resume_buffer">1500</integer>
 </resources>

@@ -73,6 +73,9 @@
     <string name="settings_player_video_scale_to_width_title">Scale video to width</string>
     <string name="settings_player_video_scale_to_width_off">Video is fitted inside Viewport, but not cropped</string>
     <string name="settings_player_video_scale_to_width_on">Video width is scaled to Viewport, and cropped where needed</string>
+    <string name="settings_player_disable_gl_effects_title">Disable Video Effects</string>
+    <string name="settings_player_disable_gl_effects_on">Video effects are disabled</string>
+    <string name="settings_player_disable_gl_effects_off">Video effects are enabled, battery usage will be higher</string>
 
     <!-- Settings: Anime4K -->
     <string name="settings_a4k_title">Anime4K Settings</string>
@@ -87,8 +90,8 @@
     <!-- Settings: about -->
     <string name="settings_about_title">About YAVP</string>
     <string name="settings_about_yavp">YAVP by shadow578</string>
-    <!-- 1st. arg (%s)= Version String, 2nd. arg (%d)= Version number-->
-    <string name="settings_about_version_f">Version %s (%d)</string>
+    <!-- 1st. arg (%s)= Version String, 2nd. arg (%d)= Version number, 3rd. ard (%s)= flavor string-->
+    <string name="settings_about_version_f">Version %s (%d, %s)</string>
 
     <!-- Settings: about - library -->
     <string name="settings_about_libs_title">Used Libraries</string>

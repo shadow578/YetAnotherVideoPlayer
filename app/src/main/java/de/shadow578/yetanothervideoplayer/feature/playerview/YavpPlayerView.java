@@ -3,13 +3,18 @@ package de.shadow578.yetanothervideoplayer.feature.playerview;
 import android.content.Context;
 import android.util.AttributeSet;
 
-import com.daasuu.epf.EPlayerView;
+import androidx.annotation.Nullable;
+
+import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.ui.PlayerView;
+import com.google.android.exoplayer2.video.VideoListener;
 
 /**
- * Wrapper for the {@link EPlayerView} that adds additional scale types.
- * Does the same as {@link YavpPlayerView}, but with GL
+ * Wrapper for the {@link PlayerView} that adds additional scale types.
+ * Does the same as {@link YavpEPlayerView}, but without GL
  */
-public class YavpEPlayerView extends EPlayerView
+public class YavpPlayerView extends PlayerView implements VideoListener
 {
     /**
      * Scale type for the player
@@ -21,20 +26,48 @@ public class YavpEPlayerView extends EPlayerView
      */
     private float vAspectRatio = 1f;
 
-    //region Constructors
-    public YavpEPlayerView(Context context)
+    public YavpPlayerView(Context context)
     {
         this(context, null);
     }
 
-    public YavpEPlayerView(Context context, AttributeSet attrs)
+    public YavpPlayerView(Context context, AttributeSet attrs)
     {
-        super(context, attrs);
-
-        //disable scaling in super
-        super.setPlayerScaleType(com.daasuu.epf.PlayerScaleType.RESIZE_NONE);
+        this(context, attrs, 0);
     }
-    //endregion
+
+    public YavpPlayerView(Context context, AttributeSet attrs, int defStyleAttr)
+    {
+        super(context, attrs, defStyleAttr);
+
+        //disable controller
+        super.setUseController(false);
+    }
+
+    /**
+     * Deprecated. use {@link YavpPlayerView#setSimplePlayer(SimpleExoPlayer)} instead!
+     */
+    @Override
+    @Deprecated
+    public void setPlayer(@Nullable Player player)
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * sets the player of this player view
+     *
+     * @param player the player to set
+     */
+    public void setSimplePlayer(@Nullable SimpleExoPlayer player)
+    {
+        //set player normally
+        super.setPlayer(player);
+
+        //register as video listener
+        if (player != null)
+            player.addVideoListener(this);
+    }
 
     /**
      * set the scale type to use.
@@ -45,19 +78,6 @@ public class YavpEPlayerView extends EPlayerView
     {
         this.scaleType = scaleType;
         requestLayout();
-    }
-
-    /**
-     * set the scale type to use.
-     * Deprecated, use {@link YavpEPlayerView#setPlayerScaleType(PlayerScaleType)} instead.
-     *
-     * @param playerScaleType the scale type to use
-     */
-    @Override
-    @Deprecated
-    public void setPlayerScaleType(com.daasuu.epf.PlayerScaleType playerScaleType)
-    {
-        throw new UnsupportedOperationException();
     }
 
     @Override

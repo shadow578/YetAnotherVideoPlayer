@@ -3,6 +3,8 @@ package de.shadow578.yetanothervideoplayer.ui;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
 
 import de.shadow578.yetanothervideoplayer.BuildConfig;
@@ -17,8 +19,10 @@ import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
 import de.shadow578.yetanothervideoplayer.util.ConfigUtil;
 import de.shadow578.yetanothervideoplayer.util.Logging;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -81,7 +85,11 @@ public class LaunchActivity extends AppCompatActivity
      */
     private boolean shouldCheckUpdate()
     {
-        //skip if updates are disabled
+        //dont check if updates are disabled by build type
+        if (!BuildConfig.ENABLE_SELF_UPDATE)
+            return false;
+
+        //dont check if updates are disabled
         if (!ConfigUtil.getConfigBoolean(this, ConfigKeys.KEY_ENABLE_APP_UPDATES, R.bool.DEF_ENABLE_APP_UPDATES))
             return false;
 
@@ -97,7 +105,18 @@ public class LaunchActivity extends AppCompatActivity
      */
     private void checkUpdateAndContinueTo()
     {
-        Toast.makeText(this, R.string.launch_update_check_toast, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, R.string.update_check_start_toast, Toast.LENGTH_SHORT).show();
+
+        //check for INTERNET permissions first
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED)
+        {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.INTERNET}, 0);
+            Toast.makeText(this, R.string.update_check_fail_toast, Toast.LENGTH_SHORT).show();
+            continueTo();
+            return;
+        }
+
+        //check for update
         final UpdateHelper updateHelper = new UpdateHelper(this);
         updateManager.checkForUpdate(new DefaultUpdateCallback()
         {

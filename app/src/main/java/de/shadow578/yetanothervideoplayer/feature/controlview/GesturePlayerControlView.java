@@ -41,6 +41,8 @@ public class GesturePlayerControlView extends FrameLayout
      */
     public interface Listener
     {
+        void onNoSwipeClick();
+
         /**
          * called when the volume changed
          *
@@ -328,6 +330,10 @@ public class GesturePlayerControlView extends FrameLayout
             {
                 //forward click to player controls
                 playerControls.performClick();
+
+                //call listener
+                if (listener != null)
+                    listener.onNoSwipeClick();
 
                 //also perform click on original view
                 //super.onNoSwipeClick(view, clickPos, screenSize);

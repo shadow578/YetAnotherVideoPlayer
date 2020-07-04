@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="de.shadow578.yetanothervideoplayer">
 
     <!-- To adjust Media Volume by swiping -->
@@ -25,8 +26,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme.Light"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="true"
+        android:requestLegacyExternalStorage="true"
+        tools:targetApi="q">
         <!-- usesCleartextTraffic: allow traffic over http, since not all streams will be via https -->
+        <!-- requestLegacyExternalStorage: allow getting media in storage on android Q+ -->
 
         <!-- file provider for app updates -->
         <provider

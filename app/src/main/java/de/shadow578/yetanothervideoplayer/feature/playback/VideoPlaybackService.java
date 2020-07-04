@@ -23,9 +23,11 @@ import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.metadata.MetadataOutput;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+import com.google.android.exoplayer2.upstream.DefaultAllocator;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.util.Util;
 
+import de.shadow578.yetanothervideoplayer.R;
 import de.shadow578.yetanothervideoplayer.util.Logging;
 
 /**
@@ -194,10 +196,40 @@ public class VideoPlaybackService extends Service
             //missing permissions
             Logging.logE("Missing local storage permissions!");
             if (eventListener != null)
-                eventListener.onMissingStoragePermissions();
+                eventListener.onMissingPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE});
 
             //abort load
             return;
+        }
+
+        //check we have all required permissions
+        if (isLocalFile(mediaUri))
+        {
+            //local file, need READ_EXTERNAL_STORAGE permissions
+            if (!hasStoragePermission())
+            {
+                //missing permissions
+                Logging.logE("Missing local storage permissions for local file!");
+                if (isEventListenerValid())
+                    eventListener.onMissingPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE});
+
+                //abort load
+                return;
+            }
+        }
+        else
+        {
+            //streamed file, need INTERNET permissions
+            if (!hasInternetPermission())
+            {
+                //missing permissions
+                Logging.logE("Missing internet permissions for streamed file!");
+                if (isEventListenerValid())
+                    eventListener.onMissingPermissions(new String[]{Manifest.permission.INTERNET});
+
+                //abort load
+                return;
+            }
         }
 
         //load media from the uri
@@ -410,7 +442,7 @@ public class VideoPlaybackService extends Service
         trackSelector = new DefaultTrackSelector(new AdaptiveTrackSelection.Factory());
         bandwidthMeter = new DefaultBandwidthMeter.Builder(this).build();
         DefaultRenderersFactory renderersFactory = new DefaultRenderersFactory(this);
-        DefaultLoadControl loadControl = new DefaultLoadControl();
+        DefaultLoadControl loadControl = buildLoadControl();
 
         //build the player instance
         player = ExoPlayerFactory.newSimpleInstance(this, renderersFactory, trackSelector, loadControl, null, bandwidthMeter);
@@ -585,7 +617,27 @@ public class VideoPlaybackService extends Service
     }
     //endregion
 
-    //region Shared Util
+    //region Util
+
+    /**
+     * @return a freshly built load control for the player to use
+     */
+    private DefaultLoadControl buildLoadControl()
+    {
+        //get durations from res
+        int minBuffer = getResources().getInteger(R.integer.playback_min_buffer_duration);
+        int maxBuffer = getResources().getInteger(R.integer.playback_max_buffer_duration);
+        int minStartBuffer = getResources().getInteger(R.integer.playback_min_start_buffer);
+        int minResumeBuffer = getResources().getInteger(R.integer.playback_min_resume_buffer);
+
+        //build load control
+        return new DefaultLoadControl.Builder()
+                .setAllocator(new DefaultAllocator(true, 16))
+                .setTargetBufferBytes(-1)
+                .setPrioritizeTimeOverSizeThresholds(true)
+                .setBufferDurationsMs(minBuffer, maxBuffer, minStartBuffer, minResumeBuffer)
+                .createDefaultLoadControl();
+    }
 
     /**
      * @return is the player object valid?
@@ -621,11 +673,20 @@ public class VideoPlaybackService extends Service
     }
 
     /**
-     * @return does the app have permissions to read external storage?
+     * @return does the app have {@link Manifest.permission#READ_EXTERNAL_STORAGE} permissions?
      */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean hasStoragePermission()
     {
         return checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    /**
+     * @return does the app have {@link Manifest.permission#INTERNET} permissions
+     */
+    private boolean hasInternetPermission()
+    {
+        return checkSelfPermission(Manifest.permission.INTERNET) == PackageManager.PERMISSION_GRANTED;
     }
     //endregion
 }

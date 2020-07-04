@@ -1,6 +1,7 @@
 package de.shadow578.yetanothervideoplayer.ui.playback;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -14,14 +15,15 @@ import de.shadow578.yetanothervideoplayer.feature.controlview.TapToHidePlayerCon
 import de.shadow578.yetanothervideoplayer.feature.gl.GLAnime4K;
 import de.shadow578.yetanothervideoplayer.feature.playback.VideoPlaybackService;
 import de.shadow578.yetanothervideoplayer.feature.playback.VideoPlaybackServiceListener;
+import de.shadow578.yetanothervideoplayer.feature.playerview.PlayerScaleType;
 import de.shadow578.yetanothervideoplayer.feature.playerview.YavpEPlayerView;
+import de.shadow578.yetanothervideoplayer.feature.playerview.YavpPlayerView;
 import de.shadow578.yetanothervideoplayer.ui.AppSettingsActivity;
 import de.shadow578.yetanothervideoplayer.ui.playback.views.ControlQuickSettingsButton;
 import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
 import de.shadow578.yetanothervideoplayer.util.ConfigUtil;
 import de.shadow578.yetanothervideoplayer.util.Logging;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Application;
 import android.app.PendingIntent;
@@ -70,7 +72,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     /**
      * Id of permission request for external storage
      */
-    private static final int PERMISSION_REQUEST_READ_EXT_STORAGE = 0;
+    private static final int PERMISSION_REQUEST_READ_VIDEO_SOURCE = 0;
 
     /**
      * Intent Extra key that tells the player to immediately jump to the given position in the video
@@ -125,6 +127,11 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
      */
     private ControlQuickSettingsButton anime4kQSButton;
 
+    /**
+     * The "go pip" quick settings button
+     */
+    private ControlQuickSettingsButton goPipQSButton;
+
     //endregion
 
     /**
@@ -138,9 +145,17 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     private VideoPlaybackService playbackService;
 
     /**
-     * The View the Player Renders Video to
+     * The View the Player Renders to when using GL video effects
      */
-    private YavpEPlayerView playerView;
+    @Nullable
+    private YavpEPlayerView glPlayerView;
+
+    /**
+     * The View the Player Renders to when not using GL video effects
+     */
+    @SuppressWarnings("FieldCanBeLocal")
+    @Nullable
+    private YavpPlayerView playerView;
 
     /**
      * The View that contains and controls the player controls and also handles gestures for us
@@ -259,6 +274,11 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
          * Message to unblock the buffering indicator
          */
         private static final int UNBLOCK_BUFFERING_INDICATOR = 5;
+
+        /**
+         * hide the system ui navbar
+         */
+        private static final int HIDE_SYSTEM_UI_NAVBAR = 6;
     }
 
     /**
@@ -325,6 +345,12 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                     isBufferingIndicatorBlocked = false;
                     break;
                 }
+                case Messages.HIDE_SYSTEM_UI_NAVBAR:
+                {
+                    //hide system ui
+                    View decor = getWindow().getDecorView();
+                    decor.setSystemUiVisibility(decor.getVisibility() | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+                }
             }
         }
     };
@@ -350,6 +376,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         titleTextView = findViewById(R.id.pb_streamTitle);
         quickAccessDrawer = findViewById(R.id.pb_quick_settings_drawer);
         anime4kQSButton = findViewById(R.id.qs_btn_a4k_tgl);
+        goPipQSButton = findViewById(R.id.qs_btn_pip);
         bufferingIndicatorNormal = findViewById(R.id.pb_playerBufferingWheel_normal);
         bufferingIndicatorPip = findViewById(R.id.pb_playerBufferingWheel_pipmode);
         playButton = findViewById(R.id.exo_play);
@@ -423,43 +450,58 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
 
         //get auto play when launching
         playbackPlayWhenReady = ConfigUtil.getConfigBoolean(this, ConfigKeys.KEY_AUTO_PLAY, R.bool.DEF_AUTO_PLAY);
+
+        //update pip button visibility (hide on devices without pip support)
+        updatePipButtonVisibility();
+
+        //update window flags
+        updateWindowFlags();
+
+        //update effects drawer
+        updateGlEffectsDrawer();
     }
 
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig)
     {
         super.onConfigurationChanged(newConfig);
-        updateFullscreen();
+        updateWindowFlags();
     }
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus)
     {
         super.onWindowFocusChanged(hasFocus);
-        updateFullscreen();
+        if (hasFocus)
+            updateWindowFlags();
     }
 
     /**
      * Update System UI visibility for fullscreen mode
      */
-    private void updateFullscreen()
+    private void updateWindowFlags()
     {
-        if (hasWindowFocus() && isLandscapeOrientation())
+        if (isLandscapeOrientation())
         {
-            //enter fullscreen if in landscape orientation and with focus
-            getWindow().getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+            //enables full screen (immersive) mode
+            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE
+                    // Set the content to appear under the system bars so that the content doesn't resize when the system bars hide and show.
+                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    // Hide the nav bar and status bar
+                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_FULLSCREEN);
         }
         else
         {
             //reset fullscreen when exiting landscape
-            getWindow().getDecorView().setSystemUiVisibility(0);
+            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE
+                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
         }
+
     }
 
     @SuppressWarnings("SwitchStatementWithTooFewBranches")
@@ -474,7 +516,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         //check which permission request this callback handles
         switch (requestCode)
         {
-            case PERMISSION_REQUEST_READ_EXT_STORAGE:
+            case PERMISSION_REQUEST_READ_VIDEO_SOURCE:
             {
                 if (granted)
                 {
@@ -485,7 +527,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                 else
                 {
                     //permissions denied, show toast + close app
-                    Toast.makeText(this, getString(R.string.toast_no_storage_permissions_granted), Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, getString(R.string.toast_no_permissions_granted), Toast.LENGTH_LONG).show();
                     finish();
                 }
             }
@@ -498,7 +540,6 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     protected void onStart()
     {
         super.onStart();
-        Logging.logD("onStart of PlaybackActivity called.");
 
         //create and bind video playback service
         playbackServiceConnection = new VideoServiceConnection();
@@ -515,7 +556,6 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     protected void onResume()
     {
         super.onResume();
-        Logging.logD("onResume of PlaybackActivity called.");
 
         //restore volume and brightness
         restorePersistentValues(true);
@@ -525,7 +565,6 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     protected void onPause()
     {
         super.onPause();
-        Logging.logD("onPause of PlaybackActivity called.");
 
         //save volume and brightness
         savePersistentValues(true);
@@ -535,7 +574,6 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     protected void onStop()
     {
         super.onStop();
-        Logging.logD("onStop of PlaybackActivity called.");
 
         //save playback position to prefs to be able to resume later
         if (!dontSavePlaybackPositionOnExit)
@@ -1018,6 +1056,16 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         return new RemoteAction(icon, getString(titleId), getString(contentDescriptionId), pIntent);
     }
 
+    /**
+     * Updates the PIP quick settings button visibility.
+     * Hides on devices below API 26 (they don't support pip)
+     */
+    private void updatePipButtonVisibility()
+    {
+        if (goPipQSButton != null)
+            goPipQSButton.setVisibility((Util.SDK_INT < 26) ? View.GONE : View.VISIBLE);
+    }
+
     //endregion
 
     //region ~~ Control View / Volume + Brightness change listener
@@ -1034,9 +1082,27 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         setBufferingIndicatorProgress(brightnessPercent);
     }
 
+    @Override
+    public void onNoSwipeClick()
+    {
+        updateWindowFlags();
+    }
+
     //endregion
 
     //region ~~ Utility ~~
+
+    /**
+     * updates the visiblity of the gl effects drawer
+     */
+    private void updateGlEffectsDrawer()
+    {
+        boolean disableGl = ConfigUtil.getConfigBoolean(getApplicationContext(), ConfigKeys.KEY_DISABLE_GL_EFFECTS, R.bool.DEF_DISABLE_GL_EFFECTS);
+
+        //lock effects drawer
+        if (quickAccessDrawer != null)
+            quickAccessDrawer.setDrawerLockMode(disableGl ? DrawerLayout.LOCK_MODE_LOCKED_CLOSED : DrawerLayout.LOCK_MODE_UNLOCKED, GravityCompat.START);
+    }
 
     /**
      * Enable / disable anime4k filter
@@ -1045,6 +1111,9 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
      */
     private void setAnime4kEnabled(boolean enable)
     {
+        //skip if gl player view is null (Anime4K button should be disabled in that case, but better safe than sorry)
+        if (glPlayerView == null) return;
+
         Logging.logD("Setting Anime4K Filter to enabled= %b", enable);
         if (enable)
         {
@@ -1057,7 +1126,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                 anime4KFilter.setPasses(1);
 
                 //set a4k as active filter
-                playerView.setGlFilter(anime4KFilter);
+                glPlayerView.setGlFilter(anime4KFilter);
 
                 //set a4k as video listener
                 if (playbackService.getIsPlayerValid())
@@ -1095,7 +1164,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                 }
 
                 //remove filter (this calls release on the filter)
-                playerView.setGlFilter(null);
+                glPlayerView.setGlFilter(null);
 
                 //set variable to null
                 anime4KFilter = null;
@@ -1220,23 +1289,31 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
      * Check if the app was granted the permission.
      * If not granted, the permission will be requested and false will be returned.
      *
-     * @param permission the permission to check
-     * @param requestId  the request id. Used to check in callback
+     * @param permissions the permission to check
+     * @param requestId   the request id. Used to check in callback
      * @return was the permission granted?
      */
-    private boolean checkAndRequestPermission(@SuppressWarnings("SameParameterValue") String permission, @SuppressWarnings("SameParameterValue") int requestId)
+    private boolean checkAndRequestPermission(String[] permissions, @SuppressWarnings("SameParameterValue") int requestId)
     {
-        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED)
+        //check each permission needed
+        boolean hasMissingPermission = false;
+        for (String perm : permissions)
         {
-            //does not have permission, ask for it
-            ActivityCompat.requestPermissions(this, new String[]{permission}, requestId);
-            return false;
+            if (ContextCompat.checkSelfPermission(this, perm) != PackageManager.PERMISSION_GRANTED)
+            {
+                hasMissingPermission = true;
+                break;
+            }
         }
-        else
+
+        //request missing permissions
+        if (hasMissingPermission)
         {
-            //has permission
-            return true;
+            //does not have all permissions, ask for them
+            ActivityCompat.requestPermissions(this, permissions, requestId);
         }
+
+        return !hasMissingPermission;
     }
 
     /**
@@ -1554,47 +1631,77 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         @Override
         public void onPlayerInitialized()
         {
-            //create new opengl player view
-            playerView = new YavpEPlayerView(playerViewPlaceholder.getContext());
-
-            //adjust layout
-            playerView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-
-            //set player of view
-            playerView.setSimpleExoPlayer(playbackService.getPlayerInstance());
-
-            //set scale type
+            //get scale type to use
+            PlayerScaleType scaleType;
             if (ConfigUtil.getConfigBoolean(getApplicationContext(), ConfigKeys.KEY_SCALE_TO_WIDTH, R.bool.DEF_SCALE_TO_WIDTH))
             {
                 //scale the video to fill the whole width available, even if part of the video is cropped
-                playerView.setPlayerScaleType(YavpEPlayerView.PlayerScaleType.FillWidth);
+                scaleType = PlayerScaleType.FillWidth;
             }
             else
             {
                 //scale the video to fit inside the viewport (avoid cropping the video)
-                playerView.setPlayerScaleType(YavpEPlayerView.PlayerScaleType.Fit);
+                scaleType = PlayerScaleType.Fit;
             }
 
+            View pView;
+            if (ConfigUtil.getConfigBoolean(getApplicationContext(), ConfigKeys.KEY_DISABLE_GL_EFFECTS, R.bool.DEF_DISABLE_GL_EFFECTS))
+            {
+                //use normal player view
+                pView = playerView = new YavpPlayerView(playerViewPlaceholder.getContext());
+
+                //set player of view
+                playerView.setSimplePlayer(playbackService.getPlayerInstance());
+
+                //set scale type
+                playerView.setPlayerScaleType(scaleType);
+            }
+            else
+            {
+                //use gl player view
+                pView = glPlayerView = new YavpEPlayerView(playerViewPlaceholder.getContext());
+
+                //set player of view
+                glPlayerView.setSimpleExoPlayer(playbackService.getPlayerInstance());
+
+                //set scale type
+                glPlayerView.setPlayerScaleType(scaleType);
+            }
+
+            //adjust layout
+            pView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+
+            //remove all previous children
+            playerViewPlaceholder.removeAllViews();
+
             //add player view to placeholder
-            playerViewPlaceholder.addView(playerView);
+            playerViewPlaceholder.addView(pView);
 
             //make controls visible
             setUseController(true);
         }
 
         /**
-         * the media that was attempted to be loaded is on external storage, and the app needs Storage permissions to load the media
+         * the media that was attempted to be loaded is in a location that cannot be accessed with the app's current permissions.
+         * for local files, this means that {@link android.Manifest.permission#READ_EXTERNAL_STORAGE} is missing and should be requested.
+         * for streamed files, {@link android.Manifest.permission#INTERNET} is missing and should be requested.
+         * <p>
          * if this event is called, the media loading has been aborted and the video service is NOT ready for playback!
          * use this event to request the permissions, and call reloadMedia() once you have the needed permissions
+         *
+         * @param permissions the permission(s) that are missing for loading the media
          */
         @Override
-        public void onMissingStoragePermissions()
+        public void onMissingPermissions(@NonNull String[] permissions)
         {
-            //storage permissions are missing, request them
-            if (checkAndRequestPermission(Manifest.permission.READ_EXTERNAL_STORAGE, PERMISSION_REQUEST_READ_EXT_STORAGE))
+            //ignore if permissions list is empty
+            if (permissions.length <= 0) return;
+
+            //request permissions
+            if (checkAndRequestPermission(permissions, PERMISSION_REQUEST_READ_VIDEO_SOURCE))
             {
-                //we already have the permission?? reload the media then!
-                Logging.logD("onMissingStoragePermissions(): we already have those permissions? reload media...");
+                //we already have all permissions? reload media then!
+                Logging.logD("onMissingPermissions(): we already have all permissions? reloading media...");
                 playbackService.reloadMedia();
             }
         }
@@ -1759,6 +1866,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         {
             //controls are visible, unlock drawer
             quickAccessDrawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+            updateGlEffectsDrawer();
         }
 
         /**

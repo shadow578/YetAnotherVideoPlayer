@@ -9,8 +9,8 @@ import android.database.Cursor;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.CancellationSignal;
 import android.provider.MediaStore;
+import android.util.Size;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,6 +26,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.MatchResult;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import de.shadow578.yetanothervideoplayer.R;
 import de.shadow578.yetanothervideoplayer.ui.LaunchActivity;
@@ -148,6 +151,24 @@ public class MediaChooserFragment extends Fragment implements RecyclerMediaEntry
     }
 
     /**
+     * Called when the media card was clicked
+     *
+     * @param cardMedia the media entry of the card
+     */
+    @Override
+    public void onMediaCardClicked(MediaEntry cardMedia)
+    {
+        Logging.logE("Card clicked: %s", cardMedia.toString());
+
+        //launch player activity
+        Intent playbackIntent = new Intent(getContext(), LaunchActivity.class);
+        playbackIntent.setAction(Intent.ACTION_VIEW);
+        playbackIntent.setData(cardMedia.getUri());
+        playbackIntent.putExtra(Intent.EXTRA_TITLE, cardMedia.getTitle());
+        startActivity(playbackIntent);
+    }
+
+    /**
      * initializes and updates the UI according to state.
      */
     private void initAndUpdateUI()
@@ -206,6 +227,8 @@ public class MediaChooserFragment extends Fragment implements RecyclerMediaEntry
         mediaCardsRecycler.setAdapter(adapter);
     }
 
+    //region Media Scanning
+
     /**
      * Use the {@link MediaStore} to get all media matching the {@link #mediaKind} of this fragment
      */
@@ -222,154 +245,144 @@ public class MediaChooserFragment extends Fragment implements RecyclerMediaEntry
         ContentResolver contentResolver = getContext().getContentResolver();
         if (contentResolver == null) return;
 
-        //clear old media
-        mediaEntries.clear();
-
-        //TODO: DATA is depreciated?
-        //query videos
-        if (mediaKind == MediaEntry.MediaKind.VIDEO)
-        {
-            String[] projection = {MediaStore.MediaColumns.DATA, MediaStore.MediaColumns.DISPLAY_NAME, MediaStore.MediaColumns.DATE_MODIFIED};
-            try (Cursor videoCursor = contentResolver.query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                    projection,
-                    null, null,
-                    MediaStore.MediaColumns.DATE_MODIFIED + " ASC"))
-            {
-                addMediaToList(videoCursor, mediaEntries, MediaEntry.MediaKind.VIDEO);
-            }
-        }
-
-        //query music
-        if (mediaKind == MediaEntry.MediaKind.MUSIC)
-        {
-            String[] projection = {MediaStore.MediaColumns.DATA, MediaStore.MediaColumns.DISPLAY_NAME, MediaStore.MediaColumns.DATE_MODIFIED};
-            try (Cursor audioCursor = contentResolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                    projection,
-                    null, null,
-                    MediaStore.MediaColumns.DATE_MODIFIED + " ASC"))
-            {
-                addMediaToList(audioCursor, mediaEntries, MediaEntry.MediaKind.MUSIC);
-            }
-        }
+        //populate list
+        populateMediaList(context, contentResolver, mediaKind);
 
         //finish up
-        Logging.logD("initializeMediaEntries() found %d media entries", mediaEntries.size());
+        Logging.logD("initializeMediaEntries() found %d media entries for kind %s", mediaEntries.size(), mediaKind.toString());
     }
 
     /**
-     * Add all media of the cursor to the list of MediaEntries
-     * Expects the following projection to be used: DATA, DISPLAY_NAME
-     * Other keys may be used for sorting, etc...
+     * populates the media list by using scanMedia to scan for media of the given kind in multiple locations
      *
-     * @param cursor    the cursor, as you get it from {@link ContentResolver#query(Uri, String[], Bundle, CancellationSignal)}
-     * @param mediaList the media list to add media entries to
-     * @param mediaKind what kind of media is this?
+     * @param ctx      the context to scan in
+     * @param resolver content resolver used to query media
+     * @param kind     the kind of media we're scanning for
      */
-    private void addMediaToList(@Nullable Cursor cursor, @NonNull List<MediaEntry> mediaList, @NonNull MediaEntry.MediaKind mediaKind)
+    private void populateMediaList(@NonNull Context ctx, @NonNull ContentResolver resolver, @NonNull MediaEntry.MediaKind kind)
     {
-        //check cursor not null
-        if (cursor == null || cursor.getCount() <= 0)
+        //clear old media first
+        mediaEntries.clear();
+
+        //scan in INTERNAL_STORAGE, EXTERNAL_STORAGE and phoneStorage (HTC seems to need this)
+        //https://stackoverflow.com/questions/4972968/empty-cursor-from-the-mediastore
+        switch (kind)
         {
-            Logging.logE("media Cursor of kind %s was null!", mediaKind.toString());
-            return;
+            case MUSIC:
+                scanMedia(ctx, resolver, new Uri[]{
+                        /*MediaStore.Audio.Media.INTERNAL_CONTENT_URI, -> this is commented since it also finds ringtones*/
+                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                        MediaStore.Audio.Media.getContentUri("phoneStorage")}, kind);
+                break;
+            case VIDEO:
+                scanMedia(ctx, resolver, new Uri[]{
+                        /*MediaStore.Video.Media.INTERNAL_CONTENT_URI,*/
+                        MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                        MediaStore.Video.Media.getContentUri("phoneStorage")}, kind);
+                break;
         }
+    }
 
-        //move to the first position
-        cursor.moveToFirst();
+    /**
+     * Scans the given MediaStore uris for media of the given media kind
+     *
+     * @param ctx      the context to scan in
+     * @param resolver content resolver to use to query media
+     * @param scanUris the uris to scan for media (eg. {@link MediaStore.Video.Media#EXTERNAL_CONTENT_URI})
+     * @param kind     the kind of media we're scanning for (is set in the generated media entries)
+     */
+    private void scanMedia(@NonNull Context ctx, @NonNull ContentResolver resolver, @NonNull Uri[] scanUris, @NonNull MediaEntry.MediaKind kind)
+    {
+        //prepare query options
+        //TODO: DATA deprecated?
+        String[] projection = {MediaStore.MediaColumns.DATA, MediaStore.MediaColumns.DISPLAY_NAME, MediaStore.MediaColumns.DATE_MODIFIED};
+        if (kind == MediaEntry.MediaKind.VIDEO)
+        {
+            projection = new String[]{MediaStore.MediaColumns.DATA, MediaStore.MediaColumns.DISPLAY_NAME, MediaStore.MediaColumns.DATE_MODIFIED, MediaStore.Video.VideoColumns.RESOLUTION};
+        }
+        String sort = MediaStore.MediaColumns.DATE_MODIFIED + " DESC";
 
-        //add all media to the list of MediaEntries
+        //prepare metadata resolver
         MediaMetadataRetriever metadataRetriever = new MediaMetadataRetriever();
-        do
+
+        //scan every uri
+        for (Uri scanUri : scanUris)
         {
-            String uriStr;
-            String title;
-
-            //get basic info (data(=uri), title (=display_name)
-            try
+            Logging.logD("Scanning uri %s for media of kind %s...", scanUri.toString(), kind.toString());
+            try (Cursor c = resolver.query(scanUri, projection, null, null, sort))
             {
-                uriStr = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA));
-                title = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME));
-            }
-            catch (IllegalArgumentException e)
-            {
-                //failed to find either DATA or DISPLAY_NAME column
-                Logging.logE("failed to find column DATA or DISPLAY_NAME for kind %s!", mediaKind.toString());
-                e.printStackTrace();
-                continue;
-            }
+                //check cursor is ok to use
+                if (c == null || c.getCount() <= 0) continue;
 
-            //parse uri
-            Uri uri = Uri.parse(uriStr);
+                //get indices of data
+                int iDATA = c.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
+                int iDISPLAY_NAME = c.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME);
+                int iRESOLUTION = -1;
+                if (kind == MediaEntry.MediaKind.VIDEO)
+                    iRESOLUTION = c.getColumnIndexOrThrow(MediaStore.Video.VideoColumns.RESOLUTION);
 
-            //skip if invalid uri
-            if (!isMediaUriValid(uri))
-            {
-                Logging.logW("Encountered invalid media uri: %s", uri == null ? "URI NULL" : uri.toString());
-                continue;
-            }
+                //move cursor to first position, skip if that fails
+                if (!c.moveToFirst()) continue;
 
-            //try to get extra metadata for media
-            int duration = 0;
-            try
-            {
-                metadataRetriever.setDataSource(getContext(), uri);
-                String durationStr = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
-                if (durationStr != null && !durationStr.isEmpty())
+                //process cursor positions
+                Uri mediaUri;
+                String title;
+                int duration;
+                Size vSize = null;
+                do
                 {
-                    duration = Integer.parseInt(durationStr) / 1000;//ms to s
-                }
+                    //get fields from position
+                    mediaUri = Uri.parse(c.getString(iDATA));
+                    title = c.getString(iDISPLAY_NAME);
+                    if (kind == MediaEntry.MediaKind.VIDEO)
+                        vSize = parseSize(c.getString(iRESOLUTION));
 
-                //extract title from metadata
-                String mdTitle = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-                if (mdTitle != null && !mdTitle.isEmpty())
-                {
-                    title = mdTitle;
-                }
+                    //skip if media uri is not valid
+                    if (!isMediaUriValid(mediaUri))
+                    {
+                        Logging.logE("skipping invalid medai uri %s", mediaUri == null ? "NULL" : mediaUri.toString());
+                        continue;
+                    }
 
-                //TODO: get resolution in a different way, this is way too slow
-                //Size vidSize = null;
-                //if (mediaKind == MediaEntry.MediaKind.VIDEO)
-                //{
-                //    //for resolution, we just take some random frame of the video and get it's resolution
-                //    Bitmap randomFrame = metadataRetriever.getFrameAtTime();
-                //    if (randomFrame != null)
-                //        vidSize = new Size(randomFrame.getWidth(), randomFrame.getHeight());
-                //}
+                    //try and get extra data for media
+                    duration = 0;
+                    try
+                    {
+                        //set datasource
+                        metadataRetriever.setDataSource(ctx, mediaUri);
+
+                        //get raw metadata
+                        String titleStr = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+                        String durationStr = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+
+                        //use title from metadata if it's valid
+                        if (titleStr != null && !titleStr.isEmpty())
+                            title = titleStr;
+
+                        //use duration from metadata if it's valid
+                        //metadata duration is in ms, but we need seconds, so divide by 1000
+                        if (durationStr != null && !durationStr.isEmpty())
+                            duration = Integer.parseInt(durationStr) / 1000;
+                    }
+                    catch (IllegalArgumentException metadataEx)
+                    {
+                        Logging.logE("Error getting metadata for media %s!", mediaUri.toString());
+                        metadataEx.fillInStackTrace();
+                    }
+
+                    //create and add media entry
+                    MediaEntry entry = new MediaEntry(kind, mediaUri, title, duration, vSize);
+                    mediaEntries.add(entry);
+                    Logging.logD("add entry %s to media list. new size is %d", entry.toString(), mediaEntries.size());
+                }
+                while (c.moveToNext());
             }
-            catch (IllegalArgumentException mdEx)
+            catch (IllegalArgumentException scanEx)
             {
-                //log error
-                Logging.logE("Error retrieving metadata for media file %s!", uri.toString());
-                mdEx.fillInStackTrace();
+                Logging.logE("scanning uri %s failed with exception", scanUri.toString());
+                scanEx.printStackTrace();
             }
-
-            //skip if duration is zero
-            if (duration <= 0) continue;
-
-            //create and add media entry
-            MediaEntry entry = new MediaEntry(mediaKind, uri, title, duration, null);
-            mediaList.add(entry);
-            Logging.logD("add MediaEntry %s; list size: %d", entry.toString(), mediaList.size());
         }
-        while (cursor.moveToNext());
-    }
-
-    /**
-     * Called when the media card was clicked
-     *
-     * @param cardMedia the media entry of the card
-     */
-    @Override
-    public void onMediaCardClicked(MediaEntry cardMedia)
-    {
-        Logging.logE("Card clicked: %s", cardMedia.toString());
-
-        //launch player activity
-        Intent playbackIntent = new Intent(getContext(), LaunchActivity.class);
-        playbackIntent.setAction(Intent.ACTION_VIEW);
-        playbackIntent.setData(cardMedia.getUri());
-        playbackIntent.putExtra(Intent.EXTRA_TITLE, cardMedia.getTitle());
-        startActivity(playbackIntent);
     }
 
     /**
@@ -388,6 +401,57 @@ public class MediaChooserFragment extends Fragment implements RecyclerMediaEntry
         File mediaFile = new File(mediaUri.getPath());
         return mediaFile.exists();
     }
+
+    /**
+     * parses a size from a string in format WxH
+     *
+     * @param sizeStr the size string (eg. 1920x1080)
+     * @return the size parsed
+     */
+    @Nullable
+    private Size parseSize(@Nullable String sizeStr)
+    {
+        //check size string is ok to parse
+        if (sizeStr == null || sizeStr.isEmpty()) return null;
+
+        //compile regex for size parsing
+        //matches WxH, W in cg1, H in cg2
+        final Pattern sizeRegex = Pattern.compile("^(\\d+)[x×](\\d+)$");
+
+        //match size string against pattern
+        Matcher matcher = sizeRegex.matcher(sizeStr);
+
+        //is right format?
+        if (!matcher.find()) return null;
+
+        //get match results. do we have two capture groups?
+        MatchResult result = matcher.toMatchResult();
+        if (result.groupCount() != 2) return null;
+
+        //get width and height from cg1 and cg2
+        String widthStr = result.group(1);
+        String heightStr = result.group(2);
+
+        //try to parse width and height to int
+        int width;
+        int height;
+        try
+        {
+            width = Integer.parseInt(widthStr);
+            height = Integer.parseInt(heightStr);
+        }
+        catch (NumberFormatException ignored)
+        {
+            return null;
+        }
+
+        //all ok, return the size
+        return new Size(width, height);
+    }
+
+    //endregion
+
+    //region Permissions Util
 
     /**
      * @return do we have READ_EXTERNAL_STORAGE permissions granted?
@@ -428,4 +492,5 @@ public class MediaChooserFragment extends Fragment implements RecyclerMediaEntry
             initAndUpdateUI();
         }
     }
+    //endregion
 }
