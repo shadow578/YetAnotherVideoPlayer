@@ -24,7 +24,6 @@ import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
 import de.shadow578.yetanothervideoplayer.util.ConfigUtil;
 import de.shadow578.yetanothervideoplayer.util.Logging;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Application;
 import android.app.PendingIntent;
@@ -73,7 +72,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
     /**
      * Id of permission request for external storage
      */
-    private static final int PERMISSION_REQUEST_READ_EXT_STORAGE = 0;
+    private static final int PERMISSION_REQUEST_READ_VIDEO_SOURCE = 0;
 
     /**
      * Intent Extra key that tells the player to immediately jump to the given position in the video
@@ -517,7 +516,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         //check which permission request this callback handles
         switch (requestCode)
         {
-            case PERMISSION_REQUEST_READ_EXT_STORAGE:
+            case PERMISSION_REQUEST_READ_VIDEO_SOURCE:
             {
                 if (granted)
                 {
@@ -528,7 +527,7 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
                 else
                 {
                     //permissions denied, show toast + close app
-                    Toast.makeText(this, getString(R.string.toast_no_storage_permissions_granted), Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, getString(R.string.toast_no_permissions_granted), Toast.LENGTH_LONG).show();
                     finish();
                 }
             }
@@ -1290,23 +1289,31 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
      * Check if the app was granted the permission.
      * If not granted, the permission will be requested and false will be returned.
      *
-     * @param permission the permission to check
-     * @param requestId  the request id. Used to check in callback
+     * @param permissions the permission to check
+     * @param requestId   the request id. Used to check in callback
      * @return was the permission granted?
      */
-    private boolean checkAndRequestPermission(@SuppressWarnings("SameParameterValue") String permission, @SuppressWarnings("SameParameterValue") int requestId)
+    private boolean checkAndRequestPermission(String[] permissions, @SuppressWarnings("SameParameterValue") int requestId)
     {
-        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED)
+        //check each permission needed
+        boolean hasMissingPermission = false;
+        for (String perm : permissions)
         {
-            //does not have permission, ask for it
-            ActivityCompat.requestPermissions(this, new String[]{permission}, requestId);
-            return false;
+            if (ContextCompat.checkSelfPermission(this, perm) != PackageManager.PERMISSION_GRANTED)
+            {
+                hasMissingPermission = true;
+                break;
+            }
         }
-        else
+
+        //request missing permissions
+        if (hasMissingPermission)
         {
-            //has permission
-            return true;
+            //does not have all permissions, ask for them
+            ActivityCompat.requestPermissions(this, permissions, requestId);
         }
+
+        return !hasMissingPermission;
     }
 
     /**
@@ -1675,18 +1682,26 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         }
 
         /**
-         * the media that was attempted to be loaded is on external storage, and the app needs Storage permissions to load the media
+         * the media that was attempted to be loaded is in a location that cannot be accessed with the app's current permissions.
+         * for local files, this means that {@link android.Manifest.permission#READ_EXTERNAL_STORAGE} is missing and should be requested.
+         * for streamed files, {@link android.Manifest.permission#INTERNET} is missing and should be requested.
+         * <p>
          * if this event is called, the media loading has been aborted and the video service is NOT ready for playback!
          * use this event to request the permissions, and call reloadMedia() once you have the needed permissions
+         *
+         * @param permissions the permission(s) that are missing for loading the media
          */
         @Override
-        public void onMissingStoragePermissions()
+        public void onMissingPermissions(@NonNull String[] permissions)
         {
-            //storage permissions are missing, request them
-            if (checkAndRequestPermission(Manifest.permission.READ_EXTERNAL_STORAGE, PERMISSION_REQUEST_READ_EXT_STORAGE))
+            //ignore if permissions list is empty
+            if (permissions.length <= 0) return;
+
+            //request permissions
+            if (checkAndRequestPermission(permissions, PERMISSION_REQUEST_READ_VIDEO_SOURCE))
             {
-                //we already have the permission?? reload the media then!
-                Logging.logD("onMissingStoragePermissions(): we already have those permissions? reload media...");
+                //we already have all permissions? reload media then!
+                Logging.logD("onMissingPermissions(): we already have all permissions? reloading media...");
                 playbackService.reloadMedia();
             }
         }

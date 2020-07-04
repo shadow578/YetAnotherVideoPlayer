@@ -1,9 +1,11 @@
 package de.shadow578.yetanothervideoplayer.feature.update;
 
+import android.Manifest;
 import android.os.AsyncTask;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresPermission;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -115,6 +117,7 @@ public class AppUpdateManager
      *
      * @param callback callback to compare version strings to the current version
      */
+    @RequiresPermission(Manifest.permission.INTERNET)
     public void checkForUpdate(@NonNull UpdateCallback callback)
     {
         //get url

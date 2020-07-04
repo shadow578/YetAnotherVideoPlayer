@@ -1,7 +1,10 @@
 package de.shadow578.yetanothervideoplayer.ui.mediapicker;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -13,6 +16,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import de.shadow578.yetanothervideoplayer.BuildConfig;
@@ -159,19 +164,30 @@ public class AppMoreFragment extends Fragment implements View.OnClickListener
      */
     private void checkForUpdate()
     {
+        //get activity context
+        final Activity ctx = getActivity();
+        if (ctx == null) return;
+
         //disable the update button while searching
         updateCheckButton.setEnabled(false);
 
+        //check for INTERNET permissions first
+        if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED)
+        {
+            ActivityCompat.requestPermissions(ctx, new String[]{Manifest.permission.INTERNET}, 0);
+            Toast.makeText(getContext(), R.string.update_check_fail_toast, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         //check for a update
-        Toast.makeText(getContext(), R.string.more_update_check_start_toast, Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), R.string.update_check_start_toast, Toast.LENGTH_SHORT).show();
         updateManager.checkForUpdate(new DefaultUpdateCallback()
         {
             @Override
             public void onUpdateCheckFinished(@Nullable UpdateInfo update, boolean failed)
             {
                 //check if update check failed
-                Context ctx = getContext();
-                if (failed || ctx == null || updateHelper == null)
+                if (failed || updateHelper == null)
                 {
                     Toast.makeText(getContext(), R.string.more_update_check_failed_toast, Toast.LENGTH_LONG).show();
                     return;

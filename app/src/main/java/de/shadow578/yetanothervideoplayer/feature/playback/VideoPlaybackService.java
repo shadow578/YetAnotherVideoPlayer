@@ -196,10 +196,40 @@ public class VideoPlaybackService extends Service
             //missing permissions
             Logging.logE("Missing local storage permissions!");
             if (eventListener != null)
-                eventListener.onMissingStoragePermissions();
+                eventListener.onMissingPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE});
 
             //abort load
             return;
+        }
+
+        //check we have all required permissions
+        if (isLocalFile(mediaUri))
+        {
+            //local file, need READ_EXTERNAL_STORAGE permissions
+            if (!hasStoragePermission())
+            {
+                //missing permissions
+                Logging.logE("Missing local storage permissions for local file!");
+                if (isEventListenerValid())
+                    eventListener.onMissingPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE});
+
+                //abort load
+                return;
+            }
+        }
+        else
+        {
+            //streamed file, need INTERNET permissions
+            if (!hasInternetPermission())
+            {
+                //missing permissions
+                Logging.logE("Missing internet permissions for streamed file!");
+                if (isEventListenerValid())
+                    eventListener.onMissingPermissions(new String[]{Manifest.permission.INTERNET});
+
+                //abort load
+                return;
+            }
         }
 
         //load media from the uri
@@ -643,11 +673,20 @@ public class VideoPlaybackService extends Service
     }
 
     /**
-     * @return does the app have permissions to read external storage?
+     * @return does the app have {@link Manifest.permission#READ_EXTERNAL_STORAGE} permissions?
      */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean hasStoragePermission()
     {
         return checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    /**
+     * @return does the app have {@link Manifest.permission#INTERNET} permissions
+     */
+    private boolean hasInternetPermission()
+    {
+        return checkSelfPermission(Manifest.permission.INTERNET) == PackageManager.PERMISSION_GRANTED;
     }
     //endregion
 }

@@ -31,7 +31,7 @@
     <string name="quick_settings_anime4k">Anime4K</string>
 
     <!-- Toast Strings -->
-    <string name="toast_no_storage_permissions_granted">No Storage Permissions granted! Permissions are required to play local files.</string>
+    <string name="toast_no_permissions_granted">Required permissions to play this file are missing. Please grant Internet and Storage permissions.</string>
     <string name="toast_invalid_playback_uri">Invalid Playback URI!</string>
     <string name="toast_press_back_again_to_exit">Press Back again to exit</string>
 </resources>
