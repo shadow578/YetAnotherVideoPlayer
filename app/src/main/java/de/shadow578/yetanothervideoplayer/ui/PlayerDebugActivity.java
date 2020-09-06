@@ -12,7 +12,6 @@ import android.widget.CompoundButton;
 import android.widget.Switch;
 
 import de.shadow578.yetanothervideoplayer.R;
-import de.shadow578.yetanothervideoplayer.ui.mediapicker.MediaPickerActivity;
 import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
 import de.shadow578.yetanothervideoplayer.util.Logging;
 

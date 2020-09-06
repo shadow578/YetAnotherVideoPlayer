@@ -87,6 +87,16 @@
     <string name="settings_a4k_why_limit_fps_title">Why limit FPS?</string>
     <string name="settings_a4k_why_limit_fps_summary">Although Anime4K requires comparatively little processing power, it can easily overload a smartphone GPU, especially at higher resolutions. \nLimiting the FPS reduces the load on the GPU and helps to conserve the battery (at least somewhat).</string>
 
+    <!-- Settings: fixes -->
+    <string name="settings_fix_title">Stream URL Fixes</string>
+    <string name="settings_fix_info">Stream URL fixes try to fix incoming urls to make them able to play.\nFixes are still (and probably will be forever) considered experimental.\nFixes are only applied to urls matching the pattern specified by the fix and are never applied to local files.</string>
+    <string name="settings_fix_global_en_title">Enable Stream URL Fixes</string>
+    <string name="settings_fix_global_en_on">Stream URL fixes are enabled</string>
+    <string name="settings_fix_global_en_off">Stream URL fixes are disabled</string>
+    <string name="settings_fix_generic_en_on">This fix is enabled</string>
+    <string name="settings_fix_generic_en_off">This fix is disabled</string>
+    <string name="settings_fix_4anime_title">4Anime (nginx 403)</string>
+
     <!-- Settings: about -->
     <string name="settings_about_title">About YAVP</string>
     <string name="settings_about_yavp">YAVP by shadow578</string>

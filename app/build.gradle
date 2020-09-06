@@ -86,4 +86,7 @@ dependencies {
     //exoplayer
     implementation 'com.google.android.exoplayer:exoplayer:2.10.4'
     implementation 'com.github.MasayukiSuda:ExoPlayerFilter:v0.2.4'
+
+    //http (currently only 4anime fix)
+    compile 'com.squareup.okhttp:okhttp:2.5.0'
 }

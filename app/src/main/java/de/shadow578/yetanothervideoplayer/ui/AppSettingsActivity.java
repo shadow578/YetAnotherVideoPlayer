@@ -152,6 +152,16 @@ public class AppSettingsActivity extends AppCompatActivity implements
         }
     }
 
+    public static class PreferencesFixesConfigFragment extends PreferenceFragmentCompat
+    {
+
+        @Override
+        public void onCreatePreferences(Bundle savedInstanceState, String rootKey)
+        {
+            setPreferencesFromResource(R.xml.preferences_fixes, rootKey);
+        }
+    }
+
     public static class PreferencesAboutFragment extends PreferenceFragmentCompat
     {
 

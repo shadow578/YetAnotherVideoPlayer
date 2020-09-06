@@ -17,6 +17,12 @@ public class YAVPApp extends Application implements Thread.UncaughtExceptionHand
     private static final int MAX_STACK_TRACE_SIZE = 131000;
 
     /**
+     * user agent globally used by yavp
+     * for now, this is just the one used by google chrome on android as i dont really care :P(see https://developer.chrome.com/multidevice/user-agent)
+     */
+    public static final String YAVP_USER_AGENT = "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19";
+
+    /**
      * Crash listener that is called before the process is killed.
      */
     ICrashListener crashListener;

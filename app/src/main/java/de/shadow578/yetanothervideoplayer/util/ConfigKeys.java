@@ -201,4 +201,16 @@ public final class ConfigKeys
     public static final String KEY_IGNORE_UPDATE_VERSION = "IGNORE_UPDATE_VERSION";
 
     //endregion
+
+    //region ~~ StreamRequestFixes ~~
+    /**
+     * are IStreamRequestFix fixes enabled globally
+     */
+    public static final String KEY_GLOBAL_ENABLE_STEAM_FIXES = "GLOBAL_ENABLE_STREAM_FIXES";
+
+    /**
+     * is the StreamRequestFix for 4Anime ({@link de.shadow578.yetanothervideoplayer.feature.streamfixes.FourAnimeFix}) enabled?
+     */
+    public static final String KEY_ENABLE_4ANIME_FIX = "ENABLE_4ANIME_FIX";
+    //endregion
 }

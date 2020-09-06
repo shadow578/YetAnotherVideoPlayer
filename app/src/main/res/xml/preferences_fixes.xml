@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="@string/settings_fix_title"/>
+
+    <PreferenceScreen
+        android:summary="@string/settings_fix_info"/>
+
+    <SwitchPreference
+        android:defaultValue="false"
+        android:key="GLOBAL_ENABLE_STREAM_FIXES"
+        android:summaryOff="@string/settings_fix_global_en_off"
+        android:summaryOn="@string/settings_fix_global_en_on"
+        android:title="@string/settings_fix_global_en_title" />
+
+    <SwitchPreference
+        android:defaultValue="true"
+        android:dependency="GLOBAL_ENABLE_STREAM_FIXES"
+        android:key="ENABLE_4ANIME_FIX"
+        android:summaryOff="@string/settings_fix_generic_en_off"
+        android:summaryOn="@string/settings_fix_generic_en_on"
+        android:title="@string/settings_fix_4anime_title" />
+</PreferenceScreen>

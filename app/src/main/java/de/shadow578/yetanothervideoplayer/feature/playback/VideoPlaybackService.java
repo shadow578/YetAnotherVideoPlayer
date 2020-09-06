@@ -25,9 +25,9 @@ import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.upstream.DefaultAllocator;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
-import com.google.android.exoplayer2.util.Util;
 
 import de.shadow578.yetanothervideoplayer.R;
+import de.shadow578.yetanothervideoplayer.YAVPApp;
 import de.shadow578.yetanothervideoplayer.util.Logging;
 
 /**
@@ -65,7 +65,7 @@ public class VideoPlaybackService extends Service
         Logging.logD("VideoPlaybackService.onBind()");
 
         //create the media factory
-        mediaFactory = new UniversalMediaSourceFactory(this, Util.getUserAgent(this, getPackageName()));
+        mediaFactory = new UniversalMediaSourceFactory(this, YAVPApp.YAVP_USER_AGENT);
 
         //initialize the player
         initializePlayer();
@@ -191,7 +191,8 @@ public class VideoPlaybackService extends Service
         if (!isPlayerValid()) return;
 
         //check if we need permissions to access the uri (=local file) but dont have them
-        if (isLocalFile(mediaUri) && !hasStoragePermission())
+        boolean isLocalFile = isLocalFile(mediaUri);
+        if (isLocalFile && !hasStoragePermission())
         {
             //missing permissions
             Logging.logE("Missing local storage permissions!");
@@ -203,7 +204,7 @@ public class VideoPlaybackService extends Service
         }
 
         //check we have all required permissions
-        if (isLocalFile(mediaUri))
+        if (isLocalFile)
         {
             //local file, need READ_EXTERNAL_STORAGE permissions
             if (!hasStoragePermission())
@@ -231,6 +232,10 @@ public class VideoPlaybackService extends Service
                 return;
             }
         }
+
+        //call event listener for mid- load injection
+        if (isEventListenerValid())
+            mediaUri = eventListener.onLoadMediaPre(mediaUri, isLocalFile);
 
         //load media from the uri
         player.prepare(mediaFactory.createMediaSource(mediaUri), true, true);

@@ -18,6 +18,8 @@ import de.shadow578.yetanothervideoplayer.feature.playback.VideoPlaybackServiceL
 import de.shadow578.yetanothervideoplayer.feature.playerview.PlayerScaleType;
 import de.shadow578.yetanothervideoplayer.feature.playerview.YavpEPlayerView;
 import de.shadow578.yetanothervideoplayer.feature.playerview.YavpPlayerView;
+import de.shadow578.yetanothervideoplayer.feature.streamfixes.FourAnimeFix;
+import de.shadow578.yetanothervideoplayer.feature.streamfixes.IStreamRequestFix;
 import de.shadow578.yetanothervideoplayer.ui.AppSettingsActivity;
 import de.shadow578.yetanothervideoplayer.ui.playback.views.ControlQuickSettingsButton;
 import de.shadow578.yetanothervideoplayer.util.ConfigKeys;
@@ -1821,6 +1823,68 @@ public class PlaybackActivity extends AppCompatActivity implements YAVPApp.ICras
         public void onNewMetadata(Metadata metadata)
         {
 
+        }
+
+        /**
+         * called before a media url is loaded into the player, after local file and permission checks.
+         * use to change the url mid load. If not needed, just return mediaUri
+         *
+         * @param mediaUri    the media uri about to be loaded
+         * @param isLocalFile is this a local file?
+         * @return the media uri to load instead
+         */
+        public Uri onLoadMediaPre(Uri mediaUri, boolean isLocalFile)
+        {
+            //check url fixes are enabled at all
+            SharedPreferences appPrefs = ConfigUtil.getAppConfig(PlaybackActivity.this);
+            if (!appPrefs.getBoolean(ConfigKeys.KEY_GLOBAL_ENABLE_STEAM_FIXES, false))
+            {
+                Logging.logD("stream url fixes are disabled globally, skipping...");
+                return mediaUri;
+            }
+
+            //no fixes for local files
+            if (isLocalFile)
+                return mediaUri;
+
+            //apply fixes
+            String url = mediaUri.toString();
+            final IStreamRequestFix[] fixes = new FourAnimeFix[]{new FourAnimeFix()};
+            for (IStreamRequestFix fix : fixes)
+            {
+                //check if have all permissions needed for fix
+                boolean isPermissionMissing = false;
+                for (String perm : fix.getPermissionsNeeded())
+                {
+                    if (ContextCompat.checkSelfPermission(PlaybackActivity.this, perm) != PackageManager.PERMISSION_GRANTED)
+                    {
+                        isPermissionMissing = true;
+                        break;
+                    }
+                }
+
+                //check if have all permissions and should fix
+                if (!isPermissionMissing && fix.shouldFix(url, appPrefs))
+                {
+                    //call fix
+                    String urlFixed = fix.fixUrl(url, YAVPApp.YAVP_USER_AGENT);
+                    if (urlFixed == null) continue;
+
+                    //check if url
+                    Uri uriFixed = Uri.parse(urlFixed);
+                    if (!url.equals(urlFixed) && uriFixed != null)
+                    {
+                        //url changed, use that url
+                        Toast.makeText(PlaybackActivity.this, "Applied fix: " + fix.getDisplayName(), Toast.LENGTH_SHORT).show();
+                        Logging.logD("fix applied to url by %s", fix.getDisplayName());
+                        return uriFixed;
+                    }
+                }
+            }
+
+            //no fix, use original uri
+            Logging.logD("no fix applied to url");
+            return mediaUri;
         }
     }
 

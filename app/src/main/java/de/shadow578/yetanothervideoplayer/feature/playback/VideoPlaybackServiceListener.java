@@ -1,6 +1,8 @@
 package de.shadow578.yetanothervideoplayer.feature.playback;
 
 
+import android.net.Uri;
+
 import androidx.annotation.NonNull;
 
 import com.google.android.exoplayer2.metadata.Metadata;
@@ -68,4 +70,14 @@ public interface VideoPlaybackServiceListener
      * @param metadata the metadata received
      */
     void onNewMetadata(Metadata metadata);
+
+    /**
+     * called before a media url is loaded into the player, after local file and permission checks.
+     * use to change the url mid load. If not needed, just return mediaUri
+     *
+     * @param mediaUri    the media uri about to be loaded
+     * @param isLocalFile is this a local file?
+     * @return the media uri to load instead
+     */
+    Uri onLoadMediaPre(Uri mediaUri, boolean isLocalFile);
 }
