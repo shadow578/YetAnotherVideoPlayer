@@ -15,7 +15,7 @@ With that out of the way, here are some reasons you might want to consider using
 
 * YAVP is fully __Open Source__
 	* The source code of YAVP and all libraries is open source and can be found [here](#used-librarys)
-* YAVP __will (and cannot)__ spy on your data
+* YAVP __will not (and cannot)__ spy on your data
 	* Take a look [here](#what-permissions-does-yavp-use) to see what permissions YAVP uses
 * YAVP is __completely free and without ads__
 * YAVP does __not__ include any Trackers
