@@ -1,3 +1,13 @@
+# End of Support
+
+I'm sorry to inform you that, as of this commit, YAVP will no longer receive any updates. <br>
+If you want to continue development of YAVP, feel free to fork the project.
+
+For users seeking an alternative, i'd recommend using [VLC for Android](https://www.videolan.org/vlc/download-android.html) or [moneytoo/Player](https://github.com/moneytoo/Player).
+
+---
+
+
 # Yet Another Video Player
 Yet Another Video Player (or YAVP) is a Video Player for Android that is based on Googles [ExoPlayer](https://github.com/google/ExoPlayer). 
 <br/><br/>
